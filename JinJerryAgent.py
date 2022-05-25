@@ -147,28 +147,26 @@ if __name__ == "__main__":
     bear = RandomCreature(12, 20, 3, actions = [sword], name = "Bear")
     fuzzy = RandomCreature(12, 20, 3, actions = [bow], name = "Fuzzy Wuzzy")
 
-    grid = Grid(15, 15, space = 3)
+    grid = Grid(6, 6, space = 3)
 
     monster_pos = [(0,0), (0,1)]
     player_pos = [(5,5), (5,4)]
 
-    game = Game(players = [ducky, elmo], monsters = [fuzzy, bear],map = grid)
-    game.set_up_board(player_pos, monster_pos)
+    game = Game(players = [ducky, elmo], monsters = [fuzzy, bear],map = grid, player_pos=player_pos, monster_pos=monster_pos)
+    #game.set_up_board(player_pos, monster_pos)
     player_wins = 0 
     monster_wins = 0 
     ties = 0 
 
     for i in range(20):
-        winner = game.play_game()
+        winner = game.play_game(debug=False)[0]
         if winner == PLAYERTEAM:
             player_wins += 1 
         elif winner == MONSTERTEAM:
             monster_wins += 1 
         else:
             ties += 1 
-        
-        game.long_rest() 
-        game.set_up_board(player_pos, monster_pos) 
+
     
     print("Player wins: {}, Monster wins: {}, Ties:{}".format(player_wins, monster_wins, ties))
 

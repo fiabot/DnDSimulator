@@ -5,7 +5,7 @@ class RandomCreature(Creature):
     def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False):
         super().__init__(ac, hp, speed, position, name, team, actions, rolled)
     
-    def turn(self, map, intitative, order):
+    def turn(self, map, initiative, order):
         return random.choice(self.avail_actions(map))
 
 class HumanCreature(Creature):
@@ -73,6 +73,6 @@ if __name__ == "__main__":
     monster_pos = [(0,0), (0,1)]
     player_pos = [(5,5), (5,4)]
 
-    game = Game([random1, elmo], [random2, bear],grid)
-    game.set_up_board(player_pos, monster_pos)
+    game = Game(players = [random1, elmo], monsters = [random2, bear],map =grid, player_pos = player_pos, monster_pos = monster_pos)
     #game.play_game(debug=True)
+    game.play_game(debug=True)

@@ -1,7 +1,11 @@
+from cgitb import reset
+from copy import deepcopy
 import random
 
 PLAYERTEAM = "player"
 MONSTERTEAM = "monster"
+TIE = "tie"
+INCOMPLETE = "incomplete"
 
 
 class Condition:
@@ -153,13 +157,13 @@ class Creature:
         else:
             return self.null.avail_actions(self, grid) 
     
-    def turn(self, grid, creature_order, intitative):
+    def turn(self, map, order, initiative):
         """
         return a movement and an action
 
         by default will choose first action
         """
-        return self.avail_actions(grid)[0]
+        return self.avail_actions(map)[0]
     
     def long_rest(self):
         """
@@ -469,18 +473,21 @@ class Grid():
         return return_str 
 
 class Game():
-    def __init__(self, players, monsters, map):
+    def __init__(self, players, monsters, player_pos, monster_pos, map):
         """
         set up game given a list of monsters, players 
         and a starting map  
         """
 
         self.monsters = monsters 
-        self.players = players 
-        self.set_teams()
+        self.players = players  
         self.map = map 
+        self.player_pos = player_pos 
+        self.monster_pos = monster_pos 
 
-    def set_up_board(self, player_pos, monster_pos):
+        self.reset() 
+
+    def set_up_board(self):
         """
         clear map, set staring positions, add monsters
         and players to grid 
@@ -492,10 +499,10 @@ class Game():
         self.map.clear_grid() 
 
         for i,monster in enumerate(self.monsters):
-            monster.position = monster_pos[i]
+            monster.position = self.monster_pos[i]
         
         for i,player in enumerate(self.players):
-            player.position = player_pos[i]
+            player.position = self.player_pos[i]
         
         self.map.place_pieces(self.monsters)
         self.map.place_pieces(self.players)
@@ -569,62 +576,100 @@ class Game():
         for player in self.players: 
             player_health += " {} : {} ".format(player, player.hp)
         print(player_health)
+    
+    def reset(self):
+        self.set_teams() 
+        self.set_up_board()
+        self.long_rest() 
+        self.order = self.roll_initiative() 
+        self.turn = 0 
+        self.round = 0 
+    
+    def create_copy(self):
+        return deepcopy(self)
+    
+    def next_creature(self):
+        return self.order[self.turn]
+    
+    def update_init(self):
+        creature = self.next_creature()
+        self.turn += 1 
 
-    def play_game(self, turn_limit = 20, debug = False):
-        order = self.roll_initiative()
-        turn = 0 
+        # top of init
+        if self.turn >= len(self.order):
+            self.turn = 0 
+            self.round += 1 
+        return creature 
+    
+    def get_winner(self):
+        monster_defeat = self.team_defeated(self.monsters)
+        player_defeat = self.team_defeated(self.players)
+
+        if monster_defeat and not player_defeat:
+            return PLAYERTEAM
+        elif player_defeat and not monster_defeat:
+            return MONSTERTEAM 
+        elif monster_defeat and player_defeat:
+            return TIE
+        else:
+            return INCOMPLETE 
+        
+    def next_turn(self, creature, action, debug):
+        """
+        complete a turn given a creature 
+        and an action
+        """
+        if creature.condition.can_move or creature.condition.can_act: 
+
+            #move creature 
+            self.map.move_piece(creature, action[0])
+
+            # complete actions 
+            action[1].execute()
+
+            if debug:
+                print("\n {}'s Turn".format(creature))
+                print(self.map)
+                print("Action: {} ".format(action[1])) 
+                print("\n")
+                self.display_health()
+                print("\n")
+
+            self.map.clear_dead() 
+
+    def play_game(self, round_limit = 50, debug = False):
+        self.reset() 
 
         if debug:
             print(self.map)
 
-        while not self.team_defeated(self.monsters) and not self.team_defeated(self.players) and turn < turn_limit:
-            for initiative, creature in enumerate(order):
-                if creature.condition.can_move or creature.condition.can_act: 
-                    action = creature.turn(self.map, initiative, order)
-
-                    #move creature 
-                    self.map.move_piece(creature, action[0])
-
-                    # complete actions 
-                    action[1].execute()
-
-                    if debug:
-                        print("\n {}'s Turn".format(creature))
-                        print(self.map)
-                        print("Action: {} ".format(action[1])) 
-                        print("\n")
-                        self.display_health()
-                        print("\n")
-            self.map.clear_dead() 
-            turn += 1 
+        while self.get_winner() == INCOMPLETE and self.round < round_limit:
+            creature = self.update_init() 
+            action = creature.turn(map = self.map, order = self.order, initiative = self.turn) 
+            self.next_turn(creature, action, debug) 
         
-        winner = "Tie"
-
-        if self.team_defeated(self.players):
-            winner = MONSTERTEAM
-        elif self.team_defeated(self.monsters):
-            winner = PLAYERTEAM
-
-        if debug:
-            print("Winner: {}!".format(winner))
+        winner = self.get_winner() 
         
-        return winner 
+        return winner, self.round  
 
 
 if __name__ == "__main__":
     sword = Attack(4, "2d8", 1, name = "Sword")
     arrow = Attack(hit_bonus= 0, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
-    monster = Creature(ac =12, hp =30, position =(4, 4), speed = 3, name = "Fuzzy Wuzzy", team = "player", actions=[sword])
-    monster3 = Creature(12, 30, 3, (0,4), name = "Leo", team = "player", actions=[arrow])
-    monster2 = Creature(12, 30, 3, (0,0), name = "Bear", team = "monster", actions=[sword])
+    monster = Creature(ac =12, hp =30, speed = 3, name = "Fuzzy Wuzzy", team = "player", actions=[sword])
+    monster3 = Creature(12, 30, 3, name = "Leo", team = "player", actions=[arrow])
+    monster2 = Creature(12, 30, 3, name = "Bear", team = "monster", actions=[sword])
     map = Grid(5,5)
     map.place_pieces([monster, monster2])
     null = NullAction()
 
-    print(map)
+    player_pos = [(4,4), (3,4)]
+    monster_pos = [(0,0)]
+
+    #print(map)
     #print("\n\n")
     
-    game = Game([monster, monster3], [monster2], map)
-    game.play_game(debug=True)
+    game = Game(players=[monster, monster2], monsters = [monster3], player_pos=player_pos, monster_pos= monster_pos, map=map)
+    print(game.play_game(debug=True))
     
 
