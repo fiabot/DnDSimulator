@@ -5,7 +5,7 @@ class RandomCreature(Creature):
     def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False):
         super().__init__(ac, hp, speed, position, name, team, actions, rolled)
     
-    def turn(self, map, initiative, order):
+    def turn(self, map, game):
         return random.choice(self.avail_actions(map))
 
 class HumanCreature(Creature):
@@ -18,7 +18,9 @@ class HumanCreature(Creature):
 
         return "Move to {} and {}".format(move, action)
 
-    def turn(self, map, initiative, order):
+    def turn(self, map, game):
+        initiative = game.turn 
+        order = game.order 
         actions = self.avail_actions(map)
         if not self.condition.is_dead:
             print("\n\n Current Map:")

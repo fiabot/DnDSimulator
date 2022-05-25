@@ -49,13 +49,13 @@ class JinJerryCreature(Creature):
         return cur_hp / max_hp 
 
     
-    def static_evaluator(self, grid, order):
+    def static_evaluator(self, game):
         """
         return an estimation of how well 
         our team is doing given a 
         grid and an order
         """
-        #print("Team: {}, my hp:{}, their hp: {}".format(self.team, self.get_hp_ratio(order, self.team), self.get_hp_ratio(order, self.team, equal=False) ))
+        order = game.order 
         return self.get_hp_ratio(order, self.team) - self.get_hp_ratio(order, self.team, equal=False)
 
     def create_game_copy(self, map, order):
@@ -75,7 +75,7 @@ class JinJerryCreature(Creature):
 
 
         
-    def simulate_game(self, map, initiative, order, depth_limit = 4):
+    def simulate_game(self, game, depth_limit = 4):
         """
         simulate a game given depth of 4 
         return the resulting map 
@@ -83,65 +83,67 @@ class JinJerryCreature(Creature):
         initiative is the creature going 
         next 
 
-        Assumes that map and order are copies 
+        Assumes that game is a copy 
         """
         depth = 0 
+        
 
         while depth < depth_limit:
-            creature = order[initiative]
-            turn = self.decide_action(map, creature)
-            map = self.forward_model(map, creature, turn)
-            initiative += 1 
-            if initiative >= len(order):
-                initiative = 0 
+            creature = game.update_init() 
+            turn = self.decide_action(game.map, creature)
+            game.next_turn(creature, turn)
             
             depth += 1 
-        return map, order
+        return game
     
-    def turn(self, map, initiative, order):
+    def turn(self, map, game):
         options = self.avail_actions(map) 
 
         options_evaluations = [] 
 
+
         for option in options: 
+            
 
             # create a copy of game 
-            map_copy, order_copy = self.create_game_copy(map, order)
-
+            game_copy = game.create_copy() 
 
             # do action in game 
-            self.forward_model(map_copy, self, option)
+            creature = game_copy.update_init() # should return copy of self 
+            game_copy.next_turn(creature, option) # complete action  
 
 
             # evaluate option 
-            action_value = self.static_evaluator(map_copy, order)
+            action_value = self.static_evaluator(game_copy)
 
-            next_init = (initiative + 1) % len(order_copy) 
 
             # forward simulate 
-            map_copy, order_copy = self.simulate_game(map = map_copy, initiative= next_init, order = order_copy)
-
-
+            game_copy = self.simulate_game(game_copy)
+            
+            
             # evualute future model 
-            next_value = self.static_evaluator(map_copy, order_copy)
+            next_value = self.static_evaluator(game_copy)
 
 
             # this turns value is the max of first eval and future eval 
             options_evaluations.append((max(action_value, next_value), option))
         
+        
+        
         options_evaluations.sort(key = lambda x: x[0]) # sort by eval 
+     
 
         return options_evaluations[0][1]
 
 
 
 if __name__ == "__main__":
-    sword = Attack(3, "2d6", 10, name = "Sword")
-    bow = Attack(hit_bonus=0, damage_dice_string= "1d4", dist = 10, name = "Bow and Arrow")
+    sword = Attack(3, "2d6", 1, name = "Sword")
+    bow = Attack(hit_bonus=0, damage_dice_string= "1d4", dist = 3, name = "Bow and Arrow")
 
     # players 
     ducky = JinJerryCreature(12, 20, 3, actions=[sword], name = "Rubber Ducky")
-    elmo = JinJerryCreature(12, 20, 3, actions = [bow], name = "Elmo")
+    elmo = RandomCreature(12, 20, 3, actions = [bow], name = "Elmo")
 
     # monsters 
     bear = RandomCreature(12, 20, 3, actions = [sword], name = "Bear")
@@ -159,7 +161,7 @@ if __name__ == "__main__":
     ties = 0 
 
     for i in range(20):
-        winner = game.play_game(debug=False)[0]
+        winner = game.play_game()[0]
         if winner == PLAYERTEAM:
             player_wins += 1 
         elif winner == MONSTERTEAM:
@@ -169,6 +171,7 @@ if __name__ == "__main__":
 
     
     print("Player wins: {}, Monster wins: {}, Ties:{}".format(player_wins, monster_wins, ties))
+   
 
 
 

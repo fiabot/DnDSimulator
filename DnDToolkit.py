@@ -157,7 +157,7 @@ class Creature:
         else:
             return self.null.avail_actions(self, grid) 
     
-    def turn(self, map, order, initiative):
+    def turn(self, map, game):
         """
         return a movement and an action
 
@@ -185,7 +185,7 @@ class Action:
         self.name = name 
     def __str__(self):
         return self.name 
-    def execute(self):
+    def execute(self, game):
         """
         implementation of execute varies by action
         """
@@ -232,18 +232,19 @@ class Attack(Action):
         self.target = target 
         self.dist = dist 
     
-    def execute(self):
+    def execute(self, game):
         """
         Excute attack on target
         if target is none, do nothing
         """
         # if there is not a target, dont do anything 
-        if not self.target is None: 
+        creature = game.get_creature(self.target)
+        if not creature is None: 
             hit = self.hit_dice.roll() # roll hit dice 
 
             # if hit succeeds, deal damage 
-            if hit >= self.target.ac: 
-                self.target.damage(self.damage_dice.roll())
+            if hit >= creature.ac: 
+                creature.damage(self.damage_dice.roll())
 
     def set_target(self, target):
         """
@@ -268,7 +269,7 @@ class Attack(Action):
             targets = self.avail_targets(creature.team, move, grid)
 
             for target in targets:
-                new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target)
+                new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target.name)
                 actions.append((move, new_action))
         
         return actions 
@@ -477,6 +478,8 @@ class Game():
         """
         set up game given a list of monsters, players 
         and a starting map  
+
+        monster and player names must be unqiue 
         """
 
         self.monsters = monsters 
@@ -507,7 +510,22 @@ class Game():
         self.map.place_pieces(self.monsters)
         self.map.place_pieces(self.players)
 
+    def get_creature(self, name):
+        """
+        return a creature given a name 
 
+        TODO: make this a dict look up 
+        """
+
+        for mon in self.monsters: 
+            if mon.name == name:
+                return mon 
+        
+        for play in self.players:
+            if play.name == name:
+                return play 
+        
+        return None 
     def set_teams(self):
         """
         make sure all teams are set correctly 
@@ -586,7 +604,16 @@ class Game():
         self.round = 0 
     
     def create_copy(self):
-        return deepcopy(self)
+        new_game = deepcopy(self)
+
+        # With deep copy the pieces on
+        # the grid are not the pieces 
+        # in the player 
+        new_game.map.clear_grid() 
+        new_game.map.place_pieces(new_game.monsters)
+        new_game.map.place_pieces(new_game.players)
+
+        return new_game 
     
     def next_creature(self):
         return self.order[self.turn]
@@ -614,7 +641,7 @@ class Game():
         else:
             return INCOMPLETE 
         
-    def next_turn(self, creature, action, debug):
+    def next_turn(self, creature, action, debug = False):
         """
         complete a turn given a creature 
         and an action
@@ -625,7 +652,7 @@ class Game():
             self.map.move_piece(creature, action[0])
 
             # complete actions 
-            action[1].execute()
+            action[1].execute(self)
 
             if debug:
                 print("\n {}'s Turn".format(creature))
@@ -645,7 +672,7 @@ class Game():
 
         while self.get_winner() == INCOMPLETE and self.round < round_limit:
             creature = self.update_init() 
-            action = creature.turn(map = self.map, order = self.order, initiative = self.turn) 
+            action = creature.turn(map = self.map, game = self) 
             self.next_turn(creature, action, debug) 
         
         winner = self.get_winner() 
