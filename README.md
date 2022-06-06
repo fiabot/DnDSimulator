@@ -1,6 +1,6 @@
 # DnDSimulator
 
-DnD simulator with game-playing agents for automatic play testing. 
+DnD simulator with game-playing agents for automatic play testing. This file outlines the DnD simulator and how to use. For a more in depth explanation of agents and results, see PDF provided.  
 
 ## Simulation 
 This is a prototype version of a DnD encounter simulator. It currently allows creatures to complete one movement and one action (in that order) per turn. The movement available is determined by a speed, which determine how many spaces a creature can move in a turn. The way I implemented it, a space is worth 10 ft, but it would be easy to make this larger or smaller. The only action available current is attack, where the attacking creature rolls (with a bonus) to beat their opponents AC. The game runs until all of one party is dead (at 0 hp) or a turn limit is reached. The turn limit was determined by the thrown food theory, which is the estimated amount of time it would take for a party to be feed up with an encounter and decide to throw food at the GM. 
@@ -82,285 +82,44 @@ https://5thsrd.org/gamemaster_rules/monsters/dire_wolf/
 - Ghoul: Close attacks. HP of 22 and AC of 12. Average speed. 
 https://5thsrd.org/gamemaster_rules/monsters/ghoul/ 
 
-## Against Random 
-With Depth 40 
+## Agents 
 
-Random: 0 
+There are four different classes that are children of the creature class implemented. Each use a different method for deciding turns. 
 
-JinJerry: 0 
+### Human
+This allows a user to input what actions they want to preform. This currently is only useful for debugging purposes, and the UI can be difficult to interpret. 
 
-Tie: 10 
+### Random 
+This agent randomly chooses a available action. 
 
-```
-Game 0 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 0}
-Party Size 4
+### Aggressive 
+This is a rule based agent that chooses the movement and action combination that get's closest to an enemy and attacks with it's strongest weapon. 
 
-Monsters:
-gnoll
-bandit
-direwolf
-direwolf1
+### JinJerry 
+This is based an algorithm from a general video game playing competition that is based on Monte Carlo search. It random simulates a random game following each possible action and evaluates the success of each. 
 
-Players:
-gnoll1
-bandit1
-direwolf2
-direwolf3
-Time: 107.9137
+### Shyne 
+This is an improvement made on the JinJerry algorithm that allows for multiple simulation while also eliminating poor preforming actions. 
 
+## Using the Simulator 
 
+### DnD Toolkit 
+This holds all the necessary base classes to play a game of DnD in the simulator. It also shows an example of how to play a single game of DnD using these tools with example attacks and monsters. 
 
-Game 1 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 1}
-Party Size 2
+### Basic Agents 
+This file contains the Human, Aggressive, and Random agent classes. 
 
-Monsters:
-merfolf
-orc
+### JinJerry 
+This contains the class for a JinJerry agent 
 
-Players:
-merfolf1
-orc1
-Time: 16.4300
+### Shyne 
+This contains the ShyneCreature class. 
 
+### Monster Manual 
+Here is where the attacks and creatures specified above are implemented. Each creature is represented as a dictionary where stats (such as HP) are given key values. This also provides a method to create a specific creature given a agent class. 
 
+### Tournament 
+This has a function for having agent classes compete against each other. A tournament randomly creates two identical parties with the monster and player parties being constructed with the given classes. It then prints win results for the players and monsters. 
 
-Game 2 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 2}
-Party Size 4
-
-Monsters:
-ghoul
-direwolf
-elk
-orc
-
-Players:
-ghoul1
-direwolf1
-elk1
-orc1
-Time: 128.1549
-
-
-
-Game 3 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 3}
-Party Size 2
-
-Monsters:
-elk
-direwolf
-
-Players:
-elk1
-direwolf1
-Time: 123.8873
-
-
-
-Game 4 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 4}
-Party Size 2
-
-Monsters:
-merfolf
-bandit
-
-Players:
-merfolf1
-bandit1
-Time: 195.3344
-
-
-
-Game 5 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 5}
-Party Size 2
-
-Monsters:
-bandit
-direwolf
-
-Players:
-bandit1
-direwolf1
-Time: 235.3669
-
-
-
-Game 6 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 6}
-Party Size 2
-
-Monsters:
-merfolf
-ghoul
-
-Players:
-merfolf1
-ghoul1
-Time: 14.9650
-
-
-
-Game 7 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 7}
-Party Size 3
-
-Monsters:
-merfolf
-gnoll
-skeleton
-
-Players:
-merfolf1
-gnoll1
-skeleton1
-Time: 736.2827
-
-
-
-Game 8 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 8}
-Party Size 3
-
-Monsters:
-bandit
-skeleton
-elk
-
-Players:
-bandit1
-skeleton1
-elk1
-Time: 426.6754
-
-
-
-Game 9 of 10
-Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 9}
-Party Size 4
-
-Monsters:
-merfolf
-ghoul
-bandit
-orc
-
-Players:
-merfolf1
-ghoul1
-bandit1
-orc1
-Time: 592.6483
-{'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 10}
-
-```
-
-### Against Aggressive 
-
-#### Depth 40 
-
-JinJerry: 3 
-
-Aggressive: 3 
-
-Tie: 4 
-
-```
-Games: 
-
-Game 0 of 10 
-
-Party Size 3
-Monsters:
-	orc
-	elk
-	gnoll
-Time: 15.2008
-Winner: Aggressive 
-
-Game 1 of 10:
-
-Party Size 3
-Monsters:
-	bandit
-	skeleton
-	bandit1
-Time: 21.3690
-Winner: Aggressive 
-
-Game 2 of 10: 
-Party Size 2
-Monsters:
-	bandit
-	orc
-Time: 23.7866
-Winner: Aggressive 
-
-Game 2 of 10: 
-Party Size 4
-Monsters:
-	skeleton
-	skeleton1
-	ghoul
-	ghoul1
-Time: 104.3177
-Winner: JinJerry
-
-Game 4 of 10:
-Party Size 2
-Monsters:
-	merfolf
-	skeleton
-Time: 50.7113
-Winner: JinJerry
-
-
-Game 5 of 10:
-Party Size 2
-Monsters:
-	bandit
-	bandit1
-Time: 141.2515
-Winner: Tie 
-
-
-Game 6 of 10:
-Party Size 2
-Monsters:
-	direwolf
-	gnoll
-Time: 148.0730
-Winner: Tie 
-
-
-Game 7 of 10:
-Party Size 4
-Monsters:
-	merfolf
-	skeleton
-	gnoll
-	skeleton1
-Time: 192.6523
-Winner: JinJerry 
-
-
-Game 8 of 10:
-Party Size 2
-Monsters:
-	merfolf
-	ghoul
-Winner: Tie
-
-Game 9 of 10:
-Party Size 2
-Monsters:
-	gnoll
-	merfolf
-Time: 113.3696
-Winner: Tie 
-```
-
+### Tests 
+This contains several test functions for the described agents. 
