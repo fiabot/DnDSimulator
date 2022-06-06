@@ -1,4 +1,3 @@
-from cgitb import reset
 from copy import deepcopy
 import random
 
@@ -50,6 +49,13 @@ class Dice:
             #something has gone terrible wrong
             else:
                 self.modifer = 0
+        self.expected_value() 
+    
+    def expected_value(self):
+        one_roll = self.type // 2 + 0.5 
+        total_roll = one_roll * self.amount 
+        self.expected = total_roll + self.modifer 
+        return self.expected 
 
     def roll(self):
         """
@@ -218,7 +224,7 @@ class NullAction(Action):
         return actions 
 
 class Attack(Action):
-    def __init__(self, hit_bonus, damage_dice_string, dist, name = "Attack", target = None):
+    def __init__(self, hit_bonus, damage_dice_string, dist, min_dist = 0, name = "Attack", target = None):
         """
         hit bonus = modifer to d20 roll for hit 
         damage_dice_string = damage dice written in the format "2d8" or "2d8 + 4" 
@@ -231,6 +237,7 @@ class Attack(Action):
         self.damage_dice = Dice(damage_dice_string)
         self.target = target 
         self.dist = dist 
+        self.min_dist = min_dist 
     
     def execute(self, game):
         """
@@ -258,7 +265,7 @@ class Attack(Action):
         range of attack
         """
 
-        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist) if not enemy.condition.is_dead] 
+        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist, dist_min = self.min_dist) if not enemy.condition.is_dead] 
     
     def avail_actions(self, creature, grid):
         actions = [] 
@@ -269,7 +276,7 @@ class Attack(Action):
             targets = self.avail_targets(creature.team, move, grid)
 
             for target in targets:
-                new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target.name)
+                new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target.name, name = self.name)
                 actions.append((move, new_action))
         
         return actions 
@@ -365,7 +372,7 @@ class Grid():
         height = abs(pos1[1] - pos2[1])
         return width + height 
     
-    def tiles_in_range(self, position, dist):
+    def tiles_in_range(self, position, dist_max, dist_min =0):
         """
         return a list of tuples of all tiles and positions that are 
         within range of a given position 
@@ -378,23 +385,24 @@ class Grid():
         posx = position[1]
         posy = position[0]
 
-        left_x = max(posx - dist, 0) # smallest x value of box, must be on grid
-        right_x = min(posx + dist, self.width -1) # largest x of max, must be on grid 
+        left_x = max(posx - dist_max, 0) # smallest x value of box, must be on grid
+        right_x = min(posx + dist_max, self.width -1) # largest x of max, must be on grid 
 
-        top_y = max(posy - dist, 0)
-        bottom_y = min(posy + dist, self.height - 1)
+        top_y = max(posy - dist_max, 0)
+        bottom_y = min(posy + dist_max, self.height - 1)
         
         tiles = [] 
         # check every value in the box
         for row in range(top_y, bottom_y + 1):
             for col in range(left_x, right_x + 1):
                 new_pos = (row, col)
-                if self.distance(position, new_pos) <= dist:
+                distance = self.distance(position, new_pos)
+                if distance <= dist_max and distance >= dist_min:
                     tiles.append((self.grid[row][col], (row, col)))
         
         return tiles 
     
-    def pieces_in_range(self, position, dist):
+    def pieces_in_range(self, position, dist_max, dist_min = 0):
         """
         Return as pieces that are in range of 
         a position 
@@ -408,20 +416,36 @@ class Grid():
         in_range = [] 
 
         for piece in self.pieces:
-            if self.distance(position, piece.position) <= dist:
+            distance = self.distance(position, piece.position) 
+            if distance <= dist_max and distance >= dist_min:
                 in_range.append(piece)
         
         return in_range 
 
+    def closest_enemy(self, team, position):
+        """
+        return the closest enemy to a creature 
+        """
+        closet_enemy = None
+        closet_dist = float("inf")
+        for piece in self.pieces: 
+            try: 
+                if piece.team != team and self.distance(position, piece.position) < closet_dist:
+                    closet_dist = self.distance(position, piece.position)
+                    closet_enemy = piece 
+            except: 
+                pass 
+        return closet_enemy 
+
     
-    def enemies_in_range(self, team, position, dist):
+    def enemies_in_range(self, team, position, dist, dist_min = 0):
         """
         return all enemies of team (anyone who is not in same team)
         given a position and a range 
         """
 
 
-        all_pieces = self.pieces_in_range(position, dist)
+        all_pieces = self.pieces_in_range(position, dist, dist_min=dist_min)
         enemies = [] 
 
         for piece in all_pieces:
@@ -487,6 +511,7 @@ class Game():
         self.map = map 
         self.player_pos = player_pos 
         self.monster_pos = monster_pos 
+        self.create_dict() 
 
         self.reset() 
 
@@ -509,21 +534,26 @@ class Game():
         
         self.map.place_pieces(self.monsters)
         self.map.place_pieces(self.players)
+    
+    def create_dict(self):
+        self.all_creatures = {} 
+        for monster in self.monsters:
+            self.all_creatures[monster.name] = monster
+        
+        for player in self.players:
+            self.all_creatures[player.name] = player
 
     def get_creature(self, name):
         """
         return a creature given a name 
 
-        TODO: make this a dict look up 
+        returns none if creature not in game
         """
 
-        for mon in self.monsters: 
-            if mon.name == name:
-                return mon 
-        
-        for play in self.players:
-            if play.name == name:
-                return play 
+        if name in self.all_creatures:
+            return self.all_creatures[name]
+        else: 
+            return None 
         
         return None 
     def set_teams(self):
@@ -681,12 +711,13 @@ class Game():
 
 
 if __name__ == "__main__":
+ 
     sword = Attack(4, "2d8", 1, name = "Sword")
-    arrow = Attack(hit_bonus= 0, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
+    arrow = Attack(hit_bonus= 0, dist= 5,min_dist= 2, damage_dice_string="1d6", name = "Bow and Arrow")
     monster = Creature(ac =12, hp =30, speed = 3, name = "Fuzzy Wuzzy", team = "player", actions=[sword])
     monster3 = Creature(12, 30, 3, name = "Leo", team = "player", actions=[arrow])
     monster2 = Creature(12, 30, 3, name = "Bear", team = "monster", actions=[sword])
-    map = Grid(5,5)
+    map = Grid(5,5, space =3)
     map.place_pieces([monster, monster2])
     null = NullAction()
 
@@ -695,6 +726,7 @@ if __name__ == "__main__":
 
     #print(map)
     #print("\n\n")
+
     
     game = Game(players=[monster, monster2], monsters = [monster3], player_pos=player_pos, monster_pos= monster_pos, map=map)
     print(game.play_game(debug=True))

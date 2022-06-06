@@ -2,13 +2,14 @@ from DnDToolkit import *
 from BasicAgents import *
 import time  
 from MonsterManual import * 
+import math 
 
-class JinJerryCreature(Creature):
-    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False, depth = 40, debug= False):
+class ShyneCreature(Creature):
+    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False, depths = [0, 10, 20, 30, 40], debug= False):
         super().__init__(ac, hp, speed, position, name, team, actions, rolled)
-        self.depth = depth 
+        self.depths = depths 
         self.debug = debug 
-        self.times = [] 
+        self.times = []  
     
     def forward_model(self, map, creature, turn):
         """
@@ -68,8 +69,24 @@ class JinJerryCreature(Creature):
         order = game.order 
         return self.get_hp_ratio(order, self.team) - self.get_hp_ratio(order, self.team, equal=False)
 
+    def create_game_copy(self, map, order):
+        """
+        create a copy of the game 
+        TODO: Move this out of agent 
+        """
+ 
+        order_copy = copy.deepcopy(order)
+        map_copy = copy.deepcopy(map)
+
+        #this may be the jankyiest solution but..... 
+        map_copy.clear_grid() 
+        map_copy.place_pieces(order_copy)
+
+        return map_copy, order_copy
+
+
         
-    def simulate_game(self, game):
+    def simulate_game(self, game, depth):
         """
         simulate a game given depth of 4 
         return the resulting map 
@@ -79,55 +96,57 @@ class JinJerryCreature(Creature):
 
         Assumes that game is a copy 
         """
-        depth = 0 
+        cur_depth = 0 
+        
 
-        while depth < self.depth:
+        while cur_depth < depth:
             creature = game.update_init() 
             turn = self.decide_action(game.map, creature)
             game.next_turn(creature, turn)
             
-            depth += 1 
+            cur_depth += 1 
         return game
     
     def turn(self, map, game):
+        """
+        Move forward one action and evaluate state 
+        use only the top half of states to expand, 
+        conduct random trials 
+        """
         options = self.avail_actions(map) 
 
-        options_evaluations = [] 
+        options_evaluations = [[0, option] for option in options] 
 
-        total_start = time.perf_counter()  
-        for option in options: 
+        start = time.perf_counter()  
+        for depth in self.depths:
+            for i, evaluation in enumerate(options_evaluations): 
+                option = evaluation[1] 
+                old_value = evaluation[0]
 
-            # create a copy of game 
-            game_copy = game.create_copy() 
+                # create a copy of game 
+                game_copy = game.create_copy() 
 
-            # do action in game 
-            creature = game_copy.update_init() # should return copy of self 
-            game_copy.next_turn(creature, option) # complete action  
+                # do action in game 
+                creature = game_copy.update_init() # should return copy of self 
+                game_copy.next_turn(creature, option) # complete action  
 
-            # evaluate option 
-            action_value = self.static_evaluator(game_copy)
-
-
-            # forward simulate 
-            game_copy = self.simulate_game(game_copy)
-            
-            
-            # evualute future model 
-            next_value = self.static_evaluator(game_copy)
-
-
-            # this turns value is the max of first eval and future eval 
-            options_evaluations.append((max(action_value, next_value), option))
+                # forward simulate 
+                game_copy = self.simulate_game(game_copy, depth)
                 
+                # evualute future model 
+                new_value = self.static_evaluator(game_copy)
 
-        
-        options_evaluations.sort(key = lambda x: x[0], reverse=True) # sort by eval 
+                # new evaluation is average of old and new 
+                options_evaluations[i][0] = (old_value + 2 * new_value) / 2 
+            
+            options_evaluations.sort(key = lambda x: x[0], reverse=True) # sort by eval 
 
-        total_end = time.perf_counter()
-        self.times.append(total_end - total_start)
-        if self.debug:
-            print(f"Time: {total_end - total_start:0.4f}")
+            cutoff = math.ceil(len(options_evaluations) / 2)
+
+            options_evaluations = options_evaluations[:cutoff]
         
+        end = time.perf_counter()
+        self.times.append(end - start) 
      
         return options_evaluations[0][1]
     
@@ -139,17 +158,13 @@ class JinJerryCreature(Creature):
 if __name__ == "__main__":
     #agroParty, jinParty = create_identical_parties(AggressiveCreature, JinJerryCreature, MANUAL, 2)
     agroParty = create_party(AggressiveCreature, MANUAL, 2)
-    jinParty = create_party(JinJerryCreature, MANUAL, 2)
+    shyneParty = create_party(ShyneCreature, MANUAL, 2)
     #for creature in jinParty:
     #   creature.debug = True 
     map = Grid(10, 10, space = 3)
-    game = Game(agroParty, jinParty,player_pos=[(0,0), (1,0)], monster_pos=[(9,0), (9,1)], map = map)
+    game = Game(agroParty, shyneParty,player_pos=[(0,0), (1,0)], monster_pos=[(9,0), (9,1)], map = map)
     print(game.play_game(debug=True)) 
 
-   
-
-
-
-
-
-
+    # print average times: 
+    for creature in shyneParty:
+        print(creature.average_time())

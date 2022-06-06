@@ -2,91 +2,365 @@
 
 DnD simulator with game-playing agents for automatic play testing. 
 
-## Getting started
+## Simulation 
+This is a prototype version of a DnD encounter simulator. It currently allows creatures to complete one movement and one action (in that order) per turn. The movement available is determined by a speed, which determine how many spaces a creature can move in a turn. The way I implemented it, a space is worth 10 ft, but it would be easy to make this larger or smaller. The only action available current is attack, where the attacking creature rolls (with a bonus) to beat their opponents AC. The game runs until all of one party is dead (at 0 hp) or a turn limit is reached. The turn limit was determined by the thrown food theory, which is the estimated amount of time it would take for a party to be feed up with an encounter and decide to throw food at the GM. 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### Grid 
+A grid (or map) is defined by a width and a height. Pieces can be added to the grid, as long as they have a position attribute. The grid class allows you to do things such as find the distance between two points, get the pieces that are in a range of position, or get the enemy closest to a creature. 
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Creature 
+There are 4 main attributes of a creature: 
 
-## Add your files
+HP: The max amount of health that the creature can have and what health it has when it takes a long rest. This can be a discrete value or a dice string that is rolled. 
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+AC: This is the armor class of the creature, which signifies how difficult it is to damage the creature. 
+
+Speed: This is how many tiles a creature can move in a turn. This is loosely related to 10ft in 5e. 
+
+Actions: This is a list of actions available to a creature. They can choose from these actions and the NullAction (does nothing) when deciding on a action per turn. 
+
+Every implementation of a creature must also have a turn method that decides what movement and action a creature makes given a game state. I talk below about what agents are implemented in this demo. 
+
+### Action 
+A action is something a creature can do on it's turn. It must have a avail_actions method that gives every combination of action and movement possible given a creature. Actions are given as new instances of a action object. 
+
+#### Attack 
+An attack has 3 main properties. 
+
+Modifier: How much is added to a 1d20 hit roll. This value must beat the target's AC to inflict damage 
+
+Damage Dice: This is a string in the form of "2d8 + 6" that tells how much and what value of dice should be rolled to deal damage. This will be rolled each time damage is done. 
+
+Distance: This is how far from the creature the attack can reach. There is also an optional parameter for min_distance which tells the smallest distance a creature can be from creature for attack to work. 
+
+Side-effects (such as a target being knocked prone) is not implemented in this simulation. Additionally 
+
+## Monster Manual 
+A very small subset is implemented in this simulation. The monsters were chosen based on what would be most easily represented in this simulation, along with having a range of challenge ratings and abilities.  
+
+### Attacks (From least to most Powerful)
+
+- Spear: range 0-6, damage: "1d6", hit: +2 
+- Bite: range 0-1, damage: "1d4 + 2", hit + 4 
+- scimitar: range 0-1, damage: 1d6 + 1
+- shortsword: range: 1, damage: 1d6 + 2, hit +4 
+- shortbow: range: 8-32, damage: 1d6+2, hit +4 
+- ram: hit + 5, damage: 1d6 +3, range 0-1 
+- javelin: hit: +5, damage: 1d6 + 3, distange: 3-12 
+- crossbow: hit: +3, 1d8 + 1, range: 0-1
+- longbow: hit: +3, damage: 1d8 +1, range: 15-60 
+- claws: hit: +4, damage: 2d4 + 2, range: 0-1 
+- midbite: hit + 2, damage: 2d6 + 2, range: 0-1
+- great ax: hit + 5, damage: 1d12 + 3, range: 0-1 
+- bigbitw: hit +5, damage: 2d6 + 3, range: 0-1 
+
+
+### 1/8 Challenge Rating 
+ 
+- Bandit: close and wide range weapons. HP of 11, and a AC of 12. Average speed.  
+https://5thsrd.org/gamemaster_rules/monsters/bandit/
+
+- Merfolk: moderate range weapon. HP of 11 and a AC of 11. Slow speed. 
+https://5thsrd.org/gamemaster_rules/monsters/merfolk/ 
+
+### 1/4 Challenge 
+- Elk: close range attack. AC of 10 and a HP of 15. High speed.
+https://5thsrd.org/gamemaster_rules/monsters/elk/ 
+
+- Skeleton: short and very long range attack. AC of 13 and HP of 13. Average speed. 
+https://5thsrd.org/gamemaster_rules/monsters/skeleton/
+
+### 1/2 Challenge 
+- Orc: close and wide range weapons. AC of 13 and HP of 15. Average speed.  
+https://5thsrd.org/gamemaster_rules/monsters/orc/
+- Gnoll: close mid and wide range attacks, AC of 15, HP of 22. Average speed. 
+https://5thsrd.org/gamemaster_rules/monsters/gnoll/
+
+### 1 Challenge 
+- Dire Wolf: close range attack. AC of 14, HP of 37. High speed. 
+https://5thsrd.org/gamemaster_rules/monsters/dire_wolf/ 
+- Ghoul: Close attacks. HP of 22 and AC of 12. Average speed. 
+https://5thsrd.org/gamemaster_rules/monsters/ghoul/ 
+
+## Against Random 
+With Depth 40 
+
+Random: 0 
+
+JinJerry: 0 
+
+Tie: 10 
 
 ```
-cd existing_repo
-git remote add origin https://cs-gitlab.union.edu/shynef/dndsimulator.git
-git branch -M main
-git push -uf origin main
+Game 0 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 0}
+Party Size 4
+
+Monsters:
+gnoll
+bandit
+direwolf
+direwolf1
+
+Players:
+gnoll1
+bandit1
+direwolf2
+direwolf3
+Time: 107.9137
+
+
+
+Game 1 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 1}
+Party Size 2
+
+Monsters:
+merfolf
+orc
+
+Players:
+merfolf1
+orc1
+Time: 16.4300
+
+
+
+Game 2 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 2}
+Party Size 4
+
+Monsters:
+ghoul
+direwolf
+elk
+orc
+
+Players:
+ghoul1
+direwolf1
+elk1
+orc1
+Time: 128.1549
+
+
+
+Game 3 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 3}
+Party Size 2
+
+Monsters:
+elk
+direwolf
+
+Players:
+elk1
+direwolf1
+Time: 123.8873
+
+
+
+Game 4 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 4}
+Party Size 2
+
+Monsters:
+merfolf
+bandit
+
+Players:
+merfolf1
+bandit1
+Time: 195.3344
+
+
+
+Game 5 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 5}
+Party Size 2
+
+Monsters:
+bandit
+direwolf
+
+Players:
+bandit1
+direwolf1
+Time: 235.3669
+
+
+
+Game 6 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 6}
+Party Size 2
+
+Monsters:
+merfolf
+ghoul
+
+Players:
+merfolf1
+ghoul1
+Time: 14.9650
+
+
+
+Game 7 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 7}
+Party Size 3
+
+Monsters:
+merfolf
+gnoll
+skeleton
+
+Players:
+merfolf1
+gnoll1
+skeleton1
+Time: 736.2827
+
+
+
+Game 8 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 8}
+Party Size 3
+
+Monsters:
+bandit
+skeleton
+elk
+
+Players:
+bandit1
+skeleton1
+elk1
+Time: 426.6754
+
+
+
+Game 9 of 10
+Current results {'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 9}
+Party Size 4
+
+Monsters:
+merfolf
+ghoul
+bandit
+orc
+
+Players:
+merfolf1
+ghoul1
+bandit1
+orc1
+Time: 592.6483
+{'player': 0, 'monster': 0, 'tie': 0, 'incomplete': 10}
+
 ```
 
-## Integrate with your tools
+### Against Aggressive 
 
-- [ ] [Set up project integrations](https://cs-gitlab.union.edu/shynef/dndsimulator/-/settings/integrations)
+#### Depth 40 
 
-## Collaborate with your team
+JinJerry: 3 
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Aggressive: 3 
 
-## Test and Deploy
+Tie: 4 
 
-Use the built-in continuous integration in GitLab.
+```
+Games: 
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Game 0 of 10 
 
-***
+Party Size 3
+Monsters:
+	orc
+	elk
+	gnoll
+Time: 15.2008
+Winner: Aggressive 
 
-# Editing this README
+Game 1 of 10:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Party Size 3
+Monsters:
+	bandit
+	skeleton
+	bandit1
+Time: 21.3690
+Winner: Aggressive 
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Game 2 of 10: 
+Party Size 2
+Monsters:
+	bandit
+	orc
+Time: 23.7866
+Winner: Aggressive 
 
-## Name
-Choose a self-explaining name for your project.
+Game 2 of 10: 
+Party Size 4
+Monsters:
+	skeleton
+	skeleton1
+	ghoul
+	ghoul1
+Time: 104.3177
+Winner: JinJerry
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Game 4 of 10:
+Party Size 2
+Monsters:
+	merfolf
+	skeleton
+Time: 50.7113
+Winner: JinJerry
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Game 5 of 10:
+Party Size 2
+Monsters:
+	bandit
+	bandit1
+Time: 141.2515
+Winner: Tie 
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Game 6 of 10:
+Party Size 2
+Monsters:
+	direwolf
+	gnoll
+Time: 148.0730
+Winner: Tie 
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Game 7 of 10:
+Party Size 4
+Monsters:
+	merfolf
+	skeleton
+	gnoll
+	skeleton1
+Time: 192.6523
+Winner: JinJerry 
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Game 8 of 10:
+Party Size 2
+Monsters:
+	merfolf
+	ghoul
+Winner: Tie
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Game 9 of 10:
+Party Size 2
+Monsters:
+	gnoll
+	merfolf
+Time: 113.3696
+Winner: Tie 
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

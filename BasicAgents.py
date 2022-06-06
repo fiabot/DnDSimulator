@@ -1,3 +1,4 @@
+from re import L
 from DnDToolkit import * 
 import copy 
 
@@ -61,12 +62,57 @@ class HumanCreature(Creature):
         return_str += "AC: {} \nHP: {} \n".format(creature.ac, creature.hp)
         return return_str
 
+class AggressiveCreature(Creature):
+    """
+    choice an action with the 
+    highest damage, otherwise 
+    get as close as possible to 
+    creature 
+    """
+    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False):
+        super().__init__(ac, hp, speed, position, name, team, actions, rolled)
+        self.action_order()
+    
+    def action_order(self):
+        self.order_actions = [] 
+        for action in self.actions: 
+            try: 
+                self.order_actions.append((action.damage_dice.expected, action))
+            except: 
+                # doesn't have damage dice 
+                self.order_actions.append((-1, action))
+        self.order_actions.sort(key = lambda x: x[0], reverse=True)
+        self.order_actions = [x[1] for x in self.order_actions] 
+
+    def turn(self, map, game):
+        action_index = 0 
+        actions = [] 
+
+        while len(actions) == 0: 
+            actions = self.order_actions[action_index].avail_actions(self, map)
+            action_index -= 1 
+
+        closest_enemy = map.closest_enemy(self.team, self.position) 
+
+        if closest_enemy is None: 
+            return actions[0]
+        else:
+            closest_dist = float("inf")
+            closest_action = None
+            
+            for action in actions: 
+                if map.distance(action[0], closest_enemy.position) < closest_dist:
+                    closest_dist = map.distance(action[0], closest_enemy.position)
+                    closest_action = action 
+            
+            return closest_action 
+
 
 if __name__ == "__main__":
     sword = Attack(3, "2d6", 1, name = "Sword")
     bow = Attack(hit_bonus=0, damage_dice_string= "1d4", dist = 3, name = "Bow and Arrow")
     random1 = RandomCreature(12, 20, 3, actions=[sword], name = "Rubber Ducky")
-    elmo = HumanCreature(12, 20, 3, actions=[bow], name = "Elmo")
+    elmo = AggressiveCreature(12, 20, 3, actions=[bow], name = "Elmo")
     random2 = RandomCreature(12, 20, 3, actions = [bow], name = "Fuzzy Wuzzy")
     bear = RandomCreature(12, 20, 3, actions = [sword], name = "Bear")
 
