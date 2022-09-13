@@ -1,27 +1,29 @@
 from copy import deepcopy
 import random
 
+
+# constants 
 PLAYERTEAM = "player"
 MONSTERTEAM = "monster"
 TIE = "tie"
 INCOMPLETE = "incomplete"
 
+STR_STR = "strength"
+DEX_STR = "dexerity"
+CON_STR = "constitution"
+INT_STR = "intelligence"
+WIS_STR = "wisdom"
+CHAR_STR = "charisma"
 
-class Condition:
-    def __init__(self, can_act, can_move, is_dead, making_death_saves):
-        self.can_act = can_act
-        self.can_move = can_move 
-        self.is_dead = is_dead 
-        self.making_death_saves = making_death_saves 
-
-# Set up conditions 
-AWAKE = Condition(True, True, False, False)
-DEAD = Condition(False, False, True, False)
-ASLEEP = Condition(False, False, False, True)
-STABLE = Condition(False, False, False, False)
+def make_dice_string(amount, type, modifer = 0):
+    return_str = "{}d{}".format(amount, type)
+    if(modifer != 0):
+        return_str += " + {}".format(modifer)
+    
+    return return_str
 
 class Dice:
-    def __init__(self, dice_string) -> None:
+    def __init__(self, dice_string, advantage = 0) -> None:
         """
         Takes a string in the form of '2d8 + 4' and 
         converts it into the appropriate dice roll
@@ -50,6 +52,7 @@ class Dice:
             else:
                 self.modifer = 0
         self.expected_value() 
+        self.default_advantage = advantage 
     
     def expected_value(self):
         one_roll = self.type // 2 + 0.5 
@@ -57,7 +60,7 @@ class Dice:
         self.expected = total_roll + self.modifer 
         return self.expected 
 
-    def roll(self):
+    def one_roll(self):
         """
         return result of one roll 
         """
@@ -68,224 +71,38 @@ class Dice:
             
         
         return amount 
+    
+    def roll(self, advantage = None):
+        if advantage is None: 
+            advantage = self.default_advantage 
+        
+        first_roll = self.one_roll()
+
+        if (advantage != 0):
+            second_roll = self.one_roll() 
+
+            if (advantage < 0):
+                return min(first_roll, second_roll)
+            else: 
+                return max(first_roll, second_roll) 
+        else: 
+            return first_roll 
+        
+
 
     def __str__(self):
         return self.dice_string
 
-class Creature:
-    def __init__(self, ac, hp, speed, position = (0,0), name = "Creature", team = "neutral", actions = [], rolled = False):
-        """
-        Initialize a creature 
-        ac = numerical armor class 
-        hp = max hit points either as value or dice roll, depending on rolled value 
-        position = starting position as a tuple of row and column 
-        name = name of creature 
-        team = what side creatures fights for, decides who is an enemy or friend 
-        action = available actions as a list 
-        rolled = whether hp is rolled or static 
-        """
-        self.ac = ac 
-
-        if rolled:
-            self.hp_dice = Dice(hp)
-            hp = self.hp_dice.roll()  
-        
-        self.max_hp = hp 
-        self.hp = self.max_hp # assumes we start with full health  
-        self.condition =  AWAKE
-        self.position = position 
-        self.name = name 
-        self.team = team 
-        self.actions = actions 
-        self.speed = speed 
-        self.null = NullAction() 
-        actions.append(self.null) # make sure the null action is included
-        self.init_dice = Dice("1d20")
+class CompoundDice: 
+    def __init__(self, dice_list) -> None:
+        self.dice_list = dice_list
     
-    def damage(self, amount):
-        """
-        deal damage to creature 
-        """
-        self.hp -= amount
-        if self.hp <= 0: 
-            self.zero_condition() 
-    
-    def roll_initiative(self):
-        """
-        Roll( for initative
-        by default no modifications 
-        """
-        return self.init_dice.roll() 
-    
-    def zero_condition(self):
-        """
-        what happens when creature drops to 
-        0 hp
+    def roll(self, advantage = None):
+        total = 0 
+        for die in self.dice_list: 
+            total += die.roll(advantage)
 
-        by default creatures dies, for 
-        player they should fall unconcious
-        and start making death saves 
-        """
-        self.hp = 0 # there is not negative HP 
-        self.die()
-
-    def avail_movement(self, grid):
-        """
-        all available movement within 
-        walking speed 
-        """
-
-        if self.condition.can_move:
-            movement = [self.position] 
-
-            movement += [piece[1] for piece in grid.tiles_in_range(self.position, self.speed) if grid.is_free(piece[1])]
-            return movement 
-        else:
-            return [self.position]
-
-    def die(self):
-        """
-        when creatures is killed 
-        """
-        self.condition = DEAD
-    
-    def avail_actions(self, grid):
-        """
-        total available movmenent and 
-        actions combinations 
-        """
-        if self.condition.can_act:
-            total_actions = [] 
-            for action in self.actions:
-                total_actions += action.avail_actions(self, grid) 
-            
-            return total_actions
-        else:
-            return self.null.avail_actions(self, grid) 
-    
-    def turn(self, map, game):
-        """
-        return a movement and an action
-
-        by default will choose first action
-        """
-        return self.avail_actions(map)[0]
-    
-    def long_rest(self):
-        """
-        reset stats, as if after 
-        a long rest. 
-
-        This can conquer death, unlike the real 
-        game. 
-        """
-
-        self.hp = self.max_hp
-        self.condition = AWAKE 
-    
-    def __str__(self):
-        return self.name
-
-class Action:
-    def __init__(self, name):
-        self.name = name 
-    def __str__(self):
-        return self.name 
-    def execute(self, game):
-        """
-        implementation of execute varies by action
-        """
-        pass 
-
-    def avail_actions(self, creature, grid):
-        """
-        return all the possible options 
-        for all possible movement of a creature
-        return move and action object pairs
-        """
-        return [(creature.position, self)]
-    
-    def __str__(self):
-        return self.name 
-
-class NullAction(Action):
-    """
-    doesn't do anything 
-    """
-
-    def __init__(self):
-        super().__init__("No Action")
-    
-    def avail_actions(self, creature, grid):
-        actions = []
-        for move in creature.avail_movement(grid):
-            actions.append((move, self))
-        
-        return actions 
-
-class Attack(Action):
-    def __init__(self, hit_bonus, damage_dice_string, dist, min_dist = 0, name = "Attack", target = None):
-        """
-        hit bonus = modifer to d20 roll for hit 
-        damage_dice_string = damage dice written in the format "2d8" or "2d8 + 4" 
-        """
-        Action.__init__(self, name) 
-
-        hit_dice_str = "1d20 + " + str(hit_bonus) 
-        self.hit_bonus = hit_bonus 
-        self.hit_dice = Dice(hit_dice_str)
-        self.damage_dice = Dice(damage_dice_string)
-        self.target = target 
-        self.dist = dist 
-        self.min_dist = min_dist 
-    
-    def execute(self, game):
-        """
-        Excute attack on target
-        if target is none, do nothing
-        """
-        # if there is not a target, dont do anything 
-        creature = game.get_creature(self.target)
-        if not creature is None: 
-            hit = self.hit_dice.roll() # roll hit dice 
-
-            # if hit succeeds, deal damage 
-            if hit >= creature.ac: 
-                creature.damage(self.damage_dice.roll())
-
-    def set_target(self, target):
-        """
-        Assign target 
-        """
-        self.target = target 
-    
-    def avail_targets(self, team, position, grid):
-        """
-        return a list of enemies within 
-        range of attack
-        """
-
-        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist, dist_min = self.min_dist) if not enemy.condition.is_dead] 
-    
-    def avail_actions(self, creature, grid):
-        actions = [] 
-
-        for move in creature.avail_movement(grid):
-            
-
-            targets = self.avail_targets(creature.team, move, grid)
-
-            for target in targets:
-                new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target.name, name = self.name)
-                actions.append((move, new_action))
-        
-        return actions 
-    
-    def __str__(self):
-        if self.target != None:
-            return "Attack " + str(self.target) + " with " + self.name 
-        else: 
-            return self.name 
+        return total  
 
 class Grid():
     def __init__(self, height, width, space = 10):
@@ -709,26 +526,6 @@ class Game():
         
         return winner, self.round  
 
-
 if __name__ == "__main__":
- 
-    sword = Attack(4, "2d8", 1, name = "Sword")
-    arrow = Attack(hit_bonus= 0, dist= 5,min_dist= 2, damage_dice_string="1d6", name = "Bow and Arrow")
-    monster = Creature(ac =12, hp =30, speed = 3, name = "Fuzzy Wuzzy", team = "player", actions=[sword])
-    monster3 = Creature(12, 30, 3, name = "Leo", team = "player", actions=[arrow])
-    monster2 = Creature(12, 30, 3, name = "Bear", team = "monster", actions=[sword])
-    map = Grid(5,5, space =3)
-    map.place_pieces([monster, monster2])
-    null = NullAction()
-
-    player_pos = [(4,4), (3,4)]
-    monster_pos = [(0,0)]
-
-    #print(map)
-    #print("\n\n")
-
-    
-    game = Game(players=[monster, monster2], monsters = [monster3], player_pos=player_pos, monster_pos= monster_pos, map=map)
-    print(game.play_game(debug=True))
-    
-
+    print(make_dice_string(2, 8, 4))
+    print(make_dice_string(2, 8))
