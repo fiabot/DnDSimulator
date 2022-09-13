@@ -2,6 +2,7 @@ from DnDToolkit import *;
 ATTACK_STR = "attack" 
 DAMAGE_STR = "damage"
 SAVE_STR = "saving"
+SKILL_STR = "skill"
 
 class FeatureManager: 
     def __init__ (self, features):
@@ -38,6 +39,18 @@ class FeatureManager:
         if SAVE_STR in self.features:
             for feat in self.features[SAVE_STR]:
                 if feat.condition(type, effect):
+                    mod += feat.modifier_granted 
+                    advantage += feat.advantage_granted 
+                    
+            
+        return Dice(make_dice_string(1, 20, mod), advantage) 
+    
+    def get_skill_dice(self, type, creature): 
+        mod = creature.modifiers.get_skill_mod(type) 
+        advantage = 0 
+        if SKILL_STR in self.features:
+            for feat in self.features[SKILL_STR]:
+                if feat.condition(type):
                     mod += feat.modifier_granted 
                     advantage += feat.advantage_granted 
                     
@@ -82,12 +95,17 @@ class DamageFeature (Feature):
         self.condition = condition 
         self.added_damage = Dice(added_dice_string) 
 
-class SavingThrowFeature (Feature):
+class SkillCheckFeature (Feature):
     def __init__(self, name, condition, advantage_granted, modifier_granted):
-        super().__init__(SAVE_STR, name)
+        super().__init__(SKILL_STR, name)
         self.condition = condition 
         self.advantage_granted = advantage_granted
         self.modifier_granted = modifier_granted 
+
+class SavingThrowFeature(SkillCheckFeature):
+    def __init__(self, name, condition, advantage_granted, modifier_granted):
+        super().__init__(name, condition, advantage_granted, modifier_granted)
+        self.type = SAVE_STR
 
 # conditions 
 def friend_in_range(game, attacker, attack):
@@ -110,9 +128,10 @@ def friend_in_range(game, attacker, attack):
     
     return found_friend 
 
-
+wisd = lambda type : type == WIS_STR 
+charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
 
 # Features 
 SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, "2d20 + 20")
-charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
 DARK_DEVOTION = SavingThrowFeature("darkDevotion", charm_fright, 1, 0) 
+WISDOM_ADV = SkillCheckFeature("Keen sight", wisd, 1 , 20)

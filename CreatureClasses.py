@@ -133,8 +133,7 @@ class Creature:
         Roll a skill check 
         using any features 
         """
-        mod = self.modifiers.get_skill_mod(type)
-        return Dice(make_dice_string(1 ,20, mod)).roll() 
+        return self.features.get_skill_dice(type, self).roll() 
     
     def saving_throw(self, type, effect):
         """
