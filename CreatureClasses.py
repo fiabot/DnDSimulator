@@ -39,6 +39,13 @@ class Creature:
         special features 
         """
         return self.features.get_attack_roll(attack, game, self)
+    
+    def get_added_damage(self, game, attack):
+        """
+        return additional damage 
+        granted from features 
+        """
+        return self.features.get_added_damage(attack, game, self)
 
     def damage(self, amount):
         """

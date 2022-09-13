@@ -1,5 +1,6 @@
 from DnDToolkit import *; 
 ATTACK_STR = "attack" 
+DAMAGE_STR = "damage"
 
 class FeatureManager: 
     def __init__ (self, features):
@@ -19,6 +20,17 @@ class FeatureManager:
             return attack.hit_dice 
         else:
             return attack.hit_dice 
+    
+    def get_added_damage(self, attack, game, creature): 
+        if DAMAGE_STR in self.features:
+            for feat in self.features[DAMAGE_STR]:
+                if feat.condition(game, creature, attack):
+                    print("added damage")
+                    return feat.added_damage.roll()  
+            
+            return 0
+        else:
+            return 0
         
 
 class Feature: 
@@ -52,6 +64,11 @@ class AttackFeature (Feature):
         else: 
             return new_hit_dice 
 
+class DamageFeature (Feature): 
+    def __init__(self, name, condition, added_dice_string):
+        super().__init__(DAMAGE_STR, name) 
+        self.condition = condition 
+        self.added_damage = Dice(added_dice_string) 
 
 # conditions 
 def friend_in_range(game, attacker, attack):
@@ -75,4 +92,5 @@ def friend_in_range(game, attacker, attack):
     return found_friend 
 
 
-SNEAK_ATTACK = AttackFeature("sneakAttack", friend_in_range, 1, 20)
+# Features 
+SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, "2d20 + 20")

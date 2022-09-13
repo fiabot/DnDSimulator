@@ -66,12 +66,12 @@ class Attack(Action):
         if not target is None: 
             # roll attack applying any special features 
             hit = attacker.get_hit_dice(game, self).roll() 
-            print(attacker.get_hit_dice(game, self))
-            print(friend_in_range(game, attacker, self))
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
-                target.damage(self.damage_dice.roll())
+                damage = self.damage_dice.roll() + attacker.get_added_damage(game, self)
+                print(damage)
+                target.damage(damage)
 
     def set_target(self, target):
         """
