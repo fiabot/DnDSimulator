@@ -1,3 +1,4 @@
+from pyexpat import features
 from Conditions import *; 
 from DnDToolkit import *; 
 from Actions import *; 
@@ -29,9 +30,8 @@ class Creature:
         self.speed = speed 
         self.null = NullAction() 
         actions.append(self.null) # make sure the null action is included
-        self.init_dice = Dice("1d20")
+        self.init_dice = Dice("1d20 + {}".format(self.modifiers.initative))
         self.features = features 
-
 
     def get_hit_dice(self, game, attack):
         """
@@ -128,6 +128,21 @@ class Creature:
         self.hp = self.max_hp
         self.condition = AWAKE 
     
+    def skill_check(self, type):
+        """
+        Roll a skill check 
+        using any features 
+        """
+        mod = self.modifiers.get_skill_mod(type)
+        return Dice(make_dice_string(1 ,20, mod)).roll() 
+    
+    def saving_throw(self, type, effect):
+        """
+        Roll a skill check using 
+        any features 
+        """
+        return self.features.get_save_dice(type, effect, self).roll() 
+
     def __str__(self):
         return self.name
 

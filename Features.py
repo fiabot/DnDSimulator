@@ -1,6 +1,7 @@
 from DnDToolkit import *; 
 ATTACK_STR = "attack" 
 DAMAGE_STR = "damage"
+SAVE_STR = "saving"
 
 class FeatureManager: 
     def __init__ (self, features):
@@ -25,12 +26,23 @@ class FeatureManager:
         if DAMAGE_STR in self.features:
             for feat in self.features[DAMAGE_STR]:
                 if feat.condition(game, creature, attack):
-                    print("added damage")
                     return feat.added_damage.roll()  
             
             return 0
         else:
             return 0
+    
+    def get_save_dice(self, type, effect, creature): 
+        mod = creature.modifiers.get_save_mod(type) 
+        advantage = 0 
+        if SAVE_STR in self.features:
+            for feat in self.features[SAVE_STR]:
+                if feat.condition(type, effect):
+                    mod += feat.modifier_granted 
+                    advantage += feat.advantage_granted 
+                    
+            
+        return Dice(make_dice_string(1, 20, mod), advantage) 
         
 
 class Feature: 
@@ -70,6 +82,13 @@ class DamageFeature (Feature):
         self.condition = condition 
         self.added_damage = Dice(added_dice_string) 
 
+class SavingThrowFeature (Feature):
+    def __init__(self, name, condition, advantage_granted, modifier_granted):
+        super().__init__(SAVE_STR, name)
+        self.condition = condition 
+        self.advantage_granted = advantage_granted
+        self.modifier_granted = modifier_granted 
+
 # conditions 
 def friend_in_range(game, attacker, attack):
     """
@@ -92,5 +111,8 @@ def friend_in_range(game, attacker, attack):
     return found_friend 
 
 
+
 # Features 
 SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, "2d20 + 20")
+charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
+DARK_DEVOTION = SavingThrowFeature("darkDevotion", charm_fright, 1, 0) 

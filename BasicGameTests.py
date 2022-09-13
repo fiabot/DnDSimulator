@@ -7,7 +7,7 @@ from Features import friend_in_range;
 
 
 modifiers = Modifiers() 
-features = FeatureManager([SNEAK_ATTACK])
+features = FeatureManager([SNEAK_ATTACK, DARK_DEVOTION])
 no_features = FeatureManager([])
 sword = Attack(4, "2d8", 1, name = "Sword")
 arrow = Attack(hit_bonus= 0, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
@@ -26,7 +26,9 @@ monster_pos = [(4,3)]
 
 
 game = Game(players=[player1, player2], monsters = [monster], player_pos=player_pos, monster_pos= monster_pos, map=map)
-attacks = arrow.avail_actions(player1, map)
-print(friend_in_range(game, player1, arrow))
-for attack in attacks:
-    attack[1].execute(game) 
+char_sum = 0 
+not_sum = 0 
+for i in range(10): 
+
+    print("Charmed:", player1.saving_throw(WIS_STR, "charmed")) 
+    print("Not Charmed: ", player1.saving_throw(WIS_STR, "not charmed")) 

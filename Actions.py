@@ -46,7 +46,7 @@ class Attack(Action):
         """
         Action.__init__(self, name) 
 
-        hit_dice_str = "1d20 + " + str(hit_bonus) 
+        hit_dice_str = make_dice_string(1, 20, hit_bonus)
         self.hit_bonus = hit_bonus 
         self.hit_dice = Dice(hit_dice_str)
         self.damage_dice = Dice(damage_dice_string)

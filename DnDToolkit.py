@@ -17,8 +17,10 @@ CHAR_STR = "charisma"
 
 def make_dice_string(amount, type, modifer = 0):
     return_str = "{}d{}".format(amount, type)
-    if(modifer != 0):
+    if(modifer > 0):
         return_str += " + {}".format(modifer)
+    elif (modifer < 0):
+        return_str += " - {}".format(modifer)
     
     return return_str
 
