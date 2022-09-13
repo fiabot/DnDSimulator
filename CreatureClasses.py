@@ -32,6 +32,7 @@ class Creature:
         actions.append(self.null) # make sure the null action is included
         self.init_dice = Dice("1d20 + {}".format(self.modifiers.initative))
         self.features = features 
+        self.game_data = {} 
 
     def get_hit_dice(self, game, attack):
         """
@@ -47,13 +48,13 @@ class Creature:
         """
         return self.features.get_added_damage(attack, game, self)
 
-    def damage(self, amount):
+    def damage(self, amount, game):
         """
         deal damage to creature 
         """
         self.hp -= amount
         if self.hp <= 0: 
-            self.zero_condition() 
+            self.zero_condition(amount, game) 
     
     def roll_initiative(self):
         """
@@ -62,7 +63,7 @@ class Creature:
         """
         return self.init_dice.roll() 
     
-    def zero_condition(self):
+    def zero_condition(self, amount, game):
         """
         what happens when creature drops to 
         0 hp
@@ -72,7 +73,9 @@ class Creature:
         and start making death saves 
         """
         self.hp = 0 # there is not negative HP 
-        self.die()
+        self.features.drop_to_zero(amount, game, self)
+        if self.hp == 0:
+            self.die()
 
     def avail_movement(self, grid):
         """
@@ -127,6 +130,7 @@ class Creature:
 
         self.hp = self.max_hp
         self.condition = AWAKE 
+        self.game_data = {} 
     
     def skill_check(self, type):
         """

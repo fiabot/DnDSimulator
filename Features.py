@@ -3,6 +3,7 @@ ATTACK_STR = "attack"
 DAMAGE_STR = "damage"
 SAVE_STR = "saving"
 SKILL_STR = "skill"
+DEATH_STR = "death"
 
 class FeatureManager: 
     def __init__ (self, features):
@@ -56,6 +57,12 @@ class FeatureManager:
                     
             
         return Dice(make_dice_string(1, 20, mod), advantage) 
+    
+    def drop_to_zero(self, amount, game, creature):
+        if DEATH_STR in self.features:
+            for feat in self.features[DEATH_STR]: 
+                if feat.condition(amount, game, creature):
+                    feat.effect(amount, game, creature) 
         
 
 class Feature: 
@@ -107,6 +114,11 @@ class SavingThrowFeature(SkillCheckFeature):
         super().__init__(name, condition, advantage_granted, modifier_granted)
         self.type = SAVE_STR
 
+class DeathFeature(Feature):
+    def __init__(self, name, condition, effect):
+        super().__init__(DEATH_STR, name)
+        self.condition = condition 
+        self.effect = effect 
 # conditions 
 def friend_in_range(game, attacker, attack):
     """
@@ -130,8 +142,15 @@ def friend_in_range(game, attacker, attack):
 
 wisd = lambda type : type == WIS_STR 
 charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
+has_relent = lambda amount, game, creature : not "Relentless Endurance" in creature.game_data 
 
-# Features 
+# effects 
+def use_relent(amount, game, creature):
+    creature.game_data["Relentless Endurance"] = 1 
+    if creature.hp == 0:
+        creature.hp = 1 
+    
 SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, "2d20 + 20")
 DARK_DEVOTION = SavingThrowFeature("darkDevotion", charm_fright, 1, 0) 
 WISDOM_ADV = SkillCheckFeature("Keen sight", wisd, 1 , 20)
+RELENTLESS_ENDUR = DeathFeature("Relentless Endurance", has_relent, use_relent)

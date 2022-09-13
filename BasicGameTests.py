@@ -7,7 +7,7 @@ from Features import friend_in_range;
 
 
 modifiers = Modifiers() 
-features = FeatureManager([SNEAK_ATTACK, DARK_DEVOTION, WISDOM_ADV])
+features = FeatureManager([SNEAK_ATTACK, DARK_DEVOTION, WISDOM_ADV, RELENTLESS_ENDUR])
 no_features = FeatureManager([])
 sword = Attack(4, "2d8", 1, name = "Sword")
 arrow = Attack(hit_bonus= 0, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
@@ -26,9 +26,7 @@ monster_pos = [(4,3)]
 
 
 game = Game(players=[player1, player2], monsters = [monster], player_pos=player_pos, monster_pos= monster_pos, map=map)
-char_sum = 0 
-not_sum = 0 
-for i in range(10): 
-
-    print("WISD:", player1.skill_check(WIS_STR)) 
-    print("INTE:", player1.skill_check(INT_STR)) 
+player1.damage(35, game)
+print(player1.condition.is_dead)
+player1.damage(35, game)
+print(player1.condition.is_dead)

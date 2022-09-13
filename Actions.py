@@ -70,8 +70,7 @@ class Attack(Action):
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
                 damage = self.damage_dice.roll() + attacker.get_added_damage(game, self)
-                print(damage)
-                target.damage(damage)
+                target.damage(damage, game)
 
     def set_target(self, target):
         """
