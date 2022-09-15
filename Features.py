@@ -6,28 +6,30 @@ SKILL_STR = "skill"
 DEATH_STR = "death"
 
 class FeatureManager: 
-    def __init__ (self, features):
+    def __init__ (self, features= [], conditions = []):
         self.features= {} 
         for feat in features: 
             if feat.type in self.features:
                 self.features[feat.type].append(feat)
             else: 
                 self.features[feat.type] = [feat] 
+        
+        self.conditions = conditions 
     
-    def get_attack_roll(self, attack, game, creature):
+    def get_attack_roll(self, attack, creature, game):
         if ATTACK_STR in self.features:
             for feat in self.features[ATTACK_STR]:
-                if feat.condition(game, creature, attack):
+                if  feat.condition(attack, creature, game):
                     return feat.dice_from_feature(attack) 
             
             return attack.hit_dice 
         else:
             return attack.hit_dice 
     
-    def get_added_damage(self, attack, game, creature): 
+    def get_added_damage(self, attack, creature, game): 
         if DAMAGE_STR in self.features:
             for feat in self.features[DAMAGE_STR]:
-                if feat.condition(game, creature, attack):
+                if feat.condition(attack, creature, game):
                     return feat.added_damage.roll()  
             
             return 0
@@ -58,13 +60,37 @@ class FeatureManager:
             
         return Dice(make_dice_string(1, 20, mod), advantage) 
     
-    def drop_to_zero(self, amount, game, creature):
+    def drop_to_zero(self, amount, creature, game):
         if DEATH_STR in self.features:
             for feat in self.features[DEATH_STR]: 
-                if feat.condition(amount, game, creature):
-                    feat.effect(amount, game, creature) 
+                if feat.condition(amount, creature, game):
+                    feat.effect(amount, creature, game) 
+    
+    def can_move(self):
+        return_bool = True 
+        for con in self.conditions:
+            return_bool = return_bool and con.can_move 
         
+        return return_bool 
 
+    def can_act(self):
+        return_bool = True 
+        for con in self.conditions:
+            return_bool = return_bool and con.can_act
+        
+        return return_bool 
+    
+    def is_alive(self):
+        return_bool = True 
+        for con in self.conditions:
+            return_bool = return_bool and con.is_alive
+        
+        return return_bool 
+
+    def add_condition(self, condition, creature):
+        self.conditions.append(condition)
+        if not condition.on_added is None: 
+            condition.on_added(creature)
 class Feature: 
     def __init__(self, type, name):
          self.type = type 
@@ -120,7 +146,7 @@ class DeathFeature(Feature):
         self.condition = condition 
         self.effect = effect 
 # conditions 
-def friend_in_range(game, attacker, attack):
+def friend_in_range(attack, attacker, game):
     """
     Return true if there is an ally 
     1 tile from creature 
@@ -142,10 +168,10 @@ def friend_in_range(game, attacker, attack):
 
 wisd = lambda type : type == WIS_STR 
 charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
-has_relent = lambda amount, game, creature : not "Relentless Endurance" in creature.game_data 
+has_relent = lambda amount, creature, game: not "Relentless Endurance" in creature.game_data 
 
 # effects 
-def use_relent(amount, game, creature):
+def use_relent(amount, creature, game):
     creature.game_data["Relentless Endurance"] = 1 
     if creature.hp == 0:
         creature.hp = 1 

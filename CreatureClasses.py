@@ -22,7 +22,6 @@ class Creature:
         self.modifiers = modifiers 
         self.max_hp = hp 
         self.hp = self.max_hp # assumes we start with full health  
-        self.condition =  AWAKE
         self.position = position 
         self.name = name 
         self.team = team 
@@ -39,14 +38,14 @@ class Creature:
         return the hit dice after applying any 
         special features 
         """
-        return self.features.get_attack_roll(attack, game, self)
+        return self.features.get_attack_roll(attack, self, game)
     
     def get_added_damage(self, game, attack):
         """
         return additional damage 
         granted from features 
         """
-        return self.features.get_added_damage(attack, game, self)
+        return self.features.get_added_damage(attack, self, game)
 
     def damage(self, amount, game):
         """
@@ -73,7 +72,7 @@ class Creature:
         and start making death saves 
         """
         self.hp = 0 # there is not negative HP 
-        self.features.drop_to_zero(amount, game, self)
+        self.features.drop_to_zero(amount, self, game)
         if self.hp == 0:
             self.die()
 
@@ -95,7 +94,7 @@ class Creature:
         """
         when creatures is killed 
         """
-        self.condition = DEAD
+        self.features.add_condition(DEAD, self)
     
     def avail_actions(self, grid):
         """
@@ -111,13 +110,13 @@ class Creature:
         else:
             return self.null.avail_actions(self, grid) 
     
-    def turn(self, map, game):
+    def turn(self, game):
         """
         return a movement and an action
 
         by default will choose first action
         """
-        return self.avail_actions(map)[0]
+        return self.avail_actions(game.map)[0]
     
     def long_rest(self):
         """
@@ -146,6 +145,14 @@ class Creature:
         """
         return self.features.get_save_dice(type, effect, self).roll() 
 
+    def can_act(self):
+        return self.features.can_act() 
+    
+    def can_move(self):
+        return self.features.can_move() 
+    
+    def is_alive(self):
+        return self.features.is_alive() 
     def __str__(self):
         return self.name
 

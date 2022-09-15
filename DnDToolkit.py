@@ -89,8 +89,6 @@ class Dice:
                 return max(first_roll, second_roll) 
         else: 
             return first_roll 
-        
-
 
     def __str__(self):
         return self.dice_string
@@ -284,7 +282,7 @@ class Grid():
         """
         for piece in self.pieces:
             try: 
-                if piece.condition.is_dead: 
+                if not piece.is_alive(): 
                     self.remove_piece(piece)
             except: # not a creature 
                 pass
@@ -397,7 +395,7 @@ class Game():
         i = 0 
 
         while defeated and i < len(party):
-            if party[i].condition.can_act or party[i].condition.can_move:
+            if party[i].can_act() or party[i].can_move():
                 defeated = False 
             i += 1 
         
@@ -521,7 +519,7 @@ class Game():
 
         while self.get_winner() == INCOMPLETE and self.round < round_limit:
             creature = self.update_init() 
-            action = creature.turn(map = self.map, game = self) 
+            action = creature.turn(game = self) 
             self.next_turn(creature, action, debug) 
         
         winner = self.get_winner() 
