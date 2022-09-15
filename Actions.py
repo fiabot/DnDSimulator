@@ -39,7 +39,7 @@ class NullAction(Action):
         return actions 
 
 class Attack(Action):
-    def __init__(self, hit_bonus, damage_dice_string, dist, attack_type = MELE, damage_type = SLASHING_DAMAGE, name = "Attack", attacker = None, target = None):
+    def __init__(self, hit_bonus, damage_dice_string, dist, attack_type = MELE, damage_type = SLASHING_DAMAGE, name = "Attack",side_effects =[],  attacker = None, target = None):
         """
         hit bonus = modifer to d20 roll for hit 
         damage_dice_string = damage dice written in the format "2d8" or "2d8 + 4" 
@@ -55,6 +55,7 @@ class Attack(Action):
         self.attacker = attacker 
         self.attack_type = attack_type 
         self.damage_type = damage_type 
+        self.side_effects = side_effects 
     
     def execute(self, game):
         """
@@ -72,6 +73,9 @@ class Attack(Action):
             if hit >= target.ac: 
                 damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
                 target.damage(damage, self.damage_type,game)
+                 
+                for effect in self.side_effects:
+                    effect.execute(target)
 
     def set_target(self, target):
         """
@@ -106,3 +110,18 @@ class Attack(Action):
             return "Attack " + str(self.target) + " with " + self.name 
         else: 
             return self.name 
+
+
+class SideEffect:
+    def __init__(self, inflicted_condition, can_save, save_type= None, save_dc = 0):
+        self.inflicted_condition = inflicted_condition
+        self.can_save = can_save
+        self.save_type = save_type
+        self.save_dc = save_dc
+    
+    def execute(self, target):
+        print("Side effect")
+        # if condition is inflicted 
+        if (not self.can_save) or self.save_dc >= target.saving_throw(self.save_type, self.inflicted_condition):
+            target.add_condition(self.inflicted_condition)
+

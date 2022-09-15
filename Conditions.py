@@ -36,7 +36,7 @@ class Condition:
 
 def create_save_funct(save_type, save_dc):
     def save_throw(condition, creature, game):
-        throw = creature.saving_throw(save_type, condition.name)
+        throw = creature.saving_throw(save_type, condition)
         return throw > save_dc 
     return save_throw 
 
