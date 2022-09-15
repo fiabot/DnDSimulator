@@ -15,6 +15,20 @@ INT_STR = "intelligence"
 WIS_STR = "wisdom"
 CHAR_STR = "charisma"
 
+SAVES_STR = "saves"
+FAIL_STR = "fail"
+
+def free_moves(speed, creature, game):
+    """
+    Get all the available moves given
+    a creature and a move speed 
+    """
+    grid = game.map 
+    movement = [creature.position] 
+
+    movement += [piece[1] for piece in grid.tiles_in_range(creature.position, speed) if grid.is_free(piece[1])]
+    return movement 
+
 def make_dice_string(amount, type, modifer = 0):
     return_str = "{}d{}".format(amount, type)
     if(modifer > 0):
@@ -91,7 +105,17 @@ class Dice:
             return first_roll 
 
     def __str__(self):
-        return self.dice_string
+        ad_str = "no advantage"
+        if self.default_advantage > 0: 
+            ad_str = "advantage"
+        elif self.default_advantage < 0: 
+            ad_str = "disavantage"
+        
+        return "{} with {}".format(self.dice_string, ad_str)
+
+class FailDice (Dice):
+    def __init__(self):
+        super().__init__("0d20", 0) 
 
 class CompoundDice: 
     def __init__(self, dice_list) -> None:
@@ -493,13 +517,15 @@ class Game():
         complete a turn given a creature 
         and an action
         """
-        if creature.condition.can_move or creature.condition.can_act: 
+        if creature.can_move() or creature.can_act(): 
 
             #move creature 
             self.map.move_piece(creature, action[0])
 
             # complete actions 
             action[1].execute(self)
+
+            creature.end_of_turn(self) 
 
             if debug:
                 print("\n {}'s Turn".format(creature))

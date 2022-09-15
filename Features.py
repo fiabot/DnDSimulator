@@ -1,9 +1,20 @@
+from sys import is_finalizing
+from Conditions import STABLE
 from DnDToolkit import *; 
 ATTACK_STR = "attack" 
 DAMAGE_STR = "damage"
 SAVE_STR = "saving"
 SKILL_STR = "skill"
 DEATH_STR = "death"
+
+def clamp_advantage(advantage): 
+    if(advantage >= 1):
+        return 1 
+    elif advantage <= 1: 
+        return -1 
+    else: 
+        return 0 
+
 
 class FeatureManager: 
     def __init__ (self, features= [], conditions = []):
@@ -17,14 +28,35 @@ class FeatureManager:
         self.conditions = conditions 
     
     def get_attack_roll(self, attack, creature, game):
-        if ATTACK_STR in self.features:
-            for feat in self.features[ATTACK_STR]:
-                if  feat.condition(attack, creature, game):
-                    return feat.dice_from_feature(attack) 
-            
-            return attack.hit_dice 
+        if self.does_attack_fail(attack, creature, game):
+            return FailDice() 
         else:
-            return attack.hit_dice 
+            dice = None 
+            target_adv = game.get_creature(attack.target).get_defense_advantage()
+            con_adv = self.condition_advantage() 
+            if ATTACK_STR in self.features:
+                i = 0 
+                while dice is None and i < len(self.features[ATTACK_STR]):
+                    feat = self.features[ATTACK_STR][i]
+                    if  feat.condition(attack, creature, game):
+                        dice = feat.dice_from_feature(attack) 
+            # if no features are applied, use default dice 
+            if dice is None: 
+                dice = attack.hit_dice 
+
+            feature_advantage = dice.default_advantage 
+            total_advantage = clamp_advantage(feature_advantage + target_adv + con_adv)
+            if isinstance(dice, CompoundDice):
+                new_dice_list = []
+                for sub_dice in dice.dice_list:
+                    if sub_dice.type == 20:
+                        new_dice_list.append[Dice(sub_dice.dice_string, total_advantage)]
+                    else:
+                        new_dice_list.append(sub_dice)
+                dice = CompoundDice(new_dice_list)
+            elif isinstance(dice, Dice):
+                dice = Dice(dice.dice_string, total_advantage)
+            return dice 
     
     def get_added_damage(self, attack, creature, game): 
         if DAMAGE_STR in self.features:
@@ -37,28 +69,37 @@ class FeatureManager:
             return 0
     
     def get_save_dice(self, type, effect, creature): 
-        mod = creature.modifiers.get_save_mod(type) 
-        advantage = 0 
-        if SAVE_STR in self.features:
-            for feat in self.features[SAVE_STR]:
-                if feat.condition(type, effect):
-                    mod += feat.modifier_granted 
-                    advantage += feat.advantage_granted 
-                    
+        if (self.does_throw_fail(type, effect)):
+            return FailDice()
+        else: 
+            mod = creature.modifiers.get_save_mod(type) 
+            advantage = 0 
+            if SAVE_STR in self.features:
+                for feat in self.features[SAVE_STR]:
+                    if feat.condition(type, effect):
+                        mod += feat.modifier_granted 
+                        advantage += feat.advantage_granted 
             
-        return Dice(make_dice_string(1, 20, mod), advantage) 
+            advantage += self.condition_throw_advantage(type, effect)
+
+                
+            return Dice(make_dice_string(1, 20, mod), advantage) 
     
     def get_skill_dice(self, type, creature): 
-        mod = creature.modifiers.get_skill_mod(type) 
-        advantage = 0 
-        if SKILL_STR in self.features:
-            for feat in self.features[SKILL_STR]:
-                if feat.condition(type):
-                    mod += feat.modifier_granted 
-                    advantage += feat.advantage_granted 
-                    
+        if (self.does_throw_fail(type)):
+            return FailDice()
+        else: 
+            mod = creature.modifiers.get_skill_mod(type) 
+            advantage = 0 
+            if SKILL_STR in self.features:
+                for feat in self.features[SKILL_STR]:
+                    if feat.condition(type):
+                        mod += feat.modifier_granted 
+                        advantage += feat.advantage_granted 
             
-        return Dice(make_dice_string(1, 20, mod), advantage) 
+            advantage += self.condition_throw_advantage(type)
+                
+            return Dice(make_dice_string(1, 20, mod), advantage) 
     
     def drop_to_zero(self, amount, creature, game):
         if DEATH_STR in self.features:
@@ -66,6 +107,23 @@ class FeatureManager:
                 if feat.condition(amount, creature, game):
                     feat.effect(amount, creature, game) 
     
+    def avail_moves(self, creature, game):
+        if not self.can_move:
+            return [creature.position]
+        else:
+            moves = None 
+            i = 0 
+            while moves is None and i < len(self.conditions):
+                cond = self.conditions[i]
+                if not cond.get_avail_moves is None: 
+                    moves = cond.get_avail_moves(creature, game)
+                i += 1 
+
+            if moves is None: 
+                return free_moves(creature.speed, creature, game)
+            else:
+                return moves 
+
     def can_move(self):
         return_bool = True 
         for con in self.conditions:
@@ -91,6 +149,79 @@ class FeatureManager:
         self.conditions.append(condition)
         if not condition.on_added is None: 
             condition.on_added(creature)
+
+    def remove_condition(self, condition):
+        self.conditions.remove(condition)
+    
+    def defense_advantage(self):
+        advantage = 0 
+        for cond in self.conditions:
+            advantage += cond.defense_advantage 
+            if(advantage > 1):
+                advantage = 1 
+            elif advantage < 1: 
+                advantage = -1 
+        return advantage 
+
+    def condition_advantage(self):
+        advantage = 0 
+        for cond in self.conditions:
+            advantage += cond.attack_advantage 
+            if(advantage > 1):
+                advantage = 1 
+            elif advantage < 1: 
+                advantage = -1 
+        return advantage 
+
+    def does_throw_fail(self, type, effect = None):
+        fail = False 
+        i = 0 
+        while not fail and i < len(self.conditions):
+            cond = self.conditions[i]
+            if (not cond.does_throw_fail is None):
+                cond.does_throw_fail(type, effect)
+            i += 1 
+        return fail 
+    
+    def condition_throw_advantage(self, type, effect = None):
+        ad = 0 
+        i = 0
+        while ad == 0 and i < len(self.conditions):
+            cond = self.conditions[i]
+
+            if (not cond.throw_advantage is None):
+                ad = cond.throw_advantage(type, effect)
+
+            i += 1 
+        return ad 
+
+    def does_attack_fail(self, attack, attacker, game):
+        fail = False 
+        i = 0
+        while not fail and i < len(self.conditions):
+            cond = self.conditions[i]
+            if not cond.does_attack_fail is None:
+                fail = cond.does_attack_fail(attack, attacker, game)
+            i += 1 
+
+        return fail 
+
+    def end_of_turn(self, creature, game):
+        for cond in self.conditions:
+            if not cond.end_of_turn is None:
+                if cond.end_of_turn(cond, creature, game):
+                    self.remove_condition(cond)
+    def is_stable(self):
+        return self.has_condition(STABLE)
+    
+    def has_condition(self, condition):
+        has_con = False 
+        i = 0 
+        while not has_con and i < len(self.conditions):
+            has_con = self.conditions[i].name == condition.name
+            i += 1 
+        return has_con
+        
 class Feature: 
     def __init__(self, type, name):
          self.type = type 

@@ -12,7 +12,7 @@ class Action:
         """
         pass 
 
-    def avail_actions(self, creature, grid):
+    def avail_actions(self, creature, game):
         """
         return all the possible options 
         for all possible movement of a creature
@@ -31,9 +31,9 @@ class NullAction(Action):
     def __init__(self):
         super().__init__("No Action")
     
-    def avail_actions(self, creature, grid):
+    def avail_actions(self, creature, game):
         actions = []
-        for move in creature.avail_movement(grid):
+        for move in creature.avail_movement(game):
             actions.append((move, self))
         
         return actions 
@@ -65,11 +65,11 @@ class Attack(Action):
         attacker = game.get_creature(self.attacker)
         if not target is None: 
             # roll attack applying any special features 
-            hit = attacker.get_hit_dice(game, self).roll() 
+            hit = attacker.get_hit_dice(self, game).roll() 
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
-                damage = self.damage_dice.roll() + attacker.get_added_damage(game, self)
+                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
                 target.damage(damage, game)
 
     def set_target(self, target):
@@ -86,13 +86,13 @@ class Attack(Action):
 
         return [enemy for enemy in grid.enemies_in_range(team, position, self.dist, dist_min = self.min_dist) if enemy.is_alive()] 
     
-    def avail_actions(self, creature, grid):
+    def avail_actions(self, creature, game):
         actions = [] 
 
-        for move in creature.avail_movement(grid):
+        for move in creature.avail_movement(game):
             
 
-            targets = self.avail_targets(creature.team, move, grid)
+            targets = self.avail_targets(creature.team, move, game.map)
 
             for target in targets:
                 new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target.name, name = self.name, attacker = creature.name)

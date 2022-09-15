@@ -6,6 +6,9 @@ from Features import *;
 
 BASE_SKILLS = {STR_STR : 0, DEX_STR: 0 , CON_STR: 0, INT_STR: 0, WIS_STR : 0, CHAR_STR : 0}
 
+
+
+
 class Creature:
     def __init__(self, ac, hp, speed, modifiers, features, position = (0,0), name = "Creature", team = "neutral", actions = []):
         """
@@ -33,14 +36,14 @@ class Creature:
         self.features = features 
         self.game_data = {} 
 
-    def get_hit_dice(self, game, attack):
+    def get_hit_dice(self, attack, game):
         """
         return the hit dice after applying any 
         special features 
         """
         return self.features.get_attack_roll(attack, self, game)
     
-    def get_added_damage(self, game, attack):
+    def get_added_damage(self, attack, game):
         """
         return additional damage 
         granted from features 
@@ -76,19 +79,15 @@ class Creature:
         if self.hp == 0:
             self.die()
 
-    def avail_movement(self, grid):
+    def avail_movement(self, game):
         """
-        all available movement within 
-        walking speed 
+        all available movement depending
+        on features 
+
+        by default it will be up to 
+        movement speed 
         """
-
-        if self.condition.can_move:
-            movement = [self.position] 
-
-            movement += [piece[1] for piece in grid.tiles_in_range(self.position, self.speed) if grid.is_free(piece[1])]
-            return movement 
-        else:
-            return [self.position]
+        return self.features.avail_moves(self, game)
 
     def die(self):
         """
@@ -96,7 +95,7 @@ class Creature:
         """
         self.features.add_condition(DEAD, self)
     
-    def avail_actions(self, grid):
+    def avail_actions(self, game):
         """
         total available movmenent and 
         actions combinations 
@@ -104,11 +103,11 @@ class Creature:
         if self.condition.can_act:
             total_actions = [] 
             for action in self.actions:
-                total_actions += action.avail_actions(self, grid) 
+                total_actions += action.avail_actions(self, game) 
             
             return total_actions
         else:
-            return self.null.avail_actions(self, grid) 
+            return self.null.avail_actions(self, game) 
     
     def turn(self, game):
         """
@@ -116,8 +115,11 @@ class Creature:
 
         by default will choose first action
         """
-        return self.avail_actions(game.map)[0]
-    
+        return self.avail_actions(game)[0]
+
+    def end_of_turn(self, game):
+        self.features.end_of_turn(self, game) 
+
     def long_rest(self):
         """
         reset stats, as if after 
@@ -153,9 +155,27 @@ class Creature:
     
     def is_alive(self):
         return self.features.is_alive() 
+    
+    def get_defense_advantage(self):
+        return self.features.defense_advantage()
+    
+    def add_condition(self, condition):
+        self.features.add_condition(condition, self)
+    def has_condition(self, condition):
+        return self.features.has_condition(condition) 
+    
+    def is_stable(self):
+        return self.features.is_stable() 
     def __str__(self):
         return self.name
 
+class Player(Creature):
+    def zero_condition(self, amount, game): 
+        self.hp = 0 # there is not negative HP 
+        self.features.drop_to_zero(amount, self, game)
+        # make sure that our features didn't change our hp 
+        if self.hp == 0 and not (self.has_condition(STABLE) or self.has_condition(ASLEEP) or (not self.is_alive())):
+                self.add_condition(ASLEEP)
 
 class Modifiers:
     def __init__(self, initiative = 0, skill_dict = BASE_SKILLS, save_dict = BASE_SKILLS):
