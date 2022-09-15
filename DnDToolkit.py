@@ -18,6 +18,12 @@ CHAR_STR = "charisma"
 SAVES_STR = "saves"
 FAIL_STR = "fail"
 
+MELE = "mele"
+RANGED = "ranged"
+
+SLASHING_DAMAGE = "slashing"
+PIERCING_DAMAGE = "piercing"
+
 def free_moves(speed, creature, game):
     """
     Get all the available moves given

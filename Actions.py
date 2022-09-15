@@ -39,7 +39,7 @@ class NullAction(Action):
         return actions 
 
 class Attack(Action):
-    def __init__(self, hit_bonus, damage_dice_string, dist, min_dist = 0, name = "Attack", attacker = None, target = None):
+    def __init__(self, hit_bonus, damage_dice_string, dist, attack_type = MELE, damage_type = SLASHING_DAMAGE, name = "Attack", attacker = None, target = None):
         """
         hit bonus = modifer to d20 roll for hit 
         damage_dice_string = damage dice written in the format "2d8" or "2d8 + 4" 
@@ -52,8 +52,9 @@ class Attack(Action):
         self.damage_dice = Dice(damage_dice_string)
         self.target = target 
         self.dist = dist 
-        self.min_dist = min_dist 
         self.attacker = attacker 
+        self.attack_type = attack_type 
+        self.damage_type = damage_type 
     
     def execute(self, game):
         """
@@ -63,14 +64,14 @@ class Attack(Action):
         # if there is not a target, dont do anything 
         target = game.get_creature(self.target)
         attacker = game.get_creature(self.attacker)
-        if not target is None: 
+        if not target is None and not attacker is None: 
             # roll attack applying any special features 
             hit = attacker.get_hit_dice(self, game).roll() 
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
                 damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
-                target.damage(damage, game)
+                target.damage(damage, self.damage_type,game)
 
     def set_target(self, target):
         """
@@ -84,7 +85,7 @@ class Attack(Action):
         range of attack
         """
 
-        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist, dist_min = self.min_dist) if enemy.is_alive()] 
+        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist) if enemy.is_alive()] 
     
     def avail_actions(self, creature, game):
         actions = [] 

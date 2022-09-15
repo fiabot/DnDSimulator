@@ -7,11 +7,11 @@ from Features import friend_in_range;
 
 
 modifiers = Modifiers() 
-features = FeatureManager([SNEAK_ATTACK, DARK_DEVOTION, WISDOM_ADV, RELENTLESS_ENDUR], conditions= [])
+features = FeatureManager([], conditions= [])
 no_features = FeatureManager()
 sword = Attack(4, "2d8", 1, name = "Sword")
-arrow = Attack(hit_bonus= 0, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
-player1 = Player(ac =12, hp =30, speed = 3, name = "Fuzzy Wuzzy", team = "player", actions=[sword], modifiers=modifiers, features=features)
+arrow = Attack(hit_bonus= 0, damage_type= PIERCING_DAMAGE, attack_type=RANGED, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
+player1 = Player(ac =12, hp =30, speed = 3, name = "Fuzzy Wuzzy", team = "player", immunities= [SLASHING_DAMAGE], actions=[sword], modifiers=modifiers, features=features)
 monster = Creature(2, 30, 3, name = "Leo", team = "player", actions=[arrow], modifiers=modifiers, features= no_features)
 player2 = Creature(12, 30, 3, name = "Bear", team = "monster", actions=[sword], modifiers=modifiers, features= no_features)
 map = Grid(5,5, space =3)
@@ -27,8 +27,16 @@ monster_pos = [(4,3)]
 
 game = Game(players=[player1, player2], monsters = [monster], player_pos=player_pos, monster_pos= monster_pos, map=map)
 
-while player1.is_alive() and not player1.is_stable():
-    player1.zero_condition(1, game) 
-    player1.end_of_turn(game) 
-    print(player1.game_data)
+print(player1.hp)
+sword.set_target(player1.name)
+sword.attacker = monster.name
+sword.execute(game)
+print(player1.hp)
+
+arrow.set_target(player1.name)
+arrow.attacker =monster.name
+arrow.execute(game)
+print(player1.hp)
+
+
 #game.play_game(debug=True) 

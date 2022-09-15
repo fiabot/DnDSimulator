@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pyexpat import features
 from Conditions import *; 
 from DnDToolkit import *; 
@@ -10,7 +11,9 @@ BASE_SKILLS = {STR_STR : 0, DEX_STR: 0 , CON_STR: 0, INT_STR: 0, WIS_STR : 0, CH
 
 
 class Creature:
-    def __init__(self, ac, hp, speed, modifiers, features, position = (0,0), name = "Creature", team = "neutral", actions = []):
+    def __init__(self, ac, hp, speed, modifiers, features, 
+                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
+                    immunities = [], resistences = []):
         """
         Initialize a creature 
         ac = numerical armor class 
@@ -35,6 +38,8 @@ class Creature:
         self.init_dice = Dice("1d20 + {}".format(self.modifiers.initative))
         self.features = features 
         self.game_data = {} 
+        self.resistances = resistences
+        self.immunities = immunities 
 
     def get_hit_dice(self, attack, game):
         """
@@ -50,13 +55,16 @@ class Creature:
         """
         return self.features.get_added_damage(attack, self, game)
 
-    def damage(self, amount, game):
+    def damage(self, amount, type, game):
         """
         deal damage to creature 
         """
-        self.hp -= amount
-        if self.hp <= 0: 
-            self.zero_condition(amount, game) 
+        if not type in self.immunities:
+            if type in self.resistances:
+                amount = amount / 2 
+            self.hp -= amount
+            if self.hp <= 0: 
+                self.zero_condition(amount, game) 
     
     def roll_initiative(self):
         """
