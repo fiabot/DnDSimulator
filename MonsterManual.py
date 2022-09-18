@@ -1,5 +1,6 @@
 from DnDToolkit import * 
 from BasicAgents import * 
+from CreatureClasses import * 
 #from JinJerryAgent import * 
 
 # actions 
@@ -22,11 +23,18 @@ bigbite = Attack(5, "2d6 + 3", 1, name = "big bite")
 # Monster Stats 
 
 # 1/8 challenge 
-bandit = {"ac":12, "hp":11, "speed":3, "actions":[scimitar, crossbow], "name": "bandit"}
-merfolk = {"ac":11, "hp":11, "speed":1, "actions":[spear], "name": "merfolf"}
+bandit_mods = {DEX_STR: 1, CON_STR: 1, STR_STR: 0, CHAR_STR: 0, INT_STR: 0, WIS_STR: 0}
+bandit = {"ac":12, "hp":11, "speed":3, "actions":[scimitar, crossbow], "name": "bandit", 
+                                "modifers": Modifiers(1, bandit_mods, bandit_mods)}
+
+mer_mods = {DEX_STR: 1, CON_STR: 1, STR_STR: 0, CHAR_STR: 1, INT_STR: 0, WIS_STR: 0}
+merfolk = {"ac":11, "hp":11, "speed":1, "actions":[spear], "name": "merfolf", 
+                "modifiers": Modifiers(1, mer_mods, mer_mods)}
 
 # 1/4 challenge 
-elk = {"ac" :10 , "hp" : 13, "speed":5, "actions" : [ram], "name":"elk"}
+elk_mods = {DEX_STR: 0, CON_STR: 1, STR_STR: 3, CHAR_STR: -2, INT_STR: -4, WIS_STR: 0}
+elk = {"ac" :10 , "hp" : 13, "speed":5, "actions" : [ram], "name":"elk", "modifiers" : Modifiers(0, elk_mods, elk_mods)}
+
 skeleton = {"ac":13, "hp":13, "speed":3 , "actions":[shortsword, shortbow], "name":"skeleton"}
 
 # 1/2 challenge 

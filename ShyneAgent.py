@@ -1,12 +1,14 @@
 from DnDToolkit import * 
 from BasicAgents import *
 import time  
-from MonsterManual import * 
+#from MonsterManual import * 
 import math 
 
 class ShyneCreature(Creature):
-    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False, depths = [0, 10, 20, 30, 40], debug= False):
-        super().__init__(ac, hp, speed, position, name, team, actions, rolled)
+    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
+                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
+                    immunities = [], resistences = [], depths = [0, 10, 20, 30, 40], debug= False):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
         self.depths = depths 
         self.debug = debug 
         self.times = []  
@@ -30,7 +32,7 @@ class ShyneCreature(Creature):
 
         return map 
 
-    def decide_action(self, grid, creature):
+    def decide_action(self, game, creature):
         """
         choices how the model 
         decides on an action
@@ -41,7 +43,7 @@ class ShyneCreature(Creature):
         avail_moves = [] 
         while len(avail_moves) == 0:
             action = random.choice(creature.actions) 
-            avail_moves = action.avail_actions(creature, grid)
+            avail_moves = action.avail_actions(creature, game)
         #avail_moves = creature.avail_actions(grid)
 
         return random.choice(avail_moves)
@@ -101,19 +103,20 @@ class ShyneCreature(Creature):
 
         while cur_depth < depth:
             creature = game.update_init() 
-            turn = self.decide_action(game.map, creature)
+            turn = self.decide_action(game, creature)
             game.next_turn(creature, turn)
             
             cur_depth += 1 
         return game
     
-    def turn(self, map, game):
+    def turn(self, game):
         """
         Move forward one action and evaluate state 
         use only the top half of states to expand, 
         conduct random trials 
         """
-        options = self.avail_actions(map) 
+        map = game.map
+        options = self.avail_actions(game) 
 
         options_evaluations = [[0, option] for option in options] 
 
@@ -154,17 +157,3 @@ class ShyneCreature(Creature):
         return sum(self.times) / len(self.times) 
 
 
-
-if __name__ == "__main__":
-    #agroParty, jinParty = create_identical_parties(AggressiveCreature, JinJerryCreature, MANUAL, 2)
-    agroParty = create_party(AggressiveCreature, MANUAL, 2)
-    shyneParty = create_party(ShyneCreature, MANUAL, 2)
-    #for creature in jinParty:
-    #   creature.debug = True 
-    map = Grid(10, 10, space = 3)
-    game = Game(agroParty, shyneParty,player_pos=[(0,0), (1,0)], monster_pos=[(9,0), (9,1)], map = map)
-    print(game.play_game(debug=True)) 
-
-    # print average times: 
-    for creature in shyneParty:
-        print(creature.average_time())

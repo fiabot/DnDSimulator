@@ -1,5 +1,5 @@
 from sys import is_finalizing
-from Conditions import STABLE
+from Conditions import * 
 from DnDToolkit import *; 
 ATTACK_STR = "attack" 
 DAMAGE_STR = "damage"
@@ -17,7 +17,8 @@ def clamp_advantage(advantage):
 
 
 class FeatureManager: 
-    def __init__ (self, features= [], conditions = []):
+    def __init__ (self, features= []):
+        self.feature_list = features 
         self.features= {} 
         for feat in features: 
             if feat.type in self.features:
@@ -25,7 +26,7 @@ class FeatureManager:
             else: 
                 self.features[feat.type] = [feat] 
         
-        self.conditions = conditions 
+        self.conditions = []
     
     def get_attack_roll(self, attack, creature, game):
         if self.does_attack_fail(attack, creature, game):
@@ -62,7 +63,7 @@ class FeatureManager:
         if DAMAGE_STR in self.features:
             for feat in self.features[DAMAGE_STR]:
                 if feat.condition(attack, creature, game):
-                    return feat.added_damage.roll()  
+                    return feat.damage_added(attack, creature, game) 
             
             return 0
         else:
@@ -221,6 +222,20 @@ class FeatureManager:
             has_con = self.conditions[i].name == condition.name
             i += 1 
         return has_con
+    def reset_conditions(self):
+        self.conditions = [] 
+    def __str__(self):
+        return_str = ""
+
+        return_str += "\tFeatures: "
+        for i in self.feature_list:
+            return_str += i.name + " , "
+
+        return_str += "\n\tConditions: "
+        for i in self.conditions:
+            return_str += i.name + " , "
+        return return_str
+        
         
 class Feature: 
     def __init__(self, type, name):
@@ -252,12 +267,12 @@ class AttackFeature (Feature):
             return CompoundDice([new_hit_dice, self.added_dice])
         else: 
             return new_hit_dice 
-
+    
 class DamageFeature (Feature): 
-    def __init__(self, name, condition, added_dice_string):
+    def __init__(self, name, condition, damage_added):
         super().__init__(DAMAGE_STR, name) 
         self.condition = condition 
-        self.added_damage = Dice(added_dice_string) 
+        self.damage_added = damage_added
 
 class SkillCheckFeature (Feature):
     def __init__(self, name, condition, advantage_granted, modifier_granted):
@@ -306,8 +321,29 @@ def use_relent(amount, creature, game):
     creature.game_data["Relentless Endurance"] = 1 
     if creature.hp == 0:
         creature.hp = 1 
+
+def bonus_damage (dice_string):
+    def damage_added (attack,attacker, game):
+        return Dice(dice_string).roll() 
+    return damage_added 
+
+def does_charge(attack, attacker, game): 
+    return game.map.distance(attacker.position, attacker.last_pos) >= 2
+
+def charge_damage(dice_string, save_dc):
+    def charge_damage(attack, attacker, game):
+        is_prone = attacker.saving_throw(STR_STR, PRONE.name) >= save_dc
+        if is_prone: 
+            attacker.add_condition(PRONE)
+        
+        return Dice(dice_string).roll() 
+    return charge_damage
+        
+
     
-SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, "2d20 + 20")
+
+SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, bonus_damage("2d20 + 20"))
 DARK_DEVOTION = SavingThrowFeature("darkDevotion", charm_fright, 1, 0) 
 WISDOM_ADV = SkillCheckFeature("Keen sight", wisd, 1 , 20)
 RELENTLESS_ENDUR = DeathFeature("Relentless Endurance", has_relent, use_relent)
+CHARGE = DamageFeature("charge", does_charge, charge_damage("2d6", 13))

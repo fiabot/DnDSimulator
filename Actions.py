@@ -57,7 +57,7 @@ class Attack(Action):
         self.damage_type = damage_type 
         self.side_effects = side_effects 
     
-    def execute(self, game):
+    def execute(self, game, debug = False):
         """
         Excute attack on target
         if target is none, do nothing
@@ -71,11 +71,20 @@ class Attack(Action):
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
+                
                 damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
                 target.damage(damage, self.damage_type,game)
                  
                 for effect in self.side_effects:
                     effect.execute(target)
+                
+                if debug: 
+                    print("Hit creature {} for {}".format(target.name, damage))
+            
+            elif debug: 
+                print("Attack {} missed".format(self.name))
+        elif debug:
+            print("Target or Attacker not found")
 
     def set_target(self, target):
         """
@@ -100,7 +109,8 @@ class Attack(Action):
             targets = self.avail_targets(creature.team, move, game.map)
 
             for target in targets:
-                new_action = Attack( self.hit_bonus, str(self.damage_dice), self.dist, self.name, target = target.name, name = self.name, attacker = creature.name)
+                new_action = Attack( self.hit_bonus, self.damage_dice.dice_string, self.dist, self.name, target = target.name, name = self.name, attacker = creature.name)
+                new_action.damage_dice = self.damage_dice 
                 actions.append((move, new_action))
         
         return actions 

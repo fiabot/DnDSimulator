@@ -1,17 +1,23 @@
 from re import L
 from DnDToolkit import * 
+from CreatureClasses import * 
 import copy 
 
 class RandomCreature(Creature): 
-    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False):
-        super().__init__(ac, hp, speed, position, name, team, actions, rolled)
+    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
+                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
+                    immunities = [], resistences = []):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
     
-    def turn(self, map, game):
-        return random.choice(self.avail_actions(map))
+    def turn(self, game):
+
+        return random.choice(self.avail_actions(game))
 
 class HumanCreature(Creature):
-    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False):
-        super().__init__(ac, hp, speed, position, name, team, actions, rolled)
+    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
+                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
+                    immunities = [], resistences = []):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
 
     def format_action (self, action):
         move = action[0]
@@ -19,11 +25,12 @@ class HumanCreature(Creature):
 
         return "Move to {} and {}".format(move, action)
 
-    def turn(self, map, game):
+    def turn(self, game):
+        map = game.map 
         initiative = game.turn 
         order = game.order 
-        actions = self.avail_actions(map)
-        if not self.condition.is_dead:
+        actions = self.avail_actions(game)
+        if self.is_alive():
             print("\n\n Current Map:")
             print(map)
 
@@ -35,7 +42,7 @@ class HumanCreature(Creature):
             if i >= len(order):
                     i = 0
 
-            print("end: {}, start: {}".format(end_intitative, i)) 
+            
             print("Next up on initiative:")
             while i != end_intitative: 
 
@@ -53,24 +60,28 @@ class HumanCreature(Creature):
 
             return actions[choice]
         else:
-            print("\n\nLooks like you kicked the bucket. \nEnjoy the afterworld...")
+            print("\n\nLooks like {} kicked the bucket. \nEnjoy the afterworld...".format(self.name))
             input("Press enter")
             return actions[0]
     
     def get_stats(self, creature):
         return_str = "Creature: {} \n".format(creature.name)
-        return_str += "AC: {} \nHP: {} \n".format(creature.ac, creature.hp)
+        return_str += "\tAC: {} \n\tHP: {} \n".format(creature.ac, creature.hp)
+        return_str += str(creature.features)
+
         return return_str
 
-class AggressiveCreature(Creature):
+class AgressiveCreature(Creature):
     """
     choice an action with the 
     highest damage, otherwise 
     get as close as possible to 
     creature 
     """
-    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False):
-        super().__init__(ac, hp, speed, position, name, team, actions, rolled)
+    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
+                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
+                    immunities = [], resistences = []):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
         self.action_order()
     
     def action_order(self):
@@ -84,12 +95,13 @@ class AggressiveCreature(Creature):
         self.order_actions.sort(key = lambda x: x[0], reverse=True)
         self.order_actions = [x[1] for x in self.order_actions] 
 
-    def turn(self, map, game):
+    def turn(self, game):
+        map = game.map 
         action_index = 0 
         actions = [] 
 
         while len(actions) == 0: 
-            actions = self.order_actions[action_index].avail_actions(self, map)
+            actions = self.order_actions[action_index].avail_actions(self, game)
             action_index -= 1 
 
         closest_enemy = map.closest_enemy(self.team, self.position) 
@@ -112,7 +124,7 @@ if __name__ == "__main__":
     sword = Attack(3, "2d6", 1, name = "Sword")
     bow = Attack(hit_bonus=0, damage_dice_string= "1d4", dist = 3, name = "Bow and Arrow")
     random1 = RandomCreature(12, 20, 3, actions=[sword], name = "Rubber Ducky")
-    elmo = AggressiveCreature(12, 20, 3, actions=[bow], name = "Elmo")
+    elmo = AgressiveCreature(12, 20, 3, actions=[bow], name = "Elmo")
     random2 = RandomCreature(12, 20, 3, actions = [bow], name = "Fuzzy Wuzzy")
     bear = RandomCreature(12, 20, 3, actions = [sword], name = "Bear")
 

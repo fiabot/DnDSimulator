@@ -1,11 +1,14 @@
 from DnDToolkit import * 
 from BasicAgents import *
 import time  
-from MonsterManual import * 
+#from MonsterManual import * 
 
 class JinJerryCreature(Creature):
-    def __init__(self, ac, hp, speed, position=..., name="Creature", team="neutral", actions=..., rolled=False, depth = 40, debug= False):
-        super().__init__(ac, hp, speed, position, name, team, actions, rolled)
+        
+    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
+                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
+                    immunities = [], resistences = [], depth = 40, debug= False):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
         self.depth = depth 
         self.debug = debug 
         self.times = [] 
@@ -29,7 +32,7 @@ class JinJerryCreature(Creature):
 
         return map 
 
-    def decide_action(self, grid, creature):
+    def decide_action(self, game, creature):
         """
         choices how the model 
         decides on an action
@@ -40,7 +43,7 @@ class JinJerryCreature(Creature):
         avail_moves = [] 
         while len(avail_moves) == 0:
             action = random.choice(creature.actions) 
-            avail_moves = action.avail_actions(creature, grid)
+            avail_moves = action.avail_actions(creature, game)
         #avail_moves = creature.avail_actions(grid)
 
         return random.choice(avail_moves)
@@ -83,14 +86,15 @@ class JinJerryCreature(Creature):
 
         while depth < self.depth:
             creature = game.update_init() 
-            turn = self.decide_action(game.map, creature)
+            turn = self.decide_action(game, creature)
             game.next_turn(creature, turn)
             
             depth += 1 
         return game
     
-    def turn(self, map, game):
-        options = self.avail_actions(map) 
+    def turn(self, game):
+        map = game.map
+        options = self.avail_actions(game) 
 
         options_evaluations = [] 
 
@@ -136,15 +140,6 @@ class JinJerryCreature(Creature):
 
 
 
-if __name__ == "__main__":
-    #agroParty, jinParty = create_identical_parties(AggressiveCreature, JinJerryCreature, MANUAL, 2)
-    agroParty = create_party(AggressiveCreature, MANUAL, 2)
-    jinParty = create_party(JinJerryCreature, MANUAL, 2)
-    #for creature in jinParty:
-    #   creature.debug = True 
-    map = Grid(10, 10, space = 3)
-    game = Game(agroParty, jinParty,player_pos=[(0,0), (1,0)], monster_pos=[(9,0), (9,1)], map = map)
-    print(game.play_game(debug=True)) 
 
    
 

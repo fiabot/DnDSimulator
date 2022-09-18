@@ -457,19 +457,18 @@ class Game():
     
     def display_health(self):
 
-        print("----------" + MONSTERTEAM + " health-------------")
+        print("----------" + MONSTERTEAM + " status-------------")
         monster_health = ""
 
         for monster in self.monsters: 
-            monster_health += " {} : {} ".format(monster, monster.hp)
-        
+            monster_health += "\n {} : (hp: {}, can move : {}, can act : {}) ".format(monster, monster.hp, monster.can_move(), monster.can_act())
         print(monster_health)
         
         print("----------" + PLAYERTEAM + " health-------------")
         player_health = ""
 
         for player in self.players: 
-            player_health += " {} : {} ".format(player, player.hp)
+            player_health += "\n {} : (hp: {}, can move : {}, can act : {}) ".format(player, player.hp, player.can_move(), player.can_act())
         print(player_health)
     
     def reset(self):

@@ -5,13 +5,27 @@ from DnDToolkit import *;
 from Actions import *; 
 from Features import *; 
 
+
 BASE_SKILLS = {STR_STR : 0, DEX_STR: 0 , CON_STR: 0, INT_STR: 0, WIS_STR : 0, CHAR_STR : 0}
 
+class Modifiers:
+    def __init__(self, initiative = 0, skill_dict = BASE_SKILLS, save_dict = BASE_SKILLS):
+        self.initative = initiative 
+        self.skill_mods = skill_dict 
+        self.save_mods = save_dict 
 
+    def initiative_mod(self):
+        return self.initative 
+
+    def get_skill_mod (self, type): 
+        return self.skill_mods[type] 
+    
+    def get_save_mod(self, type): 
+        return self.save_mods[type]
 
 
 class Creature:
-    def __init__(self, ac, hp, speed, modifiers, features, 
+    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
                     immunities = [], resistences = []):
         """
@@ -29,6 +43,7 @@ class Creature:
         self.max_hp = hp 
         self.hp = self.max_hp # assumes we start with full health  
         self.position = position 
+        self.last_pos = position 
         self.name = name 
         self.team = team 
         self.actions = actions 
@@ -36,10 +51,14 @@ class Creature:
         self.null = NullAction() 
         actions.append(self.null) # make sure the null action is included
         self.init_dice = Dice("1d20 + {}".format(self.modifiers.initative))
-        self.features = features 
+        
         self.game_data = {} 
         self.resistances = resistences
         self.immunities = immunities 
+
+        if features is None:
+            features = FeatureManager() 
+        self.features = features 
 
     def get_hit_dice(self, attack, game):
         """
@@ -61,7 +80,7 @@ class Creature:
         """
         if not type in self.immunities:
             if type in self.resistances:
-                amount = amount / 2 
+                amount = amount // 2 
             self.hp -= amount
             if self.hp <= 0: 
                 self.zero_condition(amount, game) 
@@ -108,7 +127,7 @@ class Creature:
         total available movmenent and 
         actions combinations 
         """
-        if self.condition.can_act:
+        if self.can_act():
             total_actions = [] 
             for action in self.actions:
                 total_actions += action.avail_actions(self, game) 
@@ -126,6 +145,7 @@ class Creature:
         return self.avail_actions(game)[0]
 
     def end_of_turn(self, game):
+        self.last_pos = self.position 
         self.features.end_of_turn(self, game) 
 
     def long_rest(self):
@@ -138,7 +158,7 @@ class Creature:
         """
 
         self.hp = self.max_hp
-        self.condition = AWAKE 
+        self.features.reset_conditions() 
         self.game_data = {} 
     
     def skill_check(self, type):
@@ -168,6 +188,7 @@ class Creature:
         return self.features.defense_advantage()
     
     def add_condition(self, condition):
+        print("Someone added a condition")
         self.features.add_condition(condition, self)
     def has_condition(self, condition):
         return self.features.has_condition(condition) 
@@ -185,17 +206,3 @@ class Player(Creature):
         if self.hp == 0 and not (self.has_condition(STABLE) or self.has_condition(ASLEEP) or (not self.is_alive())):
                 self.add_condition(ASLEEP)
 
-class Modifiers:
-    def __init__(self, initiative = 0, skill_dict = BASE_SKILLS, save_dict = BASE_SKILLS):
-        self.initative = initiative 
-        self.skill_mods = skill_dict 
-        self.save_mods = save_dict 
-
-    def initiative_mod(self):
-        return self.initative 
-
-    def get_skill_mod (self, type): 
-        return self.skill_mods[type] 
-    
-    def get_save_mod(self, type): 
-        return self.save_mods[type]
