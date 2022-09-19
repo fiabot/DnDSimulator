@@ -26,10 +26,11 @@ monster_pos = [(4,0)]
 
 
 game = Game(players=[player1, player2], monsters = [monster], player_pos=player_pos, monster_pos= monster_pos, map=map)
-map.move_piece(player1, (4, 4))
-sword.attacker = player1.name 
-sword.target = monster.name
-sword.execute(game, True)
+player1.end_of_turn(game) 
+map.move_piece(player1, (4, 1))
+arrow.attacker = player1.name 
+arrow.target = monster.name
+arrow.execute(game, True)
 print(monster.features)
 print(monster.hp)
 

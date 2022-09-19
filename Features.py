@@ -17,7 +17,7 @@ def clamp_advantage(advantage):
 
 
 class FeatureManager: 
-    def __init__ (self, features= []):
+    def __init__ (self, features= [], condition_immunities = []):
         self.feature_list = features 
         self.features= {} 
         for feat in features: 
@@ -27,6 +27,7 @@ class FeatureManager:
                 self.features[feat.type] = [feat] 
         
         self.conditions = []
+        self.condition_immunities = condition_immunities 
     
     def get_attack_roll(self, attack, creature, game):
         if self.does_attack_fail(attack, creature, game):
@@ -147,9 +148,10 @@ class FeatureManager:
         return return_bool 
 
     def add_condition(self, condition, creature):
-        self.conditions.append(condition)
-        if not condition.on_added is None: 
-            condition.on_added(creature)
+        if (not condition.name in self.condition_immunities):
+            self.conditions.append(condition)
+            if not condition.on_added is None: 
+                condition.on_added(creature)
 
     def remove_condition(self, condition):
         self.conditions.remove(condition)
@@ -291,6 +293,7 @@ class DeathFeature(Feature):
         super().__init__(DEATH_STR, name)
         self.condition = condition 
         self.effect = effect 
+
 # conditions 
 def friend_in_range(attack, attacker, game):
     """
@@ -316,6 +319,10 @@ wisd = lambda type : type == WIS_STR
 charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
 has_relent = lambda amount, creature, game: not "Relentless Endurance" in creature.game_data 
 
+def can_rampage(amount, creature, game):
+    return game.map.distance(game.map.closest_enemy(creature.team, creature.position).position, creature.position) <= 1
+
+
 # effects 
 def use_relent(amount, creature, game):
     creature.game_data["Relentless Endurance"] = 1 
@@ -334,16 +341,34 @@ def charge_damage(dice_string, save_dc):
     def charge_damage(attack, attacker, game):
         is_prone = attacker.saving_throw(STR_STR, PRONE.name) >= save_dc
         if is_prone: 
-            attacker.add_condition(PRONE)
+            game.get_creature(attack.target).add_condition(PRONE)
         
         return Dice(dice_string).roll() 
     return charge_damage
+
+def rampage(amount, creature, game): 
+    bite = None 
+    i = 0 
+    while bite is None and i < len(creature.actions):
+        act = creature.actions[i]
+        if act.name == "bite":
+            bite = act
+        i += 1 
+    if not bite is None: 
+        bite_copy = deepcopy(bite)
+        bite_copy.target = game.map.closest_enemy(creature.team, creature.position).name 
+        bite_copy.attacker = creature.name 
+        bite.execute(game) 
+
+        
         
 
     
 
-SNEAK_ATTACK = DamageFeature("sneakAttack", friend_in_range, bonus_damage("2d20 + 20"))
-DARK_DEVOTION = SavingThrowFeature("darkDevotion", charm_fright, 1, 0) 
+SNEAK_ATTACK = DamageFeature("Sneak Attack", friend_in_range, bonus_damage("2d20 + 20"))
+DARK_DEVOTION = SavingThrowFeature("Dark Devotion", charm_fright, 1, 0) 
 WISDOM_ADV = SkillCheckFeature("Keen sight", wisd, 1 , 20)
 RELENTLESS_ENDUR = DeathFeature("Relentless Endurance", has_relent, use_relent)
 CHARGE = DamageFeature("charge", does_charge, charge_damage("2d6", 13))
+RAMPAGE = DeathFeature("Rampage", can_rampage, rampage) 
+PACK_TACTICS = AttackFeature("Pack Tactics", friend_in_range, 1, 0)

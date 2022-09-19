@@ -188,7 +188,6 @@ class Creature:
         return self.features.defense_advantage()
     
     def add_condition(self, condition):
-        print("Someone added a condition")
         self.features.add_condition(condition, self)
     def has_condition(self, condition):
         return self.features.has_condition(condition) 

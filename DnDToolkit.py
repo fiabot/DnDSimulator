@@ -23,6 +23,17 @@ RANGED = "ranged"
 
 SLASHING_DAMAGE = "slashing"
 PIERCING_DAMAGE = "piercing"
+BLUDGEONING_DAMAGE = "bludgeoning" 
+POISON_DAMAGE = "posion"
+ACID_DAMAGE = "acid"
+FIRE_DAMAGE = "fire"
+COLD_DAMAGE = "cold"
+RADIANT_DAMAGE = "radiant" 
+NECROTIC = "necrotic"
+LIGHTNING = "lightning" 
+THUNDER = "thunder"
+FORCE_DAMAGE = "force"
+PYSCHIC_DAMAGE = "psychic" 
 
 def free_moves(speed, creature, game):
     """

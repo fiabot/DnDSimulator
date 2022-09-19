@@ -31,3 +31,6 @@ print("Shyne average: {}, Jin average: {}".format(shyne_avg, jin_avg))"""
 
 ## Jin Jerry Vs Random
 #print(tourament(JinJerryCreature, RandomCreature, 10, MANUAL, round_limit= 20, debug=True))
+
+## Random vs Random 
+print(tourament(RandomCreature, RandomCreature, 100, MANUAL, round_limit= 20, debug=True))
