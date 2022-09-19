@@ -8,9 +8,9 @@ SKILL_STR = "skill"
 DEATH_STR = "death"
 
 def clamp_advantage(advantage): 
-    if(advantage >= 1):
+    if(advantage > 0):
         return 1 
-    elif advantage <= 1: 
+    elif advantage < 0: 
         return -1 
     else: 
         return 0 
@@ -40,14 +40,18 @@ class FeatureManager:
                 i = 0 
                 while dice is None and i < len(self.features[ATTACK_STR]):
                     feat = self.features[ATTACK_STR][i]
-                    if  feat.condition(attack, creature, game):
+                    if feat.condition(attack, creature, game):
                         dice = feat.dice_from_feature(attack) 
+                    i += 1
+                
             # if no features are applied, use default dice 
             if dice is None: 
                 dice = attack.hit_dice 
 
             feature_advantage = dice.default_advantage 
             total_advantage = clamp_advantage(feature_advantage + target_adv + con_adv)
+
+
             if isinstance(dice, CompoundDice):
                 new_dice_list = []
                 for sub_dice in dice.dice_list:
@@ -56,6 +60,7 @@ class FeatureManager:
                     else:
                         new_dice_list.append(sub_dice)
                 dice = CompoundDice(new_dice_list)
+
             elif isinstance(dice, Dice):
                 dice = Dice(dice.dice_string, total_advantage)
             return dice 

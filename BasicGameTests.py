@@ -7,7 +7,7 @@ from Features import friend_in_range;
 
 
 modifiers = Modifiers() 
-features = FeatureManager([CHARGE])
+features = FeatureManager([PACK_TACTICS])
 no_features = FeatureManager()
 sword = Attack(4, "2d8", 1, name = "Sword", side_effects= [SideEffect(PRONE, True, DEX_STR, 15)])
 arrow = Attack(hit_bonus= 0, damage_type= PIERCING_DAMAGE, attack_type=RANGED, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
@@ -27,9 +27,10 @@ monster_pos = [(4,0)]
 
 game = Game(players=[player1, player2], monsters = [monster], player_pos=player_pos, monster_pos= monster_pos, map=map)
 player1.end_of_turn(game) 
-map.move_piece(player1, (4, 1))
+#map.move_piece(player1, (4, 1))
 arrow.attacker = player1.name 
 arrow.target = monster.name
+print(friend_in_range(arrow, player1, game))
 arrow.execute(game, True)
 print(monster.features)
 print(monster.hp)
