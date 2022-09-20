@@ -1,17 +1,20 @@
 from DnDToolkit import * 
 from BasicAgents import *
 import time  
-#from MonsterManual import * 
+from MonsterManual import * 
 import math 
 
 class ShyneCreature(Creature):
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], depths = [0, 10, 20, 30, 40], debug= False):
-        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
+                    immunities = [], resistences = [], depths = [0, 10, 20, 30, 40], debug= True, level = 0.5):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level = level)
         self.depths = depths 
         self.debug = debug 
         self.times = []  
+        self.time_components = {} 
+        for i in self.depths:
+            self.time_components[i] = {"sim": 0, "copy": 0, "total": 0, "inst": 0}
     
     def forward_model(self, map, creature, turn):
         """
@@ -90,7 +93,7 @@ class ShyneCreature(Creature):
         
     def simulate_game(self, game, depth):
         """
-        simulate a game given depth of 4 
+        simulate a game given depth 
         return the resulting map 
 
         initiative is the creature going 
@@ -115,7 +118,6 @@ class ShyneCreature(Creature):
         use only the top half of states to expand, 
         conduct random trials 
         """
-        map = game.map
         options = self.avail_actions(game) 
 
         options_evaluations = [[0, option] for option in options] 
@@ -123,11 +125,15 @@ class ShyneCreature(Creature):
         start = time.perf_counter()  
         for depth in self.depths:
             for i, evaluation in enumerate(options_evaluations): 
+                simulation_start = time.perf_counter() 
                 option = evaluation[1] 
                 old_value = evaluation[0]
 
                 # create a copy of game 
                 game_copy = game.create_copy() 
+
+                copy_end = time.perf_counter() 
+
 
                 # do action in game 
                 creature = game_copy.update_init() # should return copy of self 
@@ -135,12 +141,22 @@ class ShyneCreature(Creature):
 
                 # forward simulate 
                 game_copy = self.simulate_game(game_copy, depth)
+
+                simulate_end = time.perf_counter() 
                 
                 # evualute future model 
                 new_value = self.static_evaluator(game_copy)
 
                 # new evaluation is average of old and new 
                 options_evaluations[i][0] = (old_value + 2 * new_value) / 2 
+
+                total_end = time.perf_counter() 
+
+                if self.debug:
+                    self.time_components[depth]["copy"] += copy_end - simulation_start 
+                    self.time_components[depth]["sim"] += simulate_end - copy_end 
+                    self.time_components[depth]["total"] += total_end - simulation_start 
+                    self.time_components[depth]["inst"] += 1 
             
             options_evaluations.sort(key = lambda x: x[0], reverse=True) # sort by eval 
 
@@ -149,11 +165,34 @@ class ShyneCreature(Creature):
             options_evaluations = options_evaluations[:cutoff]
         
         end = time.perf_counter()
-        self.times.append(end - start) 
+        if self.debug:
+            self.times.append(end - start) 
      
         return options_evaluations[0][1]
     
     def average_time(self):
         return sum(self.times) / len(self.times) 
+    
+    def display_times(self):
+        print("Average total turn time: {}".format(self.average_time()))
+        for depth in self.time_components:
+            times = self.time_components[depth]
+            print("For depth: {}".format(depth))
+            print("\tAverage Simulation Time: {}".format(times["total"] / times["inst"]))
+            print("\tAverage Copying Time   : {}".format(times["copy"] / times["inst"]))
+            print("\tAverage Future Time    : {}".format(times["sim"] / times["inst"]))
+            print("Sums: full : {}, copying : {}, future sim: {}".format(times["total"], times["copy"], times["sim"]))
 
 
+if __name__ == "__main__":
+    map = Grid(10, 10, space=1)
+    shyne_wolf = create_creature(ShyneCreature, direWolf)
+    players = [shyne_wolf] + [create_creature(ShyneCreature, direWolf), create_creature(ShyneCreature, direWolf), create_creature(ShyneCreature, direWolf)]
+    rand_wolf = create_creature(AggressiveCreature, direWolf)
+    monsters = [rand_wolf] + [create_creature(AggressiveCreature, direWolf), create_creature(AggressiveCreature, direWolf), create_creature(AggressiveCreature, direWolf)]
+    print(players)
+    game = Game(players, monsters, [(0,0), (1, 0), (2, 0), (3, 0)], [(9,9), (8,9), (7, 9), (6, 9)], map = map)
+
+    game.play_game() 
+    shyne_wolf.display_times() 
+    

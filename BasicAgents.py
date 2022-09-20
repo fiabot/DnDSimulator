@@ -1,4 +1,3 @@
-from re import L
 from DnDToolkit import * 
 from CreatureClasses import * 
 import copy 
@@ -6,8 +5,8 @@ import copy
 class RandomCreature(Creature): 
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = []):
-        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
+                    immunities = [], resistences = [], level = 0.5):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level = level)
     
     def turn(self, game):
 
@@ -16,8 +15,8 @@ class RandomCreature(Creature):
 class HumanCreature(Creature):
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = []):
-        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
+                    immunities = [], resistences = [], level = 0.5):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level)
 
     def format_action (self, action):
         move = action[0]
@@ -71,7 +70,7 @@ class HumanCreature(Creature):
 
         return return_str
 
-class AgressiveCreature(Creature):
+class AggressiveCreature(Creature):
     """
     choice an action with the 
     highest damage, otherwise 
@@ -80,8 +79,8 @@ class AgressiveCreature(Creature):
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = []):
-        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences)
+                    immunities = [], resistences = [], level = 0.5):
+        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level)
         self.action_order()
     
     def action_order(self):
@@ -124,7 +123,7 @@ if __name__ == "__main__":
     sword = Attack(3, "2d6", 1, name = "Sword")
     bow = Attack(hit_bonus=0, damage_dice_string= "1d4", dist = 3, name = "Bow and Arrow")
     random1 = RandomCreature(12, 20, 3, actions=[sword], name = "Rubber Ducky")
-    elmo = AgressiveCreature(12, 20, 3, actions=[bow], name = "Elmo")
+    elmo = AggressiveCreature(12, 20, 3, actions=[bow], name = "Elmo")
     random2 = RandomCreature(12, 20, 3, actions = [bow], name = "Fuzzy Wuzzy")
     bear = RandomCreature(12, 20, 3, actions = [sword], name = "Bear")
 

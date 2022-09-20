@@ -27,7 +27,7 @@ class Modifiers:
 class Creature:
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = []):
+                    immunities = [], resistences = [], level = 0.5):
         """
         Initialize a creature 
         ac = numerical armor class 
@@ -55,6 +55,7 @@ class Creature:
         self.game_data = {} 
         self.resistances = resistences
         self.immunities = immunities 
+        self.level = level 
 
         if features is None:
             features = FeatureManager() 

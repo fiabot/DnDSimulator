@@ -15,9 +15,9 @@ javelin = Attack(5, "1d6 + 3", 12, name = "javalin", attack_type= RANGED, damage
 crossbow = Attack(3, "1d8 + 1", 32, name = "crossbow")
 longbow = Attack(3, "1d8 + 1", 60,  name = "longbow")
 
-prone_w_save = PARALYZED.add_end_of_turn(create_save_funct(CON_STR, 10))
+par_w_save = PARALYZED.add_end_of_turn(create_save_funct(CON_STR, 10))
 claws = Attack(4, "2d4 + 2", 1, name = "claws", attack_type= MELE, damage_type= SLASHING_DAMAGE,
-            side_effects= [SideEffect(prone_w_save, True, CON_STR, 10)] )
+            side_effects= [SideEffect(par_w_save, True, CON_STR, 10)] )
 
 midbite = Attack(2, "2d6 + 2", 1, name = "bite")
 greataxe = Attack(5, "1d12 + 3", 1, name = "greataxe", attack_type= MELE, damage_type= SLASHING_DAMAGE)
@@ -32,40 +32,43 @@ wolfbite = Attack(5, "2d6 + 3", 1, name = "bite",
 # 1/8 challenge 
 bandit_mods = {DEX_STR: 1, CON_STR: 1, STR_STR: 0, CHAR_STR: 0, INT_STR: 0, WIS_STR: 0}
 bandit = {"ac":12, "hp":11, "speed":3, "actions":[scimitar, crossbow], "name": "bandit", 
-                                "modifiers": Modifiers(1, bandit_mods, bandit_mods)}
+                                "modifiers": Modifiers(1, bandit_mods, bandit_mods), "level": 0.125}
 
 mer_mods = {DEX_STR: 1, CON_STR: 1, STR_STR: 0, CHAR_STR: 1, INT_STR: 0, WIS_STR: 0}
-merfolk = {"ac":11, "hp":11, "speed":1, "actions":[spear], "name": "merfolf", 
-                "modifiers": Modifiers(1, mer_mods, mer_mods)}
+merfolk = {"ac":11, "hp":11, "speed":1, "actions":[spear], "name": "merfolk", 
+                "modifiers": Modifiers(1, mer_mods, mer_mods), "level": 0.125}
 
 # 1/4 challenge 
 elk_mods = {DEX_STR: 0, CON_STR: 1, STR_STR: 3, CHAR_STR: -2, INT_STR: -4, WIS_STR: 0}
 elk = {"ac" :10 , "hp" : 13, "speed":5, "actions" : [ram], "name":"elk", "modifiers" : Modifiers(0, elk_mods, elk_mods), 
-"features": FeatureManager([CHARGE])}
+"features": FeatureManager([CHARGE]), "level": 0.25}
 
 skel_mods = {DEX_STR: 2, CON_STR: 2, STR_STR: 0, CHAR_STR: -3, INT_STR: -4, WIS_STR: -2}
 skeleton = {"ac":13, "hp":13, "speed":3 , "actions":[shortsword, shortbow], "name":"skeleton", 
-        "modifiers": Modifiers(2, skel_mods, skel_mods), "features": FeatureManager(condition_immunities=[POSIONED.name])}
+        "modifiers": Modifiers(2, skel_mods, skel_mods), "features": FeatureManager(condition_immunities=[POSIONED.name]), 
+        "level": 0.25}
         
 
 # 1/2 challenge 
 orc_mods = {DEX_STR: 1, CON_STR: 3, STR_STR: 3, CHAR_STR: 0, INT_STR: -2, WIS_STR: 0}
 orc = {"ac" :13 , "hp" : 15, "speed": 3,  "actions" : [greataxe, javelin], "name":"orc", 
-            "modifiers": Modifiers(1, orc_mods, orc_mods)} # does not implement aggressive 
+            "modifiers": Modifiers(1, orc_mods, orc_mods), "level": 0.5} # does not implement aggressive 
 
 gnoll_mods = {DEX_STR: 1, CON_STR: 0, STR_STR: 2, CHAR_STR: -2, INT_STR: -2, WIS_STR: 0}
 gnoll = {"ac":15, "hp":22, "speed":3, "actions":[bite, spear, longbow], "name":"gnoll",
-                "modifiers": Modifiers(1, gnoll_mods, gnoll_mods), "features": FeatureManager([RAMPAGE])} # rampage slightly different
+                "modifiers": Modifiers(1, gnoll_mods, gnoll_mods), "features": FeatureManager([RAMPAGE]), 
+                "level": 0.5} # rampage slightly different
 
 
 # 1 challenge 
 wolf_mods = {DEX_STR: 2, CON_STR: 2, STR_STR: 3, CHAR_STR: -2, INT_STR: -4, WIS_STR: 1}
 direWolf = {"ac":14, "hp":37, "speed": 5, "actions":[wolfbite], "name":"direwolf", 
-                "modifiers": Modifiers(2, wolf_mods, wolf_mods), "features": FeatureManager([PACK_TACTICS])}
+                "modifiers": Modifiers(2, wolf_mods, wolf_mods), "features": FeatureManager([PACK_TACTICS]), "level": 1}
 
 ghoul_mods = {DEX_STR: 2, CON_STR: 0, STR_STR: 1, CHAR_STR: -2, INT_STR: -2, WIS_STR: 0}
 ghoul = {"ac":12, "hp":22, "speed":3, "actions":[midbite, claws], "name":"ghoul", 
-                "modifiers": Modifiers(2, ghoul_mods, ghoul_mods), "features" : FeatureManager(condition_immunities= [POSIONED.name])}
+                "modifiers": Modifiers(2, ghoul_mods, ghoul_mods), 
+                "features" : FeatureManager(condition_immunities= [POSIONED.name]), "level": 1}
 
 def create_creature(agent_class, creat_dict):
     """
@@ -76,9 +79,10 @@ def create_creature(agent_class, creat_dict):
         features = creat_dict["features"]
     else: 
         features = FeatureManager() 
+
     monster = agent_class(ac = creat_dict["ac"], hp = creat_dict["hp"],
             speed = creat_dict["speed"], actions = creat_dict["actions"], name = creat_dict["name"], 
-            modifiers = creat_dict["modifiers"], features = features)
+            modifiers = creat_dict["modifiers"], features = features, level = creat_dict["level"])
     
     return monster 
 

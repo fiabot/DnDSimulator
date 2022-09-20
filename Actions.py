@@ -69,7 +69,6 @@ class Attack(Action):
 
             # roll attack applying any special features 
             hit = attacker.get_hit_dice(self, game).roll() 
-            print(attacker.get_hit_dice(self, game))
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
