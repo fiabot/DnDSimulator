@@ -535,8 +535,18 @@ class Game():
         """
         if creature.can_move() or creature.can_act(): 
 
+            #find enemies in threatened area 
+            enemies_in_range = self.map.enemies_in_range(creature.team, creature.position, 1)
+
             #move creature 
             self.map.move_piece(creature, action[0])
+
+            #See if creature triggered opp attack 
+            for enemy in enemies_in_range: 
+                if self.map.distance(creature.position, enemy.position) > 1:
+                    enemy.opportunity_attack(creature, self)
+                    if (debug):
+                        print("{} got an opportunity attack on {}".format(enemy.name, creature.name))
 
             # complete actions 
             action[1].execute(self)

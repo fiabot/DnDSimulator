@@ -87,11 +87,14 @@ class Attack(Action):
         elif debug:
             print("Target or Attacker not found")
 
-    def set_target(self, target):
+    def set_target(self, attacker, target):
         """
         Assign target 
         """
-        self.target = target 
+        new_action = deepcopy(self)
+        new_action.target = target 
+        new_action.attacker = attacker
+        return new_action 
     
     def avail_targets(self, team, position, grid):
         """

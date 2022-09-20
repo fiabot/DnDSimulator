@@ -50,7 +50,7 @@ class Creature:
         self.speed = speed 
         self.null = NullAction() 
         actions.append(self.null) # make sure the null action is included
-        self.init_dice = Dice("1d20 + {}".format(self.modifiers.initative))
+        self.init_dice = Dice(make_dice_string(1, 20, self.modifiers.initiative_mod()))
         
         self.game_data = {} 
         self.resistances = resistences
@@ -60,6 +60,22 @@ class Creature:
         if features is None:
             features = FeatureManager() 
         self.features = features 
+
+        self.op_attack = None 
+        for act in self.actions: 
+            if (isinstance(act, Attack) and act.attack_type == MELE):
+                if self.op_attack is None: 
+                    self.op_attack = act 
+                else: 
+                    if (act.hit_dice.expected_value() > self.op_attack.hit_dice.expected_value()):
+                        self.op_attack = act 
+        self.has_reaction = True 
+
+    def opportunity_attack(self, creature, game):
+        if self.has_reaction:
+            new_action = self.op_attack.set_target(self.name, creature.name)
+            new_action.execute(game) 
+            self.has_reaction = False 
 
     def get_hit_dice(self, attack, game):
         """
@@ -147,6 +163,7 @@ class Creature:
 
     def end_of_turn(self, game):
         self.last_pos = self.position 
+        self.has_reaction = True 
         self.features.end_of_turn(self, game) 
 
     def long_rest(self):
@@ -161,6 +178,7 @@ class Creature:
         self.hp = self.max_hp
         self.features.reset_conditions() 
         self.game_data = {} 
+        self.has_reaction = True 
     
     def skill_check(self, type):
         """
@@ -190,11 +208,13 @@ class Creature:
     
     def add_condition(self, condition):
         self.features.add_condition(condition, self)
+
     def has_condition(self, condition):
         return self.features.has_condition(condition) 
     
     def is_stable(self):
         return self.features.is_stable() 
+    
     def __str__(self):
         return self.name
 
