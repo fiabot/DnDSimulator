@@ -14,7 +14,7 @@ arrow = Attack(hit_bonus= 0,
 
 knock_prone = SideEffect(PRONE, can_save=True, save_type= DEX_STR, save_dc= 15)
 trample = Attack(hit_bonus= 2, damage_dice_string= "2d8", dist= 5, 
-    damage_type= SLASHING_DAMAGE, name = "Trample", side_effects= knock_prone)
+    damage_type= SLASHING_DAMAGE, name = "Trample", side_effects= [knock_prone])
 
 bite = Attack(4, "1d4 + 2", 1, name = "bite")
 
@@ -31,10 +31,10 @@ tank_feats = FeatureManager([RELENTLESS_ENDUR])
 rog_feats = FeatureManager([SNEAK_ATTACK])
 
 # Human creatures 
-tank = ShyneCreature(ac = 14, hp = 2, speed = 3, modifiers= tank_mod, 
+tank = HumanCreature(ac = 14, hp = 2, speed = 3, modifiers= tank_mod, 
             features= tank_feats, name = "Barbarian", actions=[sword], resistences=[SLASHING_DAMAGE])
 
-rogue = ShyneCreature(ac = 11, hp = 2, speed = 3, modifiers= rog_mod, 
+rogue = HumanCreature(ac = 11, hp = 2, speed = 3, modifiers= rog_mod, 
             features= rog_feats, name = "Rogue", actions=[arrow], resistences=[SLASHING_DAMAGE])
 
 # agressive creatures 

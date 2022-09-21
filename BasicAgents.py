@@ -36,20 +36,17 @@ class HumanCreature(Creature):
             print("My Stats:")
             print(self.get_stats(self))
 
-            end_intitative = initiative
-            i = initiative + 1 
-            if i >= len(order):
-                    i = 0
+            end_intitative = (initiative - 1) % len(order) 
+            i = initiative % len(order) 
+            
 
             
-            print("Next up on initiative:")
+            print("\nNext up on initiative:")
             while i != end_intitative: 
 
                 print(self.get_stats(order[i]))
-                if i >= len(order) -1:
-                    i = 0
-                else:
-                    i += 1 
+                i += 1 
+                i = i % len(order) 
 
             print("\nAvailable Actions:")
             for i, action in enumerate(actions):

@@ -1,7 +1,8 @@
-from os import unlink
+
 import unittest 
 from DnDToolkit import * 
 from CreatureClasses import * 
+from Spells import * 
 
 class TestGame(unittest.TestCase):
     
@@ -24,12 +25,75 @@ class TestGame(unittest.TestCase):
         game.next_turn(monster, [(4,4), NullAction()])
         self.assertEqual(old_hp, monster.hp)
 
+        # if creature doesn't have opp attack 
+        game.map.move_piece(monster, (0,0))
+        game.next_turn(player, [(4,4), NullAction()])
+        self.assertEqual(old_hp, monster.hp)
+
+    def test_is_friend(self):
+        monster = Creature(ac = 12, hp = 20, speed = 1, team="monster")
+        monster2 = Creature(ac = 12, hp = 20, speed = 1, team="monster")
+        player= Creature(ac = 12, hp = 20, speed = 3, team = "player")
+
+        self.assertTrue(is_friend(monster, monster2))
+        self.assertFalse(is_friend(monster, player))
+        self.assertFalse(is_friend(monster, None))
+
+class TestSpells(unittest.TestCase):
+
+    def test_healing(self):
+        healing_word = HealingSpell(1, "healing word", 2, "1d4 + 1")
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [healing_word]), name= "monster")
+        monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
+        player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
+        game = Game([player], [monster, monster2], [(0,0)], [(4,4), (4,3)], Grid(5,5))
+
+        # can't heal past max 
+        self.assertEqual(0, len(healing_word.avail_actions(monster, game)))
+
+        healing_word.target = monster2.name 
+        healing_word.caster = monster.name 
+        healing_word.execute(game)  #<- slot 1 
+        self.assertEqual(20, monster2.hp)
+
+        # Will heal at least 2
+        monster2.hp = 10 
+        self.assertNotEqual(0, len(healing_word.avail_actions(monster, game)))
+
+        spell_inst = healing_word.avail_actions(monster, game)[0][1]
+        self.assertEqual(spell_inst.name, "healing word")
+        spell_inst.execute(game) # <slot 2
+
+        self.assertGreater(monster2.hp, 11)
+
+        # can't heal if not in range 
+        game.map.move_piece(monster2, (1,0))
+        self.assertEqual(0, len(healing_word.avail_actions(monster, game)))
+
+        # can't use too many spell slots 
+        game.map.move_piece(monster2, (4,3))
+        monster2.hp = 1 
+
+        healing_word.target = monster2.name 
+        healing_word.caster = monster.name 
+        healing_word.execute(game) #<- slot 3
+
+        new_hp = monster2.hp 
+        self.assertEquals(0, monster.spell_manager.current_spell_slots)
+   
+        self.assertEqual(0, len(healing_word.avail_actions(monster, game))) 
+
+        healing_word.target = monster2.name 
+        healing_word.caster = monster.name 
+        healing_word.execute(game) #<- slot empty 
+
+        self.assertEqual(new_hp, monster2.hp)
 
 
 
 class TestCreature(unittest.TestCase):
 
-    def test_create(self):
+    """def test_create(self):
         monster = Creature(ac = 12, hp = 20, speed = 3)
         self.assertEqual(12, monster.ac)
         self.assertEqual(20, monster.hp)
@@ -65,6 +129,20 @@ class TestCreature(unittest.TestCase):
                 self.assertTrue(act[1].target == "Monster")
         
         self.assertTrue(has_attack)
+    
+    def test_conditions(self):
+        monster = Creature(ac = 12, hp = 20, speed = 1, name = "Monster")
+        monster.add_condition(RESTRAINED)
+        self.assertEqual(1, len(monster.features.conditions))
+
+        # can't add a condition twice 
+        monster.add_condition(RESTRAINED)
+        self.assertEqual(1, len(monster.features.conditions))
+
+        #remove condition 
+        monster.features.remove_condition(RESTRAINED)
+        self.assertEqual(0, len(monster.features.conditions))"""
+
 
 
 

@@ -27,7 +27,7 @@ class Modifiers:
 class Creature:
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], level = 0.5):
+                    immunities = [], resistences = [], level = 0.5, spell_manager = None):
         """
         Initialize a creature 
         ac = numerical armor class 
@@ -56,6 +56,7 @@ class Creature:
         self.resistances = resistences
         self.immunities = immunities 
         self.level = level 
+        self.spell_manager = spell_manager 
 
         if features is None:
             features = FeatureManager() 
@@ -72,7 +73,7 @@ class Creature:
         self.has_reaction = True 
 
     def opportunity_attack(self, creature, game):
-        if self.has_reaction:
+        if not self.op_attack is None and self.has_reaction:
             new_action = self.op_attack.set_target(self.name, creature.name)
             new_action.execute(game) 
             self.has_reaction = False 
@@ -83,6 +84,18 @@ class Creature:
         special features 
         """
         return self.features.get_attack_roll(attack, self, game)
+    
+    def heal(self, amount):
+        if self.is_alive():
+            self.hp += amount 
+            if self.hp > 0 and self.features.has_condition(ASLEEP):
+                self.features.remove_condition(ASLEEP)
+            if self.hp > 0 and self.features.has_condition(STABLE):
+                self.features.remove_condition(STABLE)
+
+            if self.hp > self.max_hp:
+                self.hp = self.max_hp 
+            
     
     def get_added_damage(self, attack, game):
         """

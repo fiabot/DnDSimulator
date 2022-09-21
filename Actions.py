@@ -134,7 +134,6 @@ class SideEffect:
         self.save_dc = save_dc
     
     def execute(self, target):
-        print("Side effect")
         # if condition is inflicted 
         if (not self.can_save) or self.save_dc >= target.saving_throw(self.save_type, self.inflicted_condition):
             target.add_condition(self.inflicted_condition)

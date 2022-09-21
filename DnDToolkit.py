@@ -55,6 +55,12 @@ def make_dice_string(amount, type, modifer = 0):
     
     return return_str
 
+def is_friend(creature, other):
+    try: 
+        return creature.team == other.team 
+    except:
+        False 
+
 class Dice:
     def __init__(self, dice_string, advantage = 0) -> None:
         """
