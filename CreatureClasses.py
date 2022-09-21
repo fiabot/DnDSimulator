@@ -26,8 +26,8 @@ class Modifiers:
 
 class Creature:
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], level = 0.5, spell_manager = None):
+                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
+                    immunities = None, resistences = None, level = 0.5, spell_manager = None):
         """
         Initialize a creature 
         ac = numerical armor class 
@@ -48,15 +48,28 @@ class Creature:
         self.team = team 
         self.actions = actions 
         self.speed = speed 
+        if actions is None:
+            self.actions = [] 
+        else:
+            self.actions = actions 
         self.null = NullAction() 
-        actions.append(self.null) # make sure the null action is included
+        self.actions.append(self.null) # make sure the null action is included
         self.init_dice = Dice(make_dice_string(1, 20, self.modifiers.initiative_mod()))
         
         self.game_data = {} 
-        self.resistances = resistences
-        self.immunities = immunities 
+        if resistences is None: 
+            self.resistances = [] 
+        else: 
+            self.resistances = resistences
+        
+        if immunities is None: 
+            self.immunities = []
+        else:
+            self.immunities = immunities
         self.level = level 
         self.spell_manager = spell_manager 
+        if not self.spell_manager is None: 
+            self.actions += self.spell_manager.known_spells  
 
         if features is None:
             features = FeatureManager() 
@@ -96,7 +109,6 @@ class Creature:
             if self.hp > self.max_hp:
                 self.hp = self.max_hp 
             
-    
     def get_added_damage(self, attack, game):
         """
         return additional damage 
@@ -192,6 +204,8 @@ class Creature:
         self.features.reset_conditions() 
         self.game_data = {} 
         self.has_reaction = True 
+        if not self.spell_manager is None:
+            self.spell_manager.long_rest() 
     
     def skill_check(self, type):
         """

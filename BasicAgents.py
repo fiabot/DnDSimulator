@@ -4,8 +4,8 @@ import copy
 
 class RandomCreature(Creature): 
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], level = 0.5):
+                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
+                    immunities = None, resistences = None, level = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level = level)
     
     def turn(self, game):
@@ -14,8 +14,8 @@ class RandomCreature(Creature):
 
 class HumanCreature(Creature):
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], level = 0.5):
+                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
+                    immunities = None, resistences = None, level = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level)
 
     def format_action (self, action):
@@ -75,8 +75,8 @@ class AggressiveCreature(Creature):
     creature 
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], level = 0.5):
+                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
+                    immunities = None, resistences = None, level = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level)
         self.action_order()
     

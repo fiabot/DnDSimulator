@@ -3,7 +3,7 @@ import unittest
 from DnDToolkit import * 
 from CreatureClasses import * 
 from Spells import * 
-
+"""
 class TestGame(unittest.TestCase):
     
     def test_opp_attack(self):
@@ -89,7 +89,7 @@ class TestSpells(unittest.TestCase):
 
         self.assertEqual(new_hp, monster2.hp)
 
-
+"""
 
 class TestCreature(unittest.TestCase):
 
@@ -142,6 +142,27 @@ class TestCreature(unittest.TestCase):
         #remove condition 
         monster.features.remove_condition(RESTRAINED)
         self.assertEqual(0, len(monster.features.conditions))"""
+    
+    def test_spells(self):
+        healing_word = HealingSpell(1, "healing word", 2, "1d4 + 1")
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [healing_word]), name= "monster")
+        monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
+        player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
+        game = Game([player], [monster, monster2], [(0,0)], [(4,4), (4,3)], Grid(5,5))
+        monster2.hp = 10 
+        has_spell = False 
+        for action in monster.avail_actions(game):
+            if isinstance(action[1], Spell):
+                
+                has_spell = True 
+                self.assertEqual("healing word", action[1].name)
+        
+        self.assertTrue(has_spell)
+
+        monster.spell_manager.current_spell_slots -= 1 
+
+        monster.long_rest()
+        self.assertEqual(3, monster.spell_manager.current_spell_slots)
 
 
 

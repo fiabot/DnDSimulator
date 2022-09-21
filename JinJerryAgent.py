@@ -6,8 +6,8 @@ import time
 class JinJerryCreature(Creature):
         
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = [], 
-                    immunities = [], resistences = [], depth = 40, debug= False, level = 0.5):
+                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
+                    immunities = None, resistences = None, depth = 40, debug= False, level = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level = 0.5)
         self.depth = depth 
         self.debug = debug 

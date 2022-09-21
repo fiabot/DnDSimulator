@@ -153,13 +153,19 @@ class FeatureManager:
         return return_bool 
 
     def add_condition(self, condition, creature):
-        if (not condition.name in self.condition_immunities):
+        if (not condition.name in self.condition_immunities and 
+            not condition.name in [condition.name for condition in self.conditions]):
             self.conditions.append(condition)
             if not condition.on_added is None: 
                 condition.on_added(creature)
 
     def remove_condition(self, condition):
-        self.conditions.remove(condition)
+        removed = False 
+        i = 0 
+        while not removed and i < len(self.conditions):
+            if self.conditions[i].name == condition.name:
+                self.conditions.remove(self.conditions[i])
+            i += 1 
     
     def defense_advantage(self):
         advantage = 0 
