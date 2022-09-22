@@ -3,7 +3,7 @@ import unittest
 from DnDToolkit import * 
 from CreatureClasses import * 
 from Spells import * 
-"""
+
 class TestGame(unittest.TestCase):
     
     def test_opp_attack(self):
@@ -38,6 +38,34 @@ class TestGame(unittest.TestCase):
         self.assertTrue(is_friend(monster, monster2))
         self.assertFalse(is_friend(monster, player))
         self.assertFalse(is_friend(monster, None))
+    
+    def test_enemies_in_range(self):
+        sword = Attack(4, "2d8", 1, name = "Sword", damage_type= SLASHING_DAMAGE, attack_type= MELE) 
+        monster = Creature(ac = 0, hp = 20, speed = 1, name = "Monster")
+        monster2 = Creature(ac = 0, hp = 20, speed = 1, name = "Monster")
+        player= Creature(ac = 12, hp = 20, speed = 3, actions= [sword], name = "Player")
+        game = Game([player], [monster, monster2], [(0,0)], [(1,0), (2,2)], Grid(5,5))
+
+        self.assertEqual(1, len(game.map.enemies_in_range(player.team, player.position, 1)))
+
+        for creature in game.map.enemies_in_range(monster.team, monster.position, 1): 
+            self.assertEqual(player.name, creature.name)
+
+        self.assertEqual(2, len(game.map.enemies_in_range(player.team, player.position, 5)))
+
+        
+class TestGrid(unittest.TestCase):
+    def test_clear(self):
+        grid = Grid(5, 5)
+        monster = Creature(10, 5, 3, name="Monster")
+        grid.place_piece(monster, (0,0))
+
+        self.assertEqual(1, len(grid.pieces))
+
+        grid.clear_grid()
+
+        self.assertEqual(0, len(grid.pieces))
+
 
 class TestSpells(unittest.TestCase):
 
@@ -89,11 +117,11 @@ class TestSpells(unittest.TestCase):
 
         self.assertEqual(new_hp, monster2.hp)
 
-"""
+
 
 class TestCreature(unittest.TestCase):
 
-    """def test_create(self):
+    def test_create(self):
         monster = Creature(ac = 12, hp = 20, speed = 3)
         self.assertEqual(12, monster.ac)
         self.assertEqual(20, monster.hp)
@@ -141,7 +169,7 @@ class TestCreature(unittest.TestCase):
 
         #remove condition 
         monster.features.remove_condition(RESTRAINED)
-        self.assertEqual(0, len(monster.features.conditions))"""
+        self.assertEqual(0, len(monster.features.conditions))
     
     def test_spells(self):
         healing_word = HealingSpell(1, "healing word", 2, "1d4 + 1")

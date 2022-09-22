@@ -183,7 +183,7 @@ class Grid():
         for piece in self.pieces: 
             self.clear_position(piece.position)
         
-        pieces = [] 
+        self.pieces = [] 
 
     def place_piece(self, piece, position):
         """
@@ -548,8 +548,6 @@ class Game():
             self.map.move_piece(creature, action[0])
 
             #See if creature triggered opp attack 
-            if debug:
-                print(enemies_in_range)
             for enemy in enemies_in_range: 
                 if self.map.distance(creature.position, enemy.position) > 1:
                     enemy.opportunity_attack(creature, self)
