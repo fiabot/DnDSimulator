@@ -20,8 +20,8 @@ class SpellManager():
 
 class Spell(Action):
     def __init__(self, level, name, spell_type, is_conc = False, conc_remove = None, caster = None):
+        super().__init__(name)
         self.level = level 
-        self.name = name 
         self.type = spell_type 
         self.is_conc = is_conc
         self.conc_removed = conc_remove 
@@ -93,6 +93,9 @@ class HealingSpell(Spell):
                 
                 caster.spell_manager.cast(self)
                 target.heal(self.healing_dice.roll())
+    
+    def __str__(self):
+        return "heal {} with {}".format(self.target, self.name)
             
 
 
