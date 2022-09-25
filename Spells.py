@@ -1,6 +1,7 @@
 from operator import is_
 from Actions import * 
 HEALING_STR = "healing"
+ATTACK_SPELL = "attack spell"
 class SpellManager():
     def __init__(self, spell_slots, known_spells):
         self.total_spell_slots = spell_slots
@@ -46,11 +47,15 @@ class Spell(Action):
         else:
             return []
 
-    def execute(self, game):
+    def execute(self, game, debug = False):
         caster = game.get_creature(self.caster)
 
         if not caster is None and not caster.spell_manager is None:
-            caster.spell_manager.case(self) 
+            if debug: 
+                print("{} is casting {}".format(self.caster, self.name))
+            caster.spell_manager.cast(self) 
+        elif debug:
+            print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
 class HealingSpell(Spell):
     def __init__(self, level, name,  range, healing_dice_str, caster=None, target = None):
@@ -97,9 +102,34 @@ class HealingSpell(Spell):
     def __str__(self):
         return "heal {} with {}".format(self.target, self.name)
             
+class AttackSpell(Attack, Spell):
+    def __init__(self, level, hit_bonus, damage_dice_string, dist, attack_type=RANGED, damage_type=PIERCING_DAMAGE, name="Attack", side_effects=None, attacker=None, target=None):
+        Spell.__init__(self, level, name, spell_type = ATTACK_SPELL, is_conc= False, caster = attacker)
+        Attack.__init__(self, hit_bonus, damage_dice_string, dist, attack_type, damage_type, name, side_effects, attacker, target)
+    
+    def set_target(self, attacker, target):
+        """
+        Assign target 
+        """
+        new_action = deepcopy(self)
+        new_action.target = target 
+        new_action.attacker = attacker
+        new_action.caster = attacker
+        return new_action 
 
+    def avail_actions(self, creature, game):
+        if Spell.can_cast(self, creature, game):
+            actions = Attack.avail_actions(self, creature, game)
 
-
-
-
-
+            for action in actions:
+                action[1].caster = action[1].attacker 
+            
+            return actions
+        else:
+            return [] 
+    
+    def execute(self, game, debug=False):
+        caster = game.get_creature(self.caster)
+        if Spell.can_cast(self, caster, game):
+            Spell.execute(self, game, debug) 
+            Attack.execute(self, game, debug)

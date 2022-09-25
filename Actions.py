@@ -39,7 +39,7 @@ class NullAction(Action):
         return actions 
 
 class Attack(Action):
-    def __init__(self, hit_bonus, damage_dice_string, dist, attack_type = MELE, damage_type = SLASHING_DAMAGE, name = "Attack",side_effects =[],  attacker = None, target = None):
+    def __init__(self, hit_bonus, damage_dice_string, dist, attack_type = MELE, damage_type = SLASHING_DAMAGE, name = "Attack",side_effects =None,  attacker = None, target = None):
         """
         hit bonus = modifer to d20 roll for hit 
         damage_dice_string = damage dice written in the format "2d8" or "2d8 + 4" 
@@ -55,6 +55,8 @@ class Attack(Action):
         self.attacker = attacker 
         self.attack_type = attack_type 
         self.damage_type = damage_type 
+        if side_effects is None:
+            side_effects = [] 
         self.side_effects = side_effects 
     
     def execute(self, game, debug = False):
@@ -113,7 +115,7 @@ class Attack(Action):
             targets = self.avail_targets(creature.team, move, game.map)
 
             for target in targets:
-                new_action = Attack( self.hit_bonus, self.damage_dice.dice_string, self.dist, self.name, target = target.name, name = self.name, attacker = creature.name)
+                new_action = self.set_target(creature.name, target.name)
                 new_action.damage_dice = self.damage_dice 
                 actions.append((move, new_action))
         
