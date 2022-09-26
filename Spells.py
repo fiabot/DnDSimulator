@@ -1,7 +1,10 @@
-from operator import is_
+import math
 from Actions import * 
 HEALING_STR = "healing"
 ATTACK_SPELL = "attack spell"
+SAVE_ATTACK_SPELL = "save attack spell"
+AREA_OF_EFFECT_SPELL = "area of effect"
+
 class SpellManager():
     def __init__(self, spell_slots, known_spells):
         self.total_spell_slots = spell_slots
@@ -133,3 +136,132 @@ class AttackSpell(Attack, Spell):
         if Spell.can_cast(self, caster, game):
             Spell.execute(self, game, debug) 
             Attack.execute(self, game, debug)
+
+class SaveAttackSpell(AttackSpell):
+
+    def __init__(self, level, save_type, save_dc, damage_dice, dist, half_if_saved = True, side_effect_if_save = False, attack_type=RANGED, damage_type=PIERCING_DAMAGE, name="Attack", side_effects=None, attacker=None, target=None):
+        super().__init__(level, -20, damage_dice, dist, attack_type, damage_type, name, side_effects, attacker, target)
+        self.type = SAVE_ATTACK_SPELL 
+        self.save_type = save_type 
+        self.save_dc = save_dc 
+        self.save_effects = side_effect_if_save 
+        self.half_if_saved = half_if_saved 
+    
+    def execute(self, game, debug = False):
+        """
+        Excute attack on target
+        if target is none, do nothing
+        """
+        # if there is not a target, dont do anything 
+        target = game.get_creature(self.target)
+        attacker = game.get_creature(self.attacker)
+        if not target is None and not attacker is None: 
+            if self.can_cast(attacker, game):
+                Spell.execute(self, game)
+                # make saving throw and deal damage 
+                    
+                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
+
+                if target.saving_throw(self.save_type, self.type) < self.save_dc: 
+                    target.damage(damage, self.damage_type,game)
+
+                    for effect in self.side_effects:
+                        effect.execute(target)
+                    
+                    if debug: 
+                        print("{} hit {} for {}".format(self.name, target.name, damage))
+
+                else:
+                    if debug: 
+                        print("Creature {} made saving throw for {}".format(self.target, self.name))
+                    if (self.half_if_saved):
+                        target.damage(math.floor(damage / 2), self.damage_type, game)
+                        if debug: 
+                            print("{} hit {} for {} halved to {}".format(self.name, target.name, damage, math.floor(damage / 2)))
+
+                    if (self.save_effects):
+                        for effect in self.side_effects:
+                            effect.execute(target)
+                
+        elif debug:
+            print("Target or Attacker not found")
+
+class AreaSpell(Spell):
+    def __init__(self, level, name, save_type, save_dc, damage_dice_str, damage_type, 
+                    dist, half_on_save = True, effect_on_save = False, side_effects = None, caster=None):
+
+        super().__init__(level, name, spell_type =AREA_OF_EFFECT_SPELL, is_conc = False, 
+                            conc_remove = False, caster =caster)
+        
+        self.save_type = save_type 
+        self.save_dc = save_dc 
+        self.damage_dice = Dice(damage_dice_str)
+        self.dist = dist 
+        self.half_on_save = half_on_save
+        self.effect_on_save = effect_on_save 
+        
+        if side_effects is None:
+            self.side_effects = []
+        else:
+            self.side_effects = side_effects 
+
+        self.damage_type = damage_type 
+    
+    def set_caster(self, caster):
+        spell = deepcopy(self)
+        spell.caster = caster.name
+        return spell 
+
+    def avail_actions(self, creature, game):
+
+        actions = []
+        if Spell.can_cast(self, creature, game):
+            for move in creature.avail_movement(game):
+                if len(game.map.enemies_in_range(creature.team, move, self.dist)) > 0:
+                    actions.append([move, self.set_caster(creature)])
+        return actions 
+
+
+    def execute(self, game, debug = False):
+        """
+        Apply damage to all creatures 
+        within range of caster, 
+        excluding caster themself 
+        """
+        # if there is not a target, dont do anything 
+       
+        caster = game.get_creature(self.caster)
+        if not caster is None: 
+             if self.can_cast(caster, game):
+                Spell.execute(self, game, debug=debug)
+                pieces = game.map.pieces_in_range(caster.position, self.dist, dist_min = 1)
+                for piece in pieces: 
+                    try: 
+                        target = game.get_creature(piece.name)
+
+                        damage = self.damage_dice.roll() + caster.get_added_damage(self, game)
+
+                        if target.saving_throw(self.save_type, self.type) < self.save_dc: 
+                            target.damage(damage, self.damage_type,game)
+
+                            for effect in self.side_effects:
+                                effect.execute(target)
+                            
+                            if debug: 
+                                print("{} hit {} for {}".format(self.name, target.name, damage))
+
+                        else:
+                            if debug: 
+                                print("Creature {} made saving throw for {}".format(self.target, self.name))
+                            if (self.half_if_saved):
+                                target.damage(math.floor(damage / 2), self.damage_type, game)
+                                if debug: 
+                                    print("{} hit {} for {} halved to {}".format(self.name, target.name, damage, math.floor(damage / 2)))
+
+                            if (self.save_effects):
+                                for effect in self.side_effects:
+                                    effect.execute(target)
+                    except: 
+                        pass 
+
+        

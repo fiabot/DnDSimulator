@@ -119,6 +119,42 @@ class TestSpells(unittest.TestCase):
         fire_bolt.avail_actions(witch, game)[0][1].execute(game)
         self.assertLess(monster.hp, old_hp)
 
+    def test_save_attack(self):
+        dis_whisp = SaveAttackSpell(1, WIS_STR, save_dc =25, damage_dice= "3d1", dist= 6, half_if_saved=True, 
+                    side_effects=[SideEffect(PRONE, False)], name = "Dissonance Whispers" )
+        
+        spell_caster = Creature(12, 20, 3, spell_manager= SpellManager(3, [dis_whisp]), name = "spell caster")
+
+        monster = Creature(12, 103, 3, name = "monster")
+        grid = Grid(5,5)
+        game = Game([spell_caster], [monster], [(0,0)], [(1, 1)], map = grid)
+
+        self.assertGreater(len(dis_whisp.avail_actions(spell_caster, game)), 0)
+
+        # should hit for exactly 3, bc save should fail 
+        dis_whisp.avail_actions(spell_caster, game)[0][1].execute(game, debug = True)
+        self.assertEqual(monster.hp, 100)
+
+        # force monster to make save <-- take 1 damage 
+        monster.modifiers.save_mods[WIS_STR] = 25
+        dis_whisp.avail_actions(spell_caster, game)[0][1].execute(game, debug = True)
+        self.assertEqual(monster.hp, 99)
+        
+    def test_area_spell(self):
+        hadar = AreaSpell(level = 1,name= "Arms of Hadar", save_type= STR_STR, save_dc= 25, 
+                            damage_dice_str= "2d6", damage_type= NECROTIC, dist =1)
+
+        caster = Creature(12, 20, 3, spell_manager= SpellManager(3, [hadar]), name = "Caster")
+        monster1 = Creature(12, 20, 3, name = "monster 1")
+        monster2 = Creature(12, 20, 3, name = "monster2")
+
+        grid = Grid(5,5)
+        game = Game([caster], [monster1, monster2], [(3,3)], [(2,3), (4, 3)], map = grid)
+
+        self.assertGreater(len(hadar.avail_actions(caster, game)), 0)
+        hadar.avail_actions(caster, game)[0][1].execute(game)
+        self.assertLess(monster1.hp, 20)
+        self.assertLess(monster2.hp, 20)
 
        
  
