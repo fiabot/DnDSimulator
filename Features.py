@@ -66,14 +66,19 @@ class FeatureManager:
             return dice 
     
     def get_added_damage(self, attack, creature, game): 
+        added_damage = 0
         if DAMAGE_STR in self.features:
+            
             for feat in self.features[DAMAGE_STR]:
                 if feat.condition(attack, creature, game):
-                    return feat.damage_added(attack, creature, game) 
+                    added_damage += feat.damage_added(attack, creature, game) 
             
-            return 0
-        else:
-            return 0
+        for cond in self.conditions:
+            if not cond.added_damage is None: 
+                added_damage += cond.added_damage(cond, attack, creature, game)
+            
+        return added_damage 
+    
     
     def get_save_dice(self, type, effect, creature): 
         if (self.does_throw_fail(type, effect)):
@@ -159,11 +164,11 @@ class FeatureManager:
             if not condition.on_added is None: 
                 condition.on_added(creature)
 
-    def remove_condition(self, condition):
+    def remove_condition(self, condition_name):
         removed = False 
         i = 0 
         while not removed and i < len(self.conditions):
-            if self.conditions[i].name == condition.name:
+            if self.conditions[i].name == condition_name:
                 self.conditions.remove(self.conditions[i])
             i += 1 
     
@@ -226,13 +231,13 @@ class FeatureManager:
                 if cond.end_of_turn(cond, creature, game):
                     self.remove_condition(cond)
     def is_stable(self):
-        return self.has_condition(STABLE)
+        return self.has_condition(STABLE.name)
     
-    def has_condition(self, condition):
+    def has_condition(self, condition_name):
         has_con = False 
         i = 0 
         while not has_con and i < len(self.conditions):
-            has_con = self.conditions[i].name == condition.name
+            has_con = self.conditions[i].name == condition_name
             i += 1 
         return has_con
     def reset_conditions(self):

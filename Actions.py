@@ -96,6 +96,7 @@ class Attack(Action):
         new_action = deepcopy(self)
         new_action.target = target 
         new_action.attacker = attacker
+        new_action.damage_dice = self.damage_dice 
         return new_action 
     
     def avail_targets(self, team, position, grid):
@@ -116,7 +117,7 @@ class Attack(Action):
 
             for target in targets:
                 new_action = self.set_target(creature.name, target.name)
-                new_action.damage_dice = self.damage_dice 
+                
                 actions.append((move, new_action))
         
         return actions 

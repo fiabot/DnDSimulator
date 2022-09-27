@@ -58,7 +58,7 @@ class TestCreature(unittest.TestCase):
         self.assertEqual(1, len(monster.features.conditions))
 
         #remove condition 
-        monster.features.remove_condition(RESTRAINED)
+        monster.features.remove_condition(RESTRAINED.name)
         self.assertEqual(0, len(monster.features.conditions))
     
     def test_spells(self):

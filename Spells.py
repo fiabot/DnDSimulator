@@ -1,9 +1,12 @@
 import math
 from Actions import * 
+from Conditions import * 
 HEALING_STR = "healing"
 ATTACK_SPELL = "attack spell"
 SAVE_ATTACK_SPELL = "save attack spell"
 AREA_OF_EFFECT_SPELL = "area of effect"
+ATTACK_BONUS_SPELL = "attack bonus spell"
+TARGET_CREATURE_SPELL = "target creature spell"
 
 class SpellManager():
     def __init__(self, spell_slots, known_spells):
@@ -11,16 +14,26 @@ class SpellManager():
         self.current_spell_slots = self.total_spell_slots
         self.known_spells = known_spells
         self.can_concretate = True 
+        self.concetrated_spell = None 
     
     def long_rest(self):
         self.current_spell_slots = self.total_spell_slots
 
     def can_cast(self, spell):
-        return self.current_spell_slots >= spell.level and (self.can_concretate or not spell.is_conc) 
+        return self.current_spell_slots >= spell.level 
     
-    def cast(self, spell):
+    def cast(self, spell, game):
         self.current_spell_slots -= spell.level 
-        
+        if spell.is_conc:
+            if not self.can_concretate:
+                self.remove_concetration(game)
+            self.can_concretate = False 
+            self.concetrated_spell = spell 
+    
+    def remove_concetration(self, game):
+        self.concetrated_spell.conc_removed(game)
+        self.can_concretate = True 
+ 
 
 class Spell(Action):
     def __init__(self, level, name, spell_type, is_conc = False, conc_remove = None, caster = None):
@@ -56,7 +69,7 @@ class Spell(Action):
         if not caster is None and not caster.spell_manager is None:
             if debug: 
                 print("{} is casting {}".format(self.caster, self.name))
-            caster.spell_manager.cast(self) 
+            caster.spell_manager.cast(self, game) 
         elif debug:
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
@@ -99,7 +112,7 @@ class HealingSpell(Spell):
             (not caster.spell_manager is None) \
             and super().can_cast(caster, game):
                 
-                caster.spell_manager.cast(self)
+                caster.spell_manager.cast(self, game)
                 target.heal(self.healing_dice.roll())
     
     def __str__(self):
@@ -264,4 +277,76 @@ class AreaSpell(Spell):
                     except: 
                         pass 
 
+class AttackBonusSpell(Spell):
+    def __init__(self, level, name, added_damage_effect, half_if_saved = True, caster=None):
+        super().__init__(level, name,  spell_type = ATTACK_BONUS_SPELL, is_conc = False, conc_remove = None, caster = caster)
+        self.inflicted_con =Condition(can_act= True, can_move= True, is_alive= True, name = "added damage", 
+                                added_damage= added_damage_effect, end_of_turn= REMOVE_AT_END)
+    
+    def execute(self, game, debug=False):
+        caster = game.get_creature(self.caster)
+
+        if not caster is None and not caster.spell_manager is None:
+            if debug: 
+                print("{} is casting {}".format(self.caster, self.name))
+            caster.spell_manager.cast(self) 
+            caster.add_condition(self.inflicted_con)
+        elif debug:
+            print("problem with {} attempting to cast {}".format(self.caster, self.name))
+
+class TargetCreature(Spell):
+    def __init__(self, level, name, damage_str, dist, condition_choices = None, caster=None, target = None):
+        self.name = name 
+        self.damage_dice_str = damage_str
+        self.target = target 
+        self.dist = dist 
         
+        self.condtions = condition_choices 
+        self.selected_cond = None 
+        super().__init__(level, name, TARGET_CREATURE_SPELL, 
+                        is_conc = True, conc_remove = self.remove_concentation_func(), caster = caster)
+    
+    def remove_concentation_func(self):
+        def foo (game):
+            caster = game.get_creature(self.caster)
+            target = game.get_creature(self.target) 
+            if not caster is None:
+                caster.features.remove_condition(self.name)
+            
+            if not self.selected_cond is None and not target is None:
+                target.remove_condition(self.selected_cond.name)
+        
+        return foo 
+
+    def set_target(self, target, caster):
+        new_spell = TargetCreature(self.level, self.name, self.damage_dice_str, self.dist, self.condtions, caster.name, target.name)
+        return new_spell
+ 
+    def avail_actions(self, creature, game):
+
+        actions = []
+        if Spell.can_cast(self, creature, game):
+            for move in creature.avail_movement(game):
+                for enemy in game.map.enemies_in_range(creature.team, move, self.dist):
+                    if self.condtions is None:
+                        actions.append([move, self.set_target(enemy, creature)])
+                    else:
+                        for cond in self.condtions:
+                            spell = self.set_target(enemy, creature)
+                            spell.selected_cond = cond 
+                            actions.append([move, spell])
+                        
+        return actions 
+    
+    def execute(self, game, debug=False):
+        super().execute(game, debug)
+        added_damage =Condition(can_act= True, can_move= True, is_alive= True, name = self.name, 
+                                added_damage= target_creature_funct(self.target, self.damage_dice_str), end_of_turn= REMOVE_AT_END)
+        caster = game.get_creature(self.caster)
+        target = game.get_creature(self.target)
+        if not caster is None and not target is None: 
+            caster.add_condition(added_damage)
+        
+        if not self.selected_cond is None and not target is None:
+            target.add_condition(self.selected_cond)
+
