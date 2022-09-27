@@ -1,4 +1,4 @@
-from distutils.log import debug
+
 import unittest 
 import os, sys
 
@@ -84,10 +84,9 @@ class TestSpells(unittest.TestCase):
             self.assertEqual(action[1].attacker, witch.name)
             self.assertEqual(action[1].caster, witch.name)
         
-        witch_bolt.avail_actions(witch, game)[0][1].execute(game, debug = True)
+        witch_bolt.avail_actions(witch, game)[0][1].execute(game)
 
         self.assertLess(monster.hp, 100)
-        print(monster.hp)
 
         old_hp = monster.hp 
 
@@ -132,12 +131,12 @@ class TestSpells(unittest.TestCase):
         self.assertGreater(len(dis_whisp.avail_actions(spell_caster, game)), 0)
 
         # should hit for exactly 3, bc save should fail 
-        dis_whisp.avail_actions(spell_caster, game)[0][1].execute(game, debug = True)
+        dis_whisp.avail_actions(spell_caster, game)[0][1].execute(game)
         self.assertEqual(monster.hp, 100)
 
         # force monster to make save <-- take 1 damage 
         monster.modifiers.save_mods[WIS_STR] = 25
-        dis_whisp.avail_actions(spell_caster, game)[0][1].execute(game, debug = True)
+        dis_whisp.avail_actions(spell_caster, game)[0][1].execute(game)
         self.assertEqual(monster.hp, 99)
         
     def test_area_spell(self):
@@ -156,6 +155,55 @@ class TestSpells(unittest.TestCase):
         self.assertLess(monster1.hp, 20)
         self.assertLess(monster2.hp, 20)
 
-       
+    def test_target_spell(self):
+        hunter = TargetCreature(1, "hunter's mark", "1d6", 9)
+        not_hunter = TargetCreature(1, "not hunter's mark", "1d6", 9)
+
+        witch = Creature(12, 12, 3, spell_manager= SpellManager(3, [hunter]), name = "witch")
+        attack = Attack(20, "0d20", 3)
+        monster = Creature(1, 100, 3, name = "monster")
+
+        map = Grid(12, 12)
+        game = Game([witch], [monster], [(0, 0)], [(1, 1)],map)
+
+
+        self.assertGreater(len(hunter.avail_actions(witch, game)), 0)
+        for spell in hunter.avail_actions(witch, game):
+            self.assertEquals(witch.name, spell[1].caster)
+            self.assertEquals(monster.name, spell[1].target)
+        
+        #execute 
+        hunter.avail_actions(witch, game)[0][1].execute(game)
+
+        self.assertTrue(witch.has_condition(hunter.name))
+        
+        # deal extra damage 
+        attack.target = monster.name 
+        attack.attacker = witch.name 
+        attack.execute(game)
+        self.assertLess(monster.hp, 100)
+        hp1 = monster.hp 
+
+        # uses concentration 
+        
+        self.assertFalse(witch.spell_manager.can_concretate)
+        self.assertIsNotNone(witch.spell_manager.concetrated_spell)
+        self.assertEqual(witch.spell_manager.concetrated_spell.name, hunter.name)
+
+        #is removed w/ concentration 
+        witch.spell_manager.remove_concetration(game)
+        self.assertFalse(witch.has_condition(hunter.name))
+
+        # adding new concentration will remove old 
+        hunter.avail_actions(witch, game)[0][1].execute(game)
+        self.assertTrue(witch.has_condition(hunter.name))
+
+        not_hunter.avail_actions(witch, game)[0][1].execute(game)
+        self.assertTrue(witch.has_condition(not_hunter.name))
+        self.assertFalse(witch.has_condition(hunter.name))
+
+
+
+    
  
 unittest.main()

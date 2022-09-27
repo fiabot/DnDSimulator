@@ -7,7 +7,7 @@ from DnDToolkit import *;
 class Condition:
     def __init__(self, name, can_act, can_move, is_alive, attack_advantage = 0, defense_advantage = 0,
                 on_added = None, end_of_turn = None, get_avail_moves = None, does_throw_fail = None, 
-                throw_advantage = None, does_attack_fail = None):
+                throw_advantage = None, does_attack_fail = None, added_damage = None):
         self.name = name 
         self.can_act = can_act
         self.can_move = can_move 
@@ -20,6 +20,7 @@ class Condition:
         self.does_throw_fail = does_throw_fail 
         self.throw_advantage = throw_advantage 
         self.does_attack_fail = does_attack_fail 
+        self.added_damage = added_damage
     
     def add_end_of_turn(self, end_funct):
         new_condition = deepcopy(self)
@@ -84,6 +85,28 @@ def death_save(condition, creature, game):
         else:
             return False 
 
+def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = True):
+    def foo (condtion, attack, creature, game):
+        damage = Dice(damage_dice_str).roll() 
+        if create_save_funct(save_type, save_dc)(condtion.name, creature, game):
+            if halfed_if_save:
+                return math.floor(damage / 2)
+            else: 
+                return 0 
+        else:
+            return damage 
+    return foo 
+
+def target_creature_funct(creature_name, damage_dice):
+    def foo (condtion, attack, creature, game):
+        if attack.target == creature_name:
+            return Dice(damage_dice).roll() 
+        else:
+            return 0
+    return foo
+
+
+REMOVE_AT_END = lambda condition, creature, game :True 
 # Set up conditions 
 AWAKE = Condition("Awake", can_act = True, can_move = True, is_alive = True)
 
