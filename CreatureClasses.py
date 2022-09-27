@@ -22,6 +22,8 @@ class Modifiers:
     
     def get_save_mod(self, type): 
         return self.save_mods[type]
+    
+    
 
 
 class Creature:
@@ -85,6 +87,10 @@ class Creature:
                         self.op_attack = act 
         self.has_reaction = True 
 
+    def change_ac(self, new_ac):
+        self.game_data["base ac"] = self.ac 
+        self.ac = new_ac 
+
     def opportunity_attack(self, creature, game):
         if not self.op_attack is None and self.has_reaction:
             new_action = self.op_attack.set_target(self.name, creature.name)
@@ -101,10 +107,10 @@ class Creature:
     def heal(self, amount):
         if self.is_alive():
             self.hp += amount 
-            if self.hp > 0 and self.features.has_condition(ASLEEP):
-                self.features.remove_condition(ASLEEP)
-            if self.hp > 0 and self.features.has_condition(STABLE):
-                self.features.remove_condition(STABLE)
+            if self.hp > 0 and self.features.has_condition(ASLEEP.name):
+                self.features.remove_condition(ASLEEP.name)
+            if self.hp > 0 and self.features.has_condition(STABLE.name):
+                self.features.remove_condition(STABLE.name)
 
             if self.hp > self.max_hp:
                 self.hp = self.max_hp 
@@ -202,6 +208,8 @@ class Creature:
 
         self.hp = self.max_hp
         self.features.reset_conditions() 
+        if "base ac" in self.game_data:
+            self.ac = self.game_data["base ac"]
         self.game_data = {} 
         self.has_reaction = True 
         if not self.spell_manager is None:
@@ -250,6 +258,6 @@ class Player(Creature):
         self.hp = 0 # there is not negative HP 
         self.features.drop_to_zero(amount, self, game)
         # make sure that our features didn't change our hp 
-        if self.hp == 0 and not (self.has_condition(STABLE) or self.has_condition(ASLEEP) or (not self.is_alive())):
+        if self.hp == 0 and not (self.has_condition(STABLE.name) or self.has_condition(ASLEEP.name) or (not self.is_alive())):
                 self.add_condition(ASLEEP)
 

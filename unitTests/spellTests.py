@@ -202,7 +202,54 @@ class TestSpells(unittest.TestCase):
         self.assertTrue(witch.has_condition(not_hunter.name))
         self.assertFalse(witch.has_condition(hunter.name))
 
+    def test_defense_spell(self):
+        magic_armor = DefenseSpell(1, "magic armor", 1, 13, DEX_STR)
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [magic_armor]), name= "monster")
+        monster2 = Creature(ac = 15, hp = 20, speed = 1, name = "monster2")
+        mon3_mods = {DEX_STR: 2, CON_STR: 2, STR_STR: 0, CHAR_STR: -3, INT_STR: -4, WIS_STR: -2}
+        monster3 = Creature(ac = 12, hp = 20, speed = 1, modifiers= Modifiers(1, mon3_mods, mon3_mods), name = "monster3")
+        player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
+        game = Game([player], [monster, monster2, monster3], [(0,0)], [(4,4), (4,3), (3,4)], Grid(5,5))
 
+        # can effect self or mon3
+        self.assertLess(0, len(magic_armor.avail_actions(monster, game)))
+
+        for move in magic_armor.avail_actions(monster, game): 
+            self.assertTrue(move[1].target == monster.name or move[1].target == monster3.name)
+        
+        # won't target self if high ac 
+        monster.ac = 20
+        self.assertLess(0, len(magic_armor.avail_actions(monster, game)))
+
+        for move in magic_armor.avail_actions(monster, game): 
+            self.assertTrue(move[1].target == monster3.name)
+
+        # changes ac 
+        magic_armor.avail_actions(monster, game)[0][1].execute(game)
+
+        self.assertEquals(15, monster3.ac)
+
+        # changes back after long rest 
+        monster3.long_rest()
+        self.assertEquals(12, monster3.ac)
+
+    def test_temp_spell(self):
+        armor_of_agathy = TempHPSpell(1, "armor of agathsy", "0d4 + 5")
+        monster = Creature(ac = 12, hp = 20, speed = 3, spell_manager= SpellManager(3, [armor_of_agathy]), name= "monster")
+        monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
+        player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
+        game = Game([player], [monster, monster2], [(0,0)], [(4,4), (4,3)], Grid(5,5))
+
+        self.assertLess(1, len(armor_of_agathy.avail_actions(monster, game)))
+        for move in armor_of_agathy.avail_actions(monster, game):
+            self.assertEquals(monster.name, move[1].caster)
+        armor_of_agathy.avail_actions(monster, game)[0][1].execute(game)
+
+        self.assertEqual(25, monster.hp)
+
+        monster.long_rest()
+
+        self.assertEquals(20, monster.hp)
 
     
  

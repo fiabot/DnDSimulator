@@ -7,6 +7,8 @@ SAVE_ATTACK_SPELL = "save attack spell"
 AREA_OF_EFFECT_SPELL = "area of effect"
 ATTACK_BONUS_SPELL = "attack bonus spell"
 TARGET_CREATURE_SPELL = "target creature spell"
+DEFENSE_SPELL = "defense spell"
+TEMP_HP_SPELL = "temp hp spell"
 
 class SpellManager():
     def __init__(self, spell_slots, known_spells):
@@ -350,3 +352,71 @@ class TargetCreature(Spell):
         if not self.selected_cond is None and not target is None:
             target.add_condition(self.selected_cond)
 
+class DefenseSpell(Spell):
+    def __init__(self, level, name,  range, base, modifier_string = None, caster=None, target = None):
+        super().__init__(level, name, spell_type = DEFENSE_SPELL, is_conc = False, conc_remove = None, caster = caster)
+        self.range = range 
+        self.base = base 
+        self.modifier_String = modifier_string
+    def avail_targets(self, creature, game): 
+        targets = [] 
+        for move in creature.avail_movement(game):
+        
+            pieces = game.map.pieces_in_range(move, self.range)
+
+            for piece in pieces:
+                new_ac = self.base
+                if not self.modifier_String is None: 
+                    new_ac += piece.modifiers.get_skill_mod(self.modifier_String)
+                if is_friend(creature, piece) and piece.ac < new_ac: 
+                    targets += [(move, piece)]
+        return targets 
+    
+    def can_cast(self, creature, game):
+        return super().can_cast(creature, game) and len(self.avail_targets) > 0 
+    
+    def avail_actions(self, creature, game):
+        if super().can_cast(creature, game):
+            targets = self.avail_targets(creature, game)
+            actions = [] 
+            for target in targets:
+                new_spell = deepcopy(self)
+                new_spell.caster = creature.name 
+                new_spell.target = target[1].name 
+                actions.append([target[0], new_spell])
+            return actions 
+        else:
+            return [] 
+    
+    def execute(self, game):
+        caster = game.get_creature(self.caster)
+        target = game.get_creature(self.target)
+        if (not (caster is None or target is None)) and \
+            (not caster.spell_manager is None) \
+            and super().can_cast(caster, game):
+                
+                caster.spell_manager.cast(self, game)
+                new_ac = self.base
+                if not self.modifier_String is None: 
+                    new_ac += target.modifiers.get_skill_mod(self.modifier_String)
+                target.change_ac(new_ac)
+    
+    
+    def __str__(self):
+        return "heal {} with {}".format(self.target, self.name)
+
+class TempHPSpell(Spell):
+    def __init__(self, level, name, temp_dic_str, is_conc=False, conc_remove=None, caster=None):
+        super().__init__(level, name, TEMP_HP_SPELL, is_conc, conc_remove, caster)
+        self.temp_dice_str = temp_dic_str 
+    
+    def execute(self, game, debug = False):
+        caster = game.get_creature(self.caster)
+
+        if not caster is None and not caster.spell_manager is None:
+            if debug: 
+                print("{} is casting {}".format(self.caster, self.name))
+            caster.spell_manager.cast(self, game) 
+            caster.hp += Dice(self.temp_dice_str).roll() 
+        elif debug:
+            print("problem with {} attempting to cast {}".format(self.caster, self.name))
