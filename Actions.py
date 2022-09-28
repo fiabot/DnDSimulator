@@ -6,7 +6,7 @@ class Action:
         self.name = name 
     def __str__(self):
         return self.name 
-    def execute(self, game):
+    def execute(self, game, debug = False):
         """
         implementation of execute varies by action
         """
@@ -79,10 +79,10 @@ class Attack(Action):
                 target.damage(damage, self.damage_type,game)
                  
                 for effect in self.side_effects:
-                    effect.execute(target)
+                    effect.execute(target, debug)
                 
                 if debug: 
-                    print("Hit creature {} for {}".format(target.name, damage))
+                    print("Hit creature {} for {} using {}".format(target.name, damage, self.name))
             
             elif debug: 
                 print("Attack {} missed".format(self.name))
@@ -136,8 +136,10 @@ class SideEffect:
         self.save_type = save_type
         self.save_dc = save_dc
     
-    def execute(self, target):
+    def execute(self, target, debug = False):
         # if condition is inflicted 
         if (not self.can_save) or self.save_dc >= target.saving_throw(self.save_type, self.inflicted_condition):
+            if debug:
+                print("The {} condition was added to creature {} from attack".format(self.inflicted_condition.name, target.name))
             target.add_condition(self.inflicted_condition)
 

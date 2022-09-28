@@ -121,7 +121,8 @@ class HealingSpell(Spell):
         if (not (caster is None or target is None)) and \
             (not caster.spell_manager is None) \
             and super().can_cast(caster, game):
-                
+                if debug:
+                    print("{} cast {} on {}".format(caster.name, self.name, target.name))
                 caster.spell_manager.cast(self, game)
                 target.heal(self.healing_dice.roll())
     
@@ -192,7 +193,7 @@ class SaveAttackSpell(AttackSpell):
                         effect.execute(target)
                     
                     if debug: 
-                        print("{} hit {} for {}".format(self.name, target.name, damage))
+                        print("{} hit {} for {} using".format(self.name, target.name, damage, self.name))
 
                 else:
                     if debug: 
@@ -271,7 +272,7 @@ class AreaSpell(Spell):
                                 effect.execute(target)
                             
                             if debug: 
-                                print("{} hit {} for {}".format(self.name, target.name, damage))
+                                print("{} hit {} for {} using".format(self.name, target.name, damage, self.name))
 
                         else:
                             if debug: 
@@ -288,7 +289,7 @@ class AreaSpell(Spell):
                         pass 
 
 class AttackBonusSpell(Spell):
-    def __init__(self, level, name, added_damage_effect, half_if_saved = True, caster=None):
+    def __init__(self, level, name, added_damage_effect, caster=None):
         super().__init__(level, name,  spell_type = ATTACK_BONUS_SPELL, is_conc = False, conc_remove = None, caster = caster)
         self.inflicted_con =Condition(can_act= True, can_move= True, is_alive= True, name = "added damage", 
                                 added_damage= added_damage_effect, end_of_turn= REMOVE_AT_END)
@@ -355,10 +356,10 @@ class TargetCreature(Spell):
         caster = game.get_creature(self.caster)
         target = game.get_creature(self.target)
         if not caster is None and not target is None: 
-            caster.add_condition(added_damage)
+            caster.add_condition(added_damage, debug)
         
         if not self.selected_cond is None and not target is None:
-            target.add_condition(self.selected_cond)
+            target.add_condition(self.selected_cond, debug)
 
 class DefenseSpell(Spell):
     def __init__(self, level, name,  range, base, modifier_string = None, caster=None, target = None):
@@ -396,7 +397,7 @@ class DefenseSpell(Spell):
         else:
             return [] 
     
-    def execute(self, game):
+    def execute(self, game, debug = False):
         caster = game.get_creature(self.caster)
         target = game.get_creature(self.target)
         if (not (caster is None or target is None)) and \
@@ -408,6 +409,8 @@ class DefenseSpell(Spell):
                 if not self.modifier_String is None: 
                     new_ac += target.modifiers.get_skill_mod(self.modifier_String)
                 target.change_ac(new_ac)
+                if debug:
+                    print("{} now has an ac of {}".format(target.name, new_ac))
     
     
     def __str__(self):
@@ -425,7 +428,11 @@ class TempHPSpell(Spell):
             if debug: 
                 print("{} is casting {}".format(self.caster, self.name))
             caster.spell_manager.cast(self, game) 
-            caster.hp += Dice(self.temp_dice_str).roll() 
+            temp = Dice(self.temp_dice_str).roll() 
+            caster.hp += temp 
+
+            if debug:
+                print("{} now has {} more hit points".format(caster.name, temp))
         elif debug:
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
@@ -486,7 +493,9 @@ class SavingThrowModiferSpell(Spell):
             and super().can_cast(caster, game):
                 
                 caster.spell_manager.cast(self, game)
+                if debug:
+                    print("{} is casting {}".format(caster.name, self.name))
                 for target_name in self.targets:
                     target = game.get_creature(target_name)
                     if not target is None:
-                        target.add_condition(self.condition)
+                        target.add_condition(self.condition, debug)

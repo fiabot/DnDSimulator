@@ -104,13 +104,22 @@ class Creature:
         """
         return self.features.get_attack_roll(attack, self, game)
     
-    def heal(self, amount):
+    def heal(self, amount, debug = False):
         if self.is_alive():
             self.hp += amount 
+
+            if debug:
+                print("Creature {} was healed for {}".format(self.name, amount))
+
             if self.hp > 0 and self.features.has_condition(ASLEEP.name):
                 self.features.remove_condition(ASLEEP.name)
+                if debug:
+                    print("{} is now awake".format(self.name))
+
             if self.hp > 0 and self.features.has_condition(STABLE.name):
                 self.features.remove_condition(STABLE.name)
+                if debug:
+                    print("{} is now awake".format(self.name))
 
             if self.hp > self.max_hp:
                 self.hp = self.max_hp 
@@ -246,8 +255,9 @@ class Creature:
     def get_defense_advantage(self):
         return self.features.defense_advantage()
     
-    def add_condition(self, condition):
-        self.features.add_condition(condition, self)
+    def add_condition(self, condition, debug = False):
+
+        self.features.add_condition(condition, self, debug)
 
     def has_condition(self, condition):
         return self.features.has_condition(condition) 

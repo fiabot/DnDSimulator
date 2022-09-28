@@ -156,9 +156,11 @@ class FeatureManager:
         
         return return_bool 
 
-    def add_condition(self, condition, creature):
+    def add_condition(self, condition, creature, debug = False):
         if (not condition.name in self.condition_immunities and 
             not condition.name in [condition.name for condition in self.conditions]):
+            if debug:
+                print("{} now has condition {}".format(creature.name, condition.name))
             self.conditions.append(condition)
             if not condition.on_added is None: 
                 condition.on_added(creature)

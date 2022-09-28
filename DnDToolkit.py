@@ -555,7 +555,7 @@ class Game():
                         print("{} got an opportunity attack on {}".format(enemy.name, creature.name))
 
             # complete actions 
-            action[1].execute(self)
+            action[1].execute(self, debug = debug)
 
             creature.end_of_turn(self) 
 

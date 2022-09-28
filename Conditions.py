@@ -134,7 +134,7 @@ INCAPACITATED = Condition("Incapacitated", can_act= False, can_move= True, is_al
 INVISIBLE = Condition("Invisable", can_act= True, can_move= True, is_alive= True, attack_advantage= 1, defense_advantage= -1)
 
 PARALYZED = Condition("Paralyzed", can_act= False, can_move= False, is_alive=True, defense_advantage= 1, 
-                             does_attack_fail= lambda type, effect : type == DEX_STR or type == STR_STR)
+                             does_attack_fail= lambda type, effect, game : type == DEX_STR or type == STR_STR)
 
 POSIONED = Condition("Poisoned", can_act= True, can_move= True, is_alive=True, throw_advantage = lambda type , effect : -1)
 
