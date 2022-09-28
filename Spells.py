@@ -252,7 +252,6 @@ class AreaSpell(Spell):
         within range of caster, 
         excluding caster themself 
         """
-        # if there is not a target, dont do anything 
        
         caster = game.get_creature(self.caster)
         if not caster is None: 
@@ -305,7 +304,7 @@ class AttackBonusSpell(Spell):
         elif debug:
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
-class TargetCreature(Spell):
+class TargetCreatureSpell(Spell):
     def __init__(self, level, name, damage_str, dist, condition_choices = None, caster=None, target = None):
         self.name = name 
         self.damage_dice_str = damage_str
@@ -330,7 +329,7 @@ class TargetCreature(Spell):
         return foo 
 
     def set_target(self, target, caster):
-        new_spell = TargetCreature(self.level, self.name, self.damage_dice_str, self.dist, self.condtions, caster.name, target.name)
+        new_spell = TargetCreatureSpell(self.level, self.name, self.damage_dice_str, self.dist, self.condtions, caster.name, target.name)
         return new_spell
  
     def avail_actions(self, creature, game):

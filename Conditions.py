@@ -54,6 +54,11 @@ def create_save_dis(save_type):
 def half_movement(creature, game):
     return free_moves(speed = math.ceil(creature.speed / 2), creature = creature, game = game)
 
+def reduce_move_by(reduce_amount):
+    def foo(creature, game):
+        return free_moves (speed = creature.speed - reduce_amount, creature = creature, game = game)
+    return foo 
+
 def death_save(condition, creature, game):
 
     roll = Dice("1d20").roll() 
@@ -114,6 +119,7 @@ def added_saving_throw(dice_str):
         return dice.roll() 
     return throw_extra 
 
+removed_at_end = lambda condition, creature, game :True 
 REMOVE_AT_END = lambda condition, creature, game :True 
 # Set up conditions 
 AWAKE = Condition("Awake", can_act = True, can_move = True, is_alive = True)
@@ -141,6 +147,11 @@ POSIONED = Condition("Poisoned", can_act= True, can_move= True, is_alive=True, t
 
 
 PRONE = Condition("Prone", can_act = True, can_move = True, is_alive = True, 
-                    get_avail_moves= half_movement, end_of_turn = lambda condition, creature, game :True)
+                    get_avail_moves= half_movement, end_of_turn = removed_at_end)
+
+SPEED_REDUCED_BY_1 = Condition("Speed reduced by 1", can_act = True, can_move = True, is_alive = True, 
+                    get_avail_moves= reduce_move_by(1), end_of_turn = removed_at_end)
 
 BLESS = Condition("Bless",  can_act = True, can_move = True, is_alive = True, throw_extra=added_saving_throw("1d4"))
+
+ATTACK_DISADVANTAGE = Condition("Attack Disadvantage", can_act = True, can_move = True, is_alive = True, attack_advantage= -1)

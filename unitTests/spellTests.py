@@ -184,8 +184,8 @@ class TestSpells(unittest.TestCase):
         self.assertLess(monster2.hp, 20)
 
     def test_target_spell(self):
-        hunter = TargetCreature(1, "hunter's mark", "1d6", 9)
-        not_hunter = TargetCreature(1, "not hunter's mark", "1d6", 9)
+        hunter = TargetCreatureSpell(1, "hunter's mark", "1d6", 9)
+        not_hunter = TargetCreatureSpell(1, "not hunter's mark", "1d6", 9)
 
         witch = Creature(12, 12, 3, spell_manager= SpellManager(3, [hunter]), name = "witch")
         attack = Attack(20, "0d20", 3)
