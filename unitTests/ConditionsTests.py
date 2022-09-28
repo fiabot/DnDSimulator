@@ -58,6 +58,28 @@ class TestCondition(unittest.TestCase):
 
         self.assertEquals(old_hp2, monster.hp)
 
+    def test_extra_save(self):
+        extra_save = Condition("extra save", can_act= True, can_move= True, is_alive= True, throw_extra= added_saving_throw("0d20 + 21"))
+        player = Creature(12, 30, 3, name = "Player")
+        monster = Creature(12, 30, 3, name="Monster")
+
+        grid = Grid(5,5)
+        game = Game([player], [monster], [(0,0)], [(1, 1)], grid)
+
+        player.add_condition(extra_save)
+        self.assertLess(20, player.saving_throw(DEX_STR, PRONE.name))
+
+        # use multiple times 
+        self.assertLess(20, player.saving_throw(DEX_STR, PRONE.name))
+
+        # single use condition 
+        extra_save_one = Condition("extra save", can_act= True, can_move= True, is_alive= True, 
+                    throw_extra= added_saving_throw("0d20 + 21"), use_once= True)
+        monster.add_condition(extra_save_one)
+        self.assertLess(21, monster.saving_throw(DEX_STR, PRONE.name))
+        self.assertGreater(21, monster.saving_throw(DEX_STR, PRONE.name))
+
+        
 
 
 

@@ -1,6 +1,7 @@
 import math
 from Actions import * 
 from Conditions import * 
+import itertools
 HEALING_STR = "healing"
 ATTACK_SPELL = "attack spell"
 SAVE_ATTACK_SPELL = "save attack spell"
@@ -9,6 +10,7 @@ ATTACK_BONUS_SPELL = "attack bonus spell"
 TARGET_CREATURE_SPELL = "target creature spell"
 DEFENSE_SPELL = "defense spell"
 TEMP_HP_SPELL = "temp hp spell"
+SAVING_MOD_SPELL = "saving modifer spell"
 
 class SpellManager():
     def __init__(self, spell_slots, known_spells):
@@ -107,7 +109,7 @@ class HealingSpell(Spell):
         else:
             return [] 
     
-    def execute(self, game):
+    def execute(self, game, debug = False):
         caster = game.get_creature(self.caster)
         target = game.get_creature(self.target)
         if (not (caster is None or target is None)) and \
@@ -420,3 +422,65 @@ class TempHPSpell(Spell):
             caster.hp += Dice(self.temp_dice_str).roll() 
         elif debug:
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
+
+class SavingThrowModiferSpell(Spell):
+    def __init__(self, level, name, mod_dice_str, dist,one_time = True, attack = False, num_effected = 1, caster=None, targets = None):
+        self.dist = dist 
+        self.mod_dice_str = mod_dice_str
+        self.one_time = one_time
+        self.attack =  attack 
+        self.num_effect = num_effected
+        self.condition = Condition(name, can_act=True, can_move= True, is_alive=True, throw_extra=added_saving_throw(self.mod_dice_str), use_once= one_time)
+        self.targets = targets 
+        super().__init__(level, name, SAVING_MOD_SPELL, True, self.remove_cond_func() , caster)
+
+    def remove_cond_func(self):
+        def foo (game):
+            for target_name in self.targets:
+                target = game.get_creature(target_name)
+                if not target is None:
+                    target.features.remove_condition(self.name)
+        return foo 
+
+    def set_targets(self, caster, targets):
+        
+        new_spell = SavingThrowModiferSpell(self.level, self.name, self.mod_dice_str, self.dist,
+                        self.one_time, self.attack, self.num_effect, caster, targets)
+        return new_spell 
+
+    def avail_actions(self, creature, game):
+            
+        actions = [] 
+        for move in creature.avail_movement(game):
+        
+            pieces = game.map.pieces_in_range(move, self.dist)
+
+            friends = [piece.name for piece in pieces if is_friend(creature, piece)]
+
+            if (self.num_effect == 1):
+                actions += [(move, self.set_targets(creature.name, [friend])) for friend in friends]
+                
+            
+            else:
+                combinations = [] 
+                if len(friends) <= 5:
+                    combinations = itertools.combinations(friends, self.num_effect)
+                else: 
+                    for i in range(10):
+                        combinations.append(random.sample(friends, self.num_effect))
+                actions += [(move, self.set_targets(creature.name, targets)) for targets in combinations]
+        
+        return actions 
+
+    def execute(self, game, debug = True):
+        caster = game.get_creature(self.caster)
+
+        if not (caster is None) and \
+            (not caster.spell_manager is None) \
+            and super().can_cast(caster, game):
+                
+                caster.spell_manager.cast(self, game)
+                for target_name in self.targets:
+                    target = game.get_creature(target_name)
+                    if not target is None:
+                        target.add_condition(self.condition)

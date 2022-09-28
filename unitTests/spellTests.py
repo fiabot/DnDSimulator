@@ -251,6 +251,75 @@ class TestSpells(unittest.TestCase):
 
         self.assertEquals(20, monster.hp)
 
+    def test_save_spell(self):
+        bless = SavingThrowModiferSpell(1, "bless", "0d4 + 21", 3, one_time= True, num_effected= 3)
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [bless]), name= "monster")
+        monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
+        monster3 = Creature(ac = 12, hp = 20, speed = 1, name = "monster3")
+        monster4 = Creature(ac = 12, hp = 20, speed = 1, name = "monster4")
+        monster5 = Creature(ac = 12, hp = 20, speed = 1, name = "monster5")
+        monster6 = Creature(ac = 12, hp = 20, speed = 1, name = "monster6")
+        player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
+
+        monster_pos = [(5,5), (4,5), (6,5), (5,6), (5,4), (9,9)]
+        game = Game([player], [monster, monster2, monster3, monster4, monster5, monster6], [(0,0)], monster_pos, Grid(10,10))
+
+        self.assertEquals(10, len(bless.avail_actions(monster, game)))
+
+        for action in bless.avail_actions(monster, game):
+            self.assertTrue(isinstance(action[1], SavingThrowModiferSpell))
+            self.assertEqual(monster.name, action[1].caster)
+            self.assertIsNotNone(action[1].targets)
+            self.assertEqual(3, len(action[1].targets))
+            for creature in action[1].targets:
+                self.assertTrue(creature.startswith("monster"))
+        
+        spell0 = bless.avail_actions(monster, game)[0][1]
+        spell0.execute(game)
+
+        targets = []
+        self.assertEqual(3, len(spell0.targets))
+
+        for target in spell0.targets:
+            creature = game.get_creature(target)
+            self.assertTrue(creature.has_condition(bless.name))
+            targets.append(creature)
+        
+        # condition works 
+        self.assertLess(21, targets[0].saving_throw(DEX_STR, PRONE.name))
+
+        # but only once 
+        self.assertGreater(21, targets[0].saving_throw(DEX_STR, PRONE.name))
+
+        # concentation removes it 
+        monster.spell_manager.remove_concetration(game)
+        self.assertFalse(targets[1].has_condition(bless.name))
+
+        # randomly sampling also works 
+        game.map.move_piece(monster6, (3,5))
+
+        self.assertEquals(10, len(bless.avail_actions(monster, game)))
+
+        for action in bless.avail_actions(monster, game):
+            self.assertTrue(isinstance(action[1], SavingThrowModiferSpell))
+            self.assertEqual(monster.name, action[1].caster)
+            self.assertIsNotNone(action[1].targets)
+            self.assertEqual(3, len(action[1].targets))
+            for creature in action[1].targets:
+                self.assertTrue(creature.startswith("monster"))
+        
+        spell0 = bless.avail_actions(monster, game)[0][1]
+        spell0.execute(game)
+
+        targets = []
+        self.assertEqual(3, len(spell0.targets))
+
+        for target in spell0.targets:
+            creature = game.get_creature(target)
+            self.assertTrue(creature.has_condition(bless.name))
+            targets.append(creature)
+
+        
     
  
 unittest.main()

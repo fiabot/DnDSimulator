@@ -7,7 +7,7 @@ from DnDToolkit import *;
 class Condition:
     def __init__(self, name, can_act, can_move, is_alive, attack_advantage = 0, defense_advantage = 0,
                 on_added = None, end_of_turn = None, get_avail_moves = None, does_throw_fail = None, 
-                throw_advantage = None, does_attack_fail = None, added_damage = None):
+                throw_advantage = None, throw_extra = None, does_attack_fail = None, added_damage = None, use_once = False):
         self.name = name 
         self.can_act = can_act
         self.can_move = can_move 
@@ -21,6 +21,8 @@ class Condition:
         self.throw_advantage = throw_advantage 
         self.does_attack_fail = does_attack_fail 
         self.added_damage = added_damage
+        self.use_once = use_once
+        self.throw_extra = throw_extra
     
     def add_end_of_turn(self, end_funct):
         new_condition = deepcopy(self)
@@ -98,13 +100,19 @@ def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = Tru
     return foo 
 
 def target_creature_funct(creature_name, damage_dice):
-    def foo (condtion, attack, creature, game):
+    def foo (condition, attack, creature, game):
         if attack.target == creature_name:
             return Dice(damage_dice).roll() 
         else:
             return 0
     return foo
 
+def added_saving_throw(dice_str):
+    dice = Dice(dice_str)
+
+    def throw_extra(type, effect):
+        return dice.roll() 
+    return throw_extra 
 
 REMOVE_AT_END = lambda condition, creature, game :True 
 # Set up conditions 
@@ -128,9 +136,11 @@ INVISIBLE = Condition("Invisable", can_act= True, can_move= True, is_alive= True
 PARALYZED = Condition("Paralyzed", can_act= False, can_move= False, is_alive=True, defense_advantage= 1, 
                              does_attack_fail= lambda type, effect : type == DEX_STR or type == STR_STR)
 
-POSIONED = Condition("Poisoned", can_act= True, can_move= True, is_alive=True, throw_advantage = lambda type , effect : True)
+POSIONED = Condition("Poisoned", can_act= True, can_move= True, is_alive=True, throw_advantage = lambda type , effect : -1)
 
 
 
 PRONE = Condition("Prone", can_act = True, can_move = True, is_alive = True, 
                     get_avail_moves= half_movement, end_of_turn = lambda condition, creature, game :True)
+
+BLESS = Condition("Bless",  can_act = True, can_move = True, is_alive = True, throw_extra=added_saving_throw("1d4"))

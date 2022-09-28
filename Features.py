@@ -79,12 +79,11 @@ class FeatureManager:
             
         return added_damage 
     
-    
     def get_save_dice(self, type, effect, creature): 
         if (self.does_throw_fail(type, effect)):
             return FailDice()
         else: 
-            mod = creature.modifiers.get_save_mod(type) 
+            mod = creature.modifiers.get_save_mod(type) + self.condition_throw_mod(type, effect)
             advantage = 0 
             if SAVE_STR in self.features:
                 for feat in self.features[SAVE_STR]:
@@ -214,6 +213,20 @@ class FeatureManager:
             i += 1 
         return ad 
 
+    def condition_throw_mod(self, type, effect):
+        extra = 0 
+        i = 0
+        while extra == 0 and i < len(self.conditions):
+            cond = self.conditions[i]
+
+            if (not cond.throw_extra is None):
+                extra = cond.throw_extra(type, effect)
+                if cond.use_once:
+                    self.remove_condition(cond.name)
+
+            i += 1 
+        return extra
+
     def does_attack_fail(self, attack, attacker, game):
         fail = False 
         i = 0
@@ -229,7 +242,8 @@ class FeatureManager:
         for cond in self.conditions:
             if not cond.end_of_turn is None:
                 if cond.end_of_turn(cond, creature, game):
-                    self.remove_condition(cond)
+                    self.remove_condition(cond.name)
+    
     def is_stable(self):
         return self.has_condition(STABLE.name)
     
@@ -240,8 +254,10 @@ class FeatureManager:
             has_con = self.conditions[i].name == condition_name
             i += 1 
         return has_con
+    
     def reset_conditions(self):
         self.conditions = [] 
+    
     def __str__(self):
         return_str = ""
 
@@ -377,9 +393,6 @@ def rampage(amount, creature, game):
         bite.execute(game) 
 
         
-        
-
-    
 
 SNEAK_ATTACK = DamageFeature("Sneak Attack", friend_in_range, bonus_damage("2d20 + 20"))
 DARK_DEVOTION = SavingThrowFeature("Dark Devotion", charm_fright, 1, 0) 
