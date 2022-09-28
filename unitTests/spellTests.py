@@ -59,6 +59,34 @@ class TestSpells(unittest.TestCase):
 
         self.assertEqual(new_hp, monster2.hp)
 
+    def test_concetration(self):
+        spell = Spell(1, "spell", "blank spell", is_conc=True, conc_remove= lambda x : print("con removed"))
+        monster = Creature(12, 200, 3, spell_manager= SpellManager(3, [spell]), name = "monster")
+        player = Creature(12, 100, 3, spell_manager= SpellManager(3, [spell]), name = "player")
+
+        game = Game([player], [monster], [(0,0)], [(1,2)], Grid(5,5))
+
+        spell.caster = monster.name 
+        spell.execute(game)
+
+        self.assertFalse(monster.spell_manager.can_concretate)
+
+        # have the creature take damage and loose concentration 
+        monster.damage(100, FIRE_DAMAGE, game)
+        self.assertTrue(monster.spell_manager.can_concretate)
+
+        # but if damage is low, it won't loose concentratio n
+        monster.modifiers.save_mods[CON_STR] = 40 
+        spell.execute(game)
+        self.assertFalse(monster.spell_manager.can_concretate)
+        monster.damage(20, FIRE_DAMAGE, game)
+        self.assertFalse(monster.spell_manager.can_concretate)
+
+        # looses con when dead 
+        monster.damage(monster.hp, FIRE_DAMAGE, game)
+        self.assertEqual(monster.hp, 0)
+        self.assertTrue(monster.spell_manager.can_concretate)
+
 
     def test_attack(self):
         witch_bolt = AttackSpell(level = 1, hit_bonus= 3, damage_dice_string= "1d12", 

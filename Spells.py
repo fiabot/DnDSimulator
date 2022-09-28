@@ -11,6 +11,7 @@ TARGET_CREATURE_SPELL = "target creature spell"
 DEFENSE_SPELL = "defense spell"
 TEMP_HP_SPELL = "temp hp spell"
 SAVING_MOD_SPELL = "saving modifer spell"
+LOOSING_CON_EFFECT = "losing concetration"
 
 class SpellManager():
     def __init__(self, spell_slots, known_spells):
@@ -33,12 +34,17 @@ class SpellManager():
                 self.remove_concetration(game)
             self.can_concretate = False 
             self.concetrated_spell = spell 
-    
+
+    def take_damage(self, damage ,creature, game):
+        save = creature.saving_throw(CON_STR, LOOSING_CON_EFFECT)
+
+        if save < max(10,  damage // 2): 
+            self.remove_concetration(game)
+        
     def remove_concetration(self, game):
         self.concetrated_spell.conc_removed(game)
         self.can_concretate = True 
  
-
 class Spell(Action):
     def __init__(self, level, name, spell_type, is_conc = False, conc_remove = None, caster = None):
         super().__init__(name)

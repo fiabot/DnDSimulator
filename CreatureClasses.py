@@ -130,6 +130,9 @@ class Creature:
             if type in self.resistances:
                 amount = amount // 2 
             self.hp -= amount
+
+            if not self.spell_manager is None:
+                self.spell_manager.take_damage(amount, self, game)
             if self.hp <= 0: 
                 self.zero_condition(amount, game) 
     
@@ -151,6 +154,8 @@ class Creature:
         """
         self.hp = 0 # there is not negative HP 
         self.features.drop_to_zero(amount, self, game)
+        if not self.spell_manager is None: 
+            self.spell_manager.remove_concetration(game)
         if self.hp == 0:
             self.die()
 
