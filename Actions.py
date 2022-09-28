@@ -46,7 +46,10 @@ class Attack(Action):
         """
         Action.__init__(self, name) 
 
-        hit_dice_str = make_dice_string(1, 20, hit_bonus)
+        if hit_bonus is None:
+            hit_dice_str = "1d20"
+        else: 
+            hit_dice_str = make_dice_string(1, 20, hit_bonus)
         self.hit_bonus = hit_bonus 
         self.hit_dice = Dice(hit_dice_str)
         self.damage_dice = Dice(damage_dice_string)
@@ -70,7 +73,12 @@ class Attack(Action):
         if not target is None and not attacker is None: 
 
             # roll attack applying any special features 
+            
+            self.hit_dice = Dice(make_dice_string(1, 20, self.hit_bonus))
             hit = attacker.get_hit_dice(self, game).roll() 
+
+            if debug:
+                print("{} rolled a {} to hit {} with {}".format(attacker.name, hit, target.name, self.name ))
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 

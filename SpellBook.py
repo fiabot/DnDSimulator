@@ -45,12 +45,12 @@ Attack with save
     Acid Splash
 """
 laughing = INCAPACITATED.add_end_of_turn(create_save_funct(WIS_STR, 12))# make 12 spell casting dc 
-TASHAS_HIDEOUS_LAUGHTER = SaveAttackSpell(1, WIS_STR, 12, "0d4", 3, half_if_saved= False, side_effects=[laughing])
-ACID_SPLASH = SaveAttackSpell(0,DEX_STR, 12, "1d6", 6, half_if_saved=False, damage_type = ACID_DAMAGE) # 12 is spell casting dc 
+TASHAS_HIDEOUS_LAUGHTER = SaveAttackSpell(1, WIS_STR, None, "0d4", 3, half_if_saved= False, side_effects=[laughing])
+ACID_SPLASH = SaveAttackSpell(0,DEX_STR, None, "1d6", 6, half_if_saved=False, damage_type = ACID_DAMAGE) # 12 is spell casting dc 
 
 mockery = ATTACK_DISADVANTAGE.add_end_of_turn(removed_at_end) 
-VICIOUS_MOCKERY = SaveAttackSpell(0, WIS_STR, 12, "1d4", 6, half_if_saved= False, damage_type= PYSCHIC_DAMAGE, side_effects= mockery)
-DISSONANT_WHISPERS = SaveAttackSpell(1, WIS_STR, 12, "3d6", damage_type= PYSCHIC_DAMAGE, half_if_saved= True) # moves closer, deafened automatically saved 
+VICIOUS_MOCKERY = SaveAttackSpell(0, WIS_STR, None, "1d4", 6, half_if_saved= False, damage_type= PYSCHIC_DAMAGE, side_effects= mockery)
+DISSONANT_WHISPERS = SaveAttackSpell(1, WIS_STR, None, "3d6", damage_type= PYSCHIC_DAMAGE, half_if_saved= True) # moves closer, deafened automatically saved 
 
 """
 Area of Effect 

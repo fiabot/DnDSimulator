@@ -1,4 +1,3 @@
-
 import unittest 
 import os, sys
 
@@ -13,7 +12,7 @@ class TestSpells(unittest.TestCase):
 
     def test_healing(self):
         healing_word = HealingSpell(1, "healing word", 2, "1d4 + 1")
-        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [healing_word]), name= "monster")
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, 2, 2, 13, [healing_word]), name= "monster")
         monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
         player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
         game = Game([player], [monster, monster2], [(0,0)], [(4,4), (4,3)], Grid(5,5))
@@ -61,8 +60,8 @@ class TestSpells(unittest.TestCase):
 
     def test_concetration(self):
         spell = Spell(1, "spell", "blank spell", is_conc=True, conc_remove= lambda x : print("con removed"))
-        monster = Creature(12, 200, 3, spell_manager= SpellManager(3, [spell]), name = "monster")
-        player = Creature(12, 100, 3, spell_manager= SpellManager(3, [spell]), name = "player")
+        monster = Creature(12, 200, 3, spell_manager= SpellManager(3,  2, 2, 13,[spell]), name = "monster")
+        player = Creature(12, 100, 3, spell_manager= SpellManager(3,  2, 2, 13, [spell]), name = "player")
 
         game = Game([player], [monster], [(0,0)], [(1,2)], Grid(5,5))
 
@@ -87,16 +86,23 @@ class TestSpells(unittest.TestCase):
         self.assertEqual(monster.hp, 0)
         self.assertTrue(monster.spell_manager.can_concretate)
 
-
     def test_attack(self):
-        witch_bolt = AttackSpell(level = 1, hit_bonus= 3, damage_dice_string= "1d12", 
+        witch_bolt = AttackSpell(level = 1, hit_bonus= None, damage_dice_string= "1d12", 
                 dist=3, attack_type=RANGED, damage_type=LIGHTNING, name = "witch bolt")
             
-        fire_bolt = AttackSpell(level = 0, hit_bonus= 2, damage_dice_string= "1d10",
+        fire_bolt = AttackSpell(level = 0, hit_bonus= None, damage_dice_string= "1d10",
                  dist = 12, attack_type= RANGED, damage_type=FIRE_DAMAGE, name = "fire bolt")
+        
+        magic_fists = AttackSpell(level = 0, hit_bonus= None, damage_dice_string= "1d10",
+                 dist = 12, attack_type= MELE, damage_type=FIRE_DAMAGE, name = "fire bolt")
 
-        witch = Creature(12, 12, 3, spell_manager= SpellManager(3, [witch_bolt, fire_bolt]), name = "witch")
+        witch = Creature(12, 12, 3, spell_manager= SpellManager(3, 20, -100, 13, [witch_bolt, fire_bolt, magic_fists]), name = "witch")
         monster = Creature(1, 100, 3, name = "monster")
+
+        # make spells updated spells 
+        witch_bolt = witch.spell_manager.known_spells[0]
+        fire_bolt = witch.spell_manager.known_spells[1]
+        magic_fists = witch.spell_manager.known_spells[2]
 
         map = Grid(12, 12)
         game = Game([witch], [monster], [(0, 0)], [(1, 1)],map)
@@ -112,7 +118,7 @@ class TestSpells(unittest.TestCase):
             self.assertEqual(action[1].attacker, witch.name)
             self.assertEqual(action[1].caster, witch.name)
         
-        witch_bolt.avail_actions(witch, game)[0][1].execute(game)
+        witch_bolt.avail_actions(witch, game)[0][1].execute(game, debug = True)
 
         self.assertLess(monster.hp, 100)
 
@@ -143,15 +149,25 @@ class TestSpells(unittest.TestCase):
         old_hp = monster.hp 
         self.assertGreater(len(fire_bolt.avail_actions(witch, game)), 0)
 
-        fire_bolt.avail_actions(witch, game)[0][1].execute(game)
+        fire_bolt.avail_actions(witch, game)[0][1].execute(game, debug = True)
         self.assertLess(monster.hp, old_hp)
 
+        old_hp = monster.hp 
+
+        # mele uses mele mod 
+        old_hp = monster.hp 
+        self.assertGreater(len(magic_fists.avail_actions(witch, game)), 0)
+
+        magic_fists.avail_actions(witch, game)[0][1].execute(game, debug = True)
+        self.assertEqual(monster.hp, old_hp)
+
     def test_save_attack(self):
-        dis_whisp = SaveAttackSpell(1, WIS_STR, save_dc =25, damage_dice= "3d1", dist= 6, half_if_saved=True, 
+        dis_whisp = SaveAttackSpell(1, WIS_STR, save_dc =None, damage_dice= "3d1", dist= 6, half_if_saved=True, 
                     side_effects=[SideEffect(PRONE, False)], name = "Dissonance Whispers" )
         
-        spell_caster = Creature(12, 20, 3, spell_manager= SpellManager(3, [dis_whisp]), name = "spell caster")
+        spell_caster = Creature(12, 20, 3, spell_manager= SpellManager(3,  2, 2, 25, [dis_whisp]), name = "spell caster")
 
+        dis_whisp = spell_caster.spell_manager.known_spells[0]
         monster = Creature(12, 103, 3, name = "monster")
         grid = Grid(5,5)
         game = Game([spell_caster], [monster], [(0,0)], [(1, 1)], map = grid)
@@ -168,12 +184,14 @@ class TestSpells(unittest.TestCase):
         self.assertEqual(monster.hp, 99)
         
     def test_area_spell(self):
-        hadar = AreaSpell(level = 1,name= "Arms of Hadar", save_type= STR_STR, save_dc= 25, 
+        hadar = AreaSpell(level = 1,name= "Arms of Hadar", save_type= STR_STR, save_dc= None, 
                             damage_dice_str= "2d6", damage_type= NECROTIC, dist =1)
 
-        caster = Creature(12, 20, 3, spell_manager= SpellManager(3, [hadar]), name = "Caster")
+        caster = Creature(12, 20, 3, spell_manager= SpellManager(3,  2, 2, 25,[hadar]), name = "Caster")
         monster1 = Creature(12, 20, 3, name = "monster 1")
         monster2 = Creature(12, 20, 3, name = "monster2")
+
+        hadar = caster.spell_manager.known_spells[0]
 
         grid = Grid(5,5)
         game = Game([caster], [monster1, monster2], [(3,3)], [(2,3), (4, 3)], map = grid)
@@ -187,7 +205,7 @@ class TestSpells(unittest.TestCase):
         hunter = TargetCreatureSpell(1, "hunter's mark", "1d6", 9)
         not_hunter = TargetCreatureSpell(1, "not hunter's mark", "1d6", 9)
 
-        witch = Creature(12, 12, 3, spell_manager= SpellManager(3, [hunter]), name = "witch")
+        witch = Creature(12, 12, 3, spell_manager= SpellManager(3,  2, 2, 13, [hunter]), name = "witch")
         attack = Attack(20, "0d20", 3)
         monster = Creature(1, 100, 3, name = "monster")
 
@@ -232,7 +250,7 @@ class TestSpells(unittest.TestCase):
 
     def test_defense_spell(self):
         magic_armor = DefenseSpell(1, "magic armor", 1, 13, DEX_STR)
-        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [magic_armor]), name= "monster")
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3,  2, 2, 13,[magic_armor]), name= "monster")
         monster2 = Creature(ac = 15, hp = 20, speed = 1, name = "monster2")
         mon3_mods = {DEX_STR: 2, CON_STR: 2, STR_STR: 0, CHAR_STR: -3, INT_STR: -4, WIS_STR: -2}
         monster3 = Creature(ac = 12, hp = 20, speed = 1, modifiers= Modifiers(1, mon3_mods, mon3_mods), name = "monster3")
@@ -263,7 +281,7 @@ class TestSpells(unittest.TestCase):
 
     def test_temp_spell(self):
         armor_of_agathy = TempHPSpell(1, "armor of agathsy", "0d4 + 5")
-        monster = Creature(ac = 12, hp = 20, speed = 3, spell_manager= SpellManager(3, [armor_of_agathy]), name= "monster")
+        monster = Creature(ac = 12, hp = 20, speed = 3, spell_manager= SpellManager(3,  2, 2, 13, [armor_of_agathy]), name= "monster")
         monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
         player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
         game = Game([player], [monster, monster2], [(0,0)], [(4,4), (4,3)], Grid(5,5))
@@ -281,7 +299,7 @@ class TestSpells(unittest.TestCase):
 
     def test_save_spell(self):
         bless = SavingThrowModiferSpell(1, "bless", "0d4 + 21", 3, one_time= True, num_effected= 3)
-        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [bless]), name= "monster")
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3,  2, 2, 13, [bless]), name= "monster")
         monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
         monster3 = Creature(ac = 12, hp = 20, speed = 1, name = "monster3")
         monster4 = Creature(ac = 12, hp = 20, speed = 1, name = "monster4")

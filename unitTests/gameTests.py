@@ -56,6 +56,14 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(2, len(game.map.enemies_in_range(player.team, player.position, 5)))
 
+    def test_make_dice_str(self):
+        self.assertEquals("1d20 + 4", make_dice_string(1, 20, 4))
+        self.assertEquals("2d4 - 3", make_dice_string(2, 4, -3))
+        self.assertEquals("5d6", make_dice_string(5, 6))
+
+    def test_dice(self):
+        dice = Dice(make_dice_string(1, 20, -40))
+        self.assertEquals(-40, dice.modifer)
        
 class TestGrid(unittest.TestCase):
     def test_clear(self):

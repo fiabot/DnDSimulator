@@ -51,7 +51,7 @@ def make_dice_string(amount, type, modifer = 0):
     if(modifer > 0):
         return_str += " + {}".format(modifer)
     elif (modifer < 0):
-        return_str += " - {}".format(modifer)
+        return_str += " - {}".format(abs(modifer))
     
     return return_str
 

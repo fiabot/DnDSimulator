@@ -14,12 +14,43 @@ SAVING_MOD_SPELL = "saving modifer spell"
 LOOSING_CON_EFFECT = "losing concetration"
 
 class SpellManager():
-    def __init__(self, spell_slots, known_spells):
+    def __init__(self, spell_slots, ranged_modifer, mele_modifer, spell_dc, known_spells):
         self.total_spell_slots = spell_slots
         self.current_spell_slots = self.total_spell_slots
         self.known_spells = known_spells
         self.can_concretate = True 
         self.concetrated_spell = None 
+        self.ranged_modifer = ranged_modifer
+        self.mele_modifer = mele_modifer 
+        self.spell_dc =spell_dc 
+        self.set_spells()
+    
+    
+    def set_spells(self):
+        """
+        set the dc and modifer 
+        for all spells 
+        in known-spells
+        """
+        spells = [] 
+        for spell in self.known_spells:
+            if spell.type == ATTACK_SPELL and spell.hit_bonus is None:
+                new_spell = deepcopy(spell)
+                if new_spell.attack_type == MELE:
+                    new_spell.hit_bonus = self.mele_modifer
+                else: 
+                    new_spell.hit_bonus = self.ranged_modifer
+                spells.append(new_spell)
+            elif (spell.type == SAVE_ATTACK_SPELL or spell.type == AREA_OF_EFFECT_SPELL) and spell.save_dc is None:
+                new_spell = deepcopy(spell)
+                new_spell.save_dc = self.spell_dc
+                spells.append(new_spell) 
+            else: 
+                spells.append(spell)
+        self.known_spells = spells 
+
+                
+
     
     def long_rest(self):
         self.current_spell_slots = self.total_spell_slots
@@ -159,6 +190,7 @@ class AttackSpell(Attack, Spell):
         caster = game.get_creature(self.caster)
         if Spell.can_cast(self, caster, game):
             Spell.execute(self, game, debug) 
+                
             Attack.execute(self, game, debug)
 
 class SaveAttackSpell(AttackSpell):
@@ -182,7 +214,7 @@ class SaveAttackSpell(AttackSpell):
         if not target is None and not attacker is None: 
             if self.can_cast(attacker, game):
                 Spell.execute(self, game)
-                # make saving throw and deal damage 
+               
                     
                 damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
 
