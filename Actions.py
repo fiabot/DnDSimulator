@@ -75,7 +75,7 @@ class Attack(Action):
             # roll attack applying any special features 
             
             self.hit_dice = Dice(make_dice_string(1, 20, self.hit_bonus))
-            hit = attacker.get_hit_dice(self, game).roll() 
+            hit = attacker.get_hit_dice(self, game, debug).roll() 
 
             if debug:
                 print("{} rolled a {} to hit {} with {}".format(attacker.name, hit, target.name, self.name ))
@@ -83,7 +83,7 @@ class Attack(Action):
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
                 
-                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
+                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game, debug)
                 target.damage(damage, self.damage_type,game)
                  
                 for effect in self.side_effects:

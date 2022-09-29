@@ -97,12 +97,12 @@ class Creature:
             new_action.execute(game) 
             self.has_reaction = False 
 
-    def get_hit_dice(self, attack, game):
+    def get_hit_dice(self, attack, game, debug = False):
         """
         return the hit dice after applying any 
         special features 
         """
-        return self.features.get_attack_roll(attack, self, game)
+        return self.features.get_attack_roll(attack, self, game, debug)
     
     def heal(self, amount, debug = False):
         if self.is_alive():
@@ -124,12 +124,12 @@ class Creature:
             if self.hp > self.max_hp:
                 self.hp = self.max_hp 
             
-    def get_added_damage(self, attack, game):
+    def get_added_damage(self, attack, game, debug = False):
         """
         return additional damage 
         granted from features 
         """
-        return self.features.get_added_damage(attack, self, game)
+        return self.features.get_added_damage(attack, self, game, debug)
 
     def damage(self, amount, type, game):
         """

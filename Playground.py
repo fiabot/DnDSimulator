@@ -10,7 +10,7 @@ from SpellBook import *
 from Spells import *; 
 
 # create sample actions 
-sword = Attack(4, "2d8", 1, name = "Sword", side_effects= [SideEffect(PRONE, True, DEX_STR, 15)])
+sword = Attack(4, "1d8", 1, name = "Sword")
 arrow = Attack(hit_bonus= 0, 
         damage_type= PIERCING_DAMAGE, attack_type=RANGED, dist= 5, damage_dice_string="1d6", name = "Bow and Arrow")
 
@@ -36,18 +36,18 @@ tank_feats = FeatureManager([RELENTLESS_ENDUR])
 rog_feats = FeatureManager([SNEAK_ATTACK])
 
 # Human creatures 
-tank = HumanCreature(ac = 10, hp = 5, speed = 3, modifiers= tank_mod, 
+tank = HumanCreature(ac = 10, hp = 11, speed = 3, modifiers= tank_mod, 
             features= tank_feats, name = "Barbarian", actions=[sword], resistences=[SLASHING_DAMAGE])
 
-rogue = HumanCreature(ac = 11, hp = 5, speed = 3, modifiers= rog_mod, 
+rogue = HumanCreature(ac = 11, hp = 11, speed = 3, modifiers= rog_mod, 
             features= rog_feats, name = "Rogue", actions=[arrow], resistences=[SLASHING_DAMAGE])
 
 cleric = HumanCreature(ac = 11, hp = 11, speed = 3, modifiers= cleric_mod, \
-        spell_manager= SpellManager(3, 1, 1, 12, known_spells=[CURE_WOUNDS, HEALING_WORD, BLESS, ACID_SPLASH]), name = "cleric")
+        spell_manager= SpellManager(3, 1, 1, 12, known_spells=[CURE_WOUNDS, HEALING_WORD, BLESS, ACID_SPLASH], spell_mod=2), name = "cleric")
 
 # agressive creatures 
-horse = ShyneCreature(ac = 11, hp = 5, speed= 4, name = "Horse", actions = [trample])
-hound = ShyneCreature(ac = 12, hp = 2, speed= 3, name = "Hound", actions = [bite])
+horse = ShyneCreature(ac = 11, hp = 11, speed= 4, name = "Horse", actions = [trample])
+hound = ShyneCreature(ac = 12, hp = 11, speed= 3, name = "Hound", actions = [bite])
 
 # game 
 map = Grid(7, 7, space = 3)

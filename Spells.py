@@ -1,4 +1,5 @@
 import math
+from smtpd import DebuggingServer
 from Actions import * 
 from Conditions import * 
 import itertools
@@ -14,7 +15,7 @@ SAVING_MOD_SPELL = "saving modifer spell"
 LOOSING_CON_EFFECT = "losing concetration"
 
 class SpellManager():
-    def __init__(self, spell_slots, ranged_modifer, mele_modifer, spell_dc, known_spells):
+    def __init__(self, spell_slots, ranged_modifer, mele_modifer, spell_dc, known_spells, spell_mod = 0):
         self.total_spell_slots = spell_slots
         self.current_spell_slots = self.total_spell_slots
         self.known_spells = known_spells
@@ -23,6 +24,7 @@ class SpellManager():
         self.ranged_modifer = ranged_modifer
         self.mele_modifer = mele_modifer 
         self.spell_dc =spell_dc 
+        self.spell_mod = spell_mod 
         self.set_spells()
     
     def set_spells(self):
@@ -33,6 +35,10 @@ class SpellManager():
         """
         spells = [] 
         for spell in self.known_spells:
+            if spell.type == HEALING_STR and spell.healing_dice.modifer == 0:
+                new_spell = deepcopy(spell)
+                new_spell.healing_dice.modifer = self.spell_mod
+                spells.append(new_spell)
             if spell.type == ATTACK_SPELL and spell.hit_bonus is None:
                 new_spell = deepcopy(spell)
                 if new_spell.attack_type == MELE:
@@ -74,7 +80,7 @@ class SpellManager():
             self.can_concretate = True 
     
     def __str__(self):
-        return "SPELL CASTER STATS: spell slots: {}, spell dc: {}, ranged mod: {}, mele mod: {}".format(self.current_spell_slots, self.spell_dc, self.ranged_modifer, self.mele_modifer)
+        return "Spell Casting Stats: spell slots: {}, can concetrate: {}, spell dc: {}, ranged mod: {}, mele mod: {}".format(self.current_spell_slots, self.can_concretate, self.spell_dc, self.ranged_modifer, self.mele_modifer)
 
 class Spell(Action):
     def __init__(self, level, name, spell_type, is_conc = False, conc_remove = None, caster = None):
@@ -84,8 +90,7 @@ class Spell(Action):
         self.is_conc = is_conc
         self.conc_removed = conc_remove 
         self.caster = caster 
-        
-    
+         
     def can_cast(self, creature, game):
         if not creature.spell_manager is None: 
             return creature.spell_manager.can_cast(self)
@@ -129,9 +134,6 @@ class HealingSpell(Spell):
 
             targets += [(move, piece) for piece in pieces if is_friend(creature, piece) and piece.hp < piece.max_hp]
         return targets 
-    
-    def can_cast(self, creature, game):
-        return super().can_cast(creature, game) and len(self.avail_targets) > 0 
     
     def avail_actions(self, creature, game):
         if super().can_cast(creature, game):
@@ -216,7 +218,7 @@ class SaveAttackSpell(AttackSpell):
                 Spell.execute(self, game)
                
                     
-                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game)
+                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game, debug)
 
                 if target.saving_throw(self.save_type, self.type) < self.save_dc: 
                     target.damage(damage, self.damage_type,game)
@@ -279,7 +281,6 @@ class AreaSpell(Spell):
                     actions.append([move, self.set_caster(creature)])
         return actions 
 
-
     def execute(self, game, debug = False):
         """
         Apply damage to all creatures 
@@ -296,7 +297,7 @@ class AreaSpell(Spell):
                     try: 
                         target = game.get_creature(piece.name)
 
-                        damage = self.damage_dice.roll() + caster.get_added_damage(self, game)
+                        damage = self.damage_dice.roll() + caster.get_added_damage(self, game, debug)
 
                         if target.saving_throw(self.save_type, self.type) < self.save_dc: 
                             target.damage(damage, self.damage_type,game)
@@ -490,7 +491,11 @@ class SavingThrowModiferSpell(Spell):
         self.one_time = one_time
         self.attack =  attack 
         self.num_effect = num_effected
-        self.condition = Condition(name, can_act=True, can_move= True, is_alive=True, throw_extra=added_saving_throw(self.mod_dice_str), use_once= one_time)
+        if attack:
+            mod = 1 
+        else: 
+            mod = 0 
+        self.condition = Condition(name, can_act=True, can_move= True, is_alive=True, throw_extra=added_saving_throw(self.mod_dice_str), use_once= one_time, attack_advantage=mod)
         self.targets = targets 
         super().__init__(level, name, SAVING_MOD_SPELL, True, self.remove_cond_func() , caster)
 

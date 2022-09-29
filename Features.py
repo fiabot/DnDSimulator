@@ -29,19 +29,22 @@ class FeatureManager:
         self.conditions = []
         self.condition_immunities = condition_immunities 
     
-    def get_attack_roll(self, attack, creature, game):
-        if self.does_attack_fail(attack, creature, game):
+    def get_attack_roll(self, attack, creature, game, debug = False):
+        if self.does_attack_fail(attack, creature, game, debug):
             return FailDice() 
         else:
             dice = None 
             target_adv = game.get_creature(attack.target).get_defense_advantage()
-            con_adv = self.condition_advantage() 
+            con_adv = self.condition_advantage(debug) 
             if ATTACK_STR in self.features:
                 i = 0 
                 while dice is None and i < len(self.features[ATTACK_STR]):
                     feat = self.features[ATTACK_STR][i]
                     if feat.condition(attack, creature, game):
                         dice = feat.dice_from_feature(attack) 
+
+                        if debug:
+                            print("Due to feature {} hit dice is now {}".format(feat.name, str(dice)))
                     i += 1
                 
             # if no features are applied, use default dice 
@@ -65,7 +68,7 @@ class FeatureManager:
                 dice = Dice(dice.dice_string, total_advantage)
             return dice 
     
-    def get_added_damage(self, attack, creature, game): 
+    def get_added_damage(self, attack, creature, game, debug = False): 
         """
         If an attack hits from this creature, 
         figure out if any damage is added 
@@ -76,15 +79,24 @@ class FeatureManager:
         other side effects 
         """
         added_damage = 0
+        
+        if debug:
+            old_damage = 0 
         if DAMAGE_STR in self.features:
             
             for feat in self.features[DAMAGE_STR]:
                 if feat.condition(attack, creature, game):
                     added_damage += feat.damage_added(attack, creature, game) 
+                    if debug: 
+                        print("Feature {} added {} damage to attack".format(feat.name, added_damage - old_damage))
+                        old_damage = added_damage
             
         for cond in self.conditions:
             if not cond.added_damage is None: 
                 added_damage += cond.added_damage(cond, attack, creature, game)
+                if debug: 
+                        print("Condition {} added {} damage to attack".format(cond.name, added_damage - old_damage))
+                        old_damage = added_damage
             
         return added_damage 
     
@@ -192,14 +204,18 @@ class FeatureManager:
                 advantage = -1 
         return advantage 
 
-    def condition_advantage(self):
+    def condition_advantage(self, debug):
         advantage = 0 
         for cond in self.conditions:
             advantage += cond.attack_advantage 
             if(advantage > 1):
                 advantage = 1 
+                if debug:
+                    print("condition {} gave attack advantage".format(cond.name))
             elif advantage < 1: 
                 advantage = -1 
+                if debug:
+                    print("condition {} gave attack disadvantage".format(cond.name))
         return advantage 
 
     def does_throw_fail(self, type, effect = None):
@@ -238,13 +254,16 @@ class FeatureManager:
             i += 1 
         return extra
 
-    def does_attack_fail(self, attack, attacker, game):
+    def does_attack_fail(self, attack, attacker, game, debug = False):
         fail = False 
         i = 0
         while not fail and i < len(self.conditions):
             cond = self.conditions[i]
             if not cond.does_attack_fail is None:
                 fail = cond.does_attack_fail(attack, attacker, game)
+
+                if debug and fail:
+                    print("condition {} made {} attack fail for {}".format(cond.name, attack.name, attacker.name))
             i += 1 
 
         return fail 
@@ -405,7 +424,7 @@ def rampage(amount, creature, game):
 
         
 
-SNEAK_ATTACK = DamageFeature("Sneak Attack", friend_in_range, bonus_damage("2d20 + 20"))
+SNEAK_ATTACK = DamageFeature("Sneak Attack", friend_in_range, bonus_damage("1d8"))
 DARK_DEVOTION = SavingThrowFeature("Dark Devotion", charm_fright, 1, 0) 
 WISDOM_ADV = SkillCheckFeature("Keen sight", wisd, 1 , 20)
 RELENTLESS_ENDUR = DeathFeature("Relentless Endurance", has_relent, use_relent)

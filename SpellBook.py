@@ -5,8 +5,8 @@ Healing
     Healing Word
     Cure wounds 
 """
-HEALING_WORD = HealingSpell(1, "Healing World", 6, "1d4 + 2") # 2 should be spell casting mod
-CURE_WOUNDS = HealingSpell(1, "Cure Wounds",1, "1d8 + 2") # 2 should be spell casting mod 
+HEALING_WORD = HealingSpell(1, "Healing World", 6, "1d4") 
+CURE_WOUNDS = HealingSpell(1, "Cure Wounds",1, "1d8") 
 
 """
 Attack 
