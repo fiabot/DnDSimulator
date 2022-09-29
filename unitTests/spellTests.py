@@ -1,11 +1,14 @@
 import unittest 
 import os, sys
 
+
+
 parent = os.path.abspath('.')
 sys.path.insert(1, parent)
 from DnDToolkit import * 
 from CreatureClasses import * 
 from Spells import * 
+from SpellBook import ENSARING_STRIKE
     
 
 class TestSpells(unittest.TestCase):
@@ -364,6 +367,61 @@ class TestSpells(unittest.TestCase):
             creature = game.get_creature(target)
             self.assertTrue(creature.has_condition(bless.name))
             targets.append(creature)
+
+    def test_ensaring_strike(self):
+
+        witch = Creature(12, 12, 3, spell_manager= SpellManager(3,  2, 2, 40, [ENSARING_STRIKE]), name = "witch")
+        strike = witch.spell_manager.known_spells[0]
+        strike.caster = witch.name
+        attack = Attack(20, "0d20", 3)
+        monster = Creature(1, 100, 3, name = "monster")
+
+        map = Grid(12, 12)
+        game = Game([witch], [monster], [(0, 0)], [(1, 1)],map)
+
+        self.assertGreater(len(strike.avail_actions(witch, game)), 0)
+        for actions in strike.avail_actions(witch, game):
+            self.assertEquals(witch.name, actions[1].caster)
+
+        strike.avail_actions(witch, game)[0][1].execute(game)
+
+        
+
+        self.assertTrue(witch.has_condition("added damage from {}".format(strike.name)))
+
+        # execute attack <-- should inflict condition 
+        attack.target = monster.name 
+        attack.attacker = witch.name 
+        attack.execute(game, True)
+
+        # make sure condition was added 
+        self.assertTrue(monster.has_condition(strike.name))
+
+        # make sure condition works 
+        self.assertFalse(monster.can_move())
+        monster.end_of_turn(game)
+        self.assertLess(monster.hp, 100)
+        old_hp = monster.hp 
+
+        # make sure can save 
+        monster.modifiers.save_mods[STR_STR] = 100 
+        monster.end_of_turn(game)
+        self.assertFalse(monster.has_condition(strike.name))
+
+        # make sure loosing con works 
+        monster.modifiers.save_mods[STR_STR] = 0
+        strike.avail_actions(witch, game)[0][1].execute(game)
+        attack.target = monster.name 
+        attack.attacker = witch.name 
+        attack.execute(game, True)
+        self.assertTrue(monster.has_condition(strike.name))
+
+        witch.spell_manager.remove_concetration(game)
+        self.assertFalse(monster.has_condition(strike.name))
+
+
+
+
 
         
     

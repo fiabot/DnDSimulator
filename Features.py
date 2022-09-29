@@ -66,6 +66,15 @@ class FeatureManager:
             return dice 
     
     def get_added_damage(self, attack, creature, game): 
+        """
+        If an attack hits from this creature, 
+        figure out if any damage is added 
+        from conditions or features 
+
+        Will run added_damage function 
+        of condition, which could have 
+        other side effects 
+        """
         added_damage = 0
         if DAMAGE_STR in self.features:
             

@@ -49,8 +49,6 @@ class SpellManager():
                 spells.append(spell)
         self.known_spells = spells 
 
-                
-
     
     def long_rest(self):
         self.current_spell_slots = self.total_spell_slots
@@ -320,18 +318,32 @@ class AreaSpell(Spell):
                         pass 
 
 class AttackBonusSpell(Spell):
-    def __init__(self, level, name, added_damage_effect, caster=None):
-        super().__init__(level, name,  spell_type = ATTACK_BONUS_SPELL, is_conc = False, conc_remove = None, caster = caster)
-        self.inflicted_con =Condition(can_act= True, can_move= True, is_alive= True, name = "added damage", 
+    def __init__(self, level, name, added_damage_effect, is_conc = False,  caster=None):
+        if is_conc:
+            conc_remove = self.remove_con() 
+        else: 
+            conc_remove = None 
+        super().__init__(level, name,  spell_type = ATTACK_BONUS_SPELL, is_conc = is_conc, conc_remove = conc_remove, caster = caster)
+        self.inflicted_con =Condition(can_act= True, can_move= True, is_alive= True, name = "added damage from {}".format(self.name), 
                                 added_damage= added_damage_effect, end_of_turn= REMOVE_AT_END)
-    
+    def remove_con(self):
+        def foo (game):
+            print("Remove caster" , self.caster)
+            caster = game.get_creature(self.caster)
+            if not caster is None and  "target for {}".format(self.name) in caster.game_data:
+                target = game.get_creature(caster.game_data["target for {}".format(self.name)])
+                if not target is None:
+                    target.features.remove_condition(self.name)
+        
+        return foo 
+
     def execute(self, game, debug=False):
         caster = game.get_creature(self.caster)
 
         if not caster is None and not caster.spell_manager is None:
             if debug: 
                 print("{} is casting {}".format(self.caster, self.name))
-            caster.spell_manager.cast(self) 
+            caster.spell_manager.cast(self, game) 
             caster.add_condition(self.inflicted_con)
         elif debug:
             print("problem with {} attempting to cast {}".format(self.caster, self.name))

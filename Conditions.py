@@ -26,7 +26,7 @@ class Condition:
     
     def add_end_of_turn(self, end_funct):
         new_condition = deepcopy(self)
-        new_condition.add_end_of_turn = end_funct 
+        new_condition.end_of_turn = end_funct 
         return new_condition 
 
     def add_on_added(self, on_added):
@@ -94,15 +94,23 @@ def death_save(condition, creature, game):
 
 def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = True):
     def foo (condtion, attack, creature, game):
+        """"
+        Have the target make a 
+        saving throw using a given 
+        dc and saving type 
+        """
+
+        target = game.get_creatures(attack.target)
+
+
         damage = Dice(damage_dice_str).roll() 
-        if create_save_funct(save_type, save_dc)(condtion.name, creature, game):
+        if create_save_funct(save_type, save_dc)(condtion.name, target, game):
             if halfed_if_save:
                 return math.floor(damage / 2)
             else: 
                 return 0 
         else:
             return damage 
-    return foo 
 
 def target_creature_funct(creature_name, damage_dice):
     def foo (condition, attack, creature, game):
@@ -143,7 +151,6 @@ PARALYZED = Condition("Paralyzed", can_act= False, can_move= False, is_alive=Tru
                              does_attack_fail= lambda type, effect, game : type == DEX_STR or type == STR_STR)
 
 POSIONED = Condition("Poisoned", can_act= True, can_move= True, is_alive=True, throw_advantage = lambda type , effect : -1)
-
 
 
 PRONE = Condition("Prone", can_act = True, can_move = True, is_alive = True, 

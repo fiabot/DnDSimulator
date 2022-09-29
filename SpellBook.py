@@ -1,3 +1,4 @@
+from unittest.mock import NonCallableMagicMock
 from Spells import * 
 """
 Healing 
@@ -17,16 +18,15 @@ Attack
     Shock Grasp ← attacks 
     Chromoatic Orb 
     Ray of Sickness ← attack with save 
-    
     Fire Bolt 
     Ray of Frost  
     """
 
 MAGIC_MISSILE = AttackSpell(1, 100, "3d4 + 3", 120, RANGED, FORCE_DAMAGE, name = "Magic Missile") # hits automatically, should cast three seperate missiles 
-WITCH_BOLT = AttackSpell(1, None, "1d12", 3, RANGED, LIGHTNING) # 2 should be ranged attack, creature is supposed to be able to deal an additional 1d12 to creature every turn as an action
-CHILL_TOUCH = AttackSpell(1, None, "1d8", 12, damage_type= NECROTIC) #2 should be ranged, can't gain temp hit points, undeads gets disadvantage 
+WITCH_BOLT = AttackSpell(1, None, "1d12", 3, RANGED, LIGHTNING) # creature is supposed to be able to deal an additional 1d12 to creature every turn as an action
+CHILL_TOUCH = AttackSpell(1, None, "1d8", 12, damage_type= NECROTIC) #2can't gain temp hit points, undeads gets disadvantage 
 THORN_WHIP = AttackSpell(1, None, "1d6", 3, attack_type=MELE, damage_type= PIERCING_DAMAGE) # large or smaller gets pulled closer 
-PRODUCE_FLAME = AttackSpell(0 , None, "1d8", 3, attack_type=RANGED, damage_type= FIRE_DAMAGE) # 2 is ranged attack 
+PRODUCE_FLAME = AttackSpell(0 , None, "1d8", 3, attack_type=RANGED, damage_type= FIRE_DAMAGE)  
 SHOCKING_GRASP = AttackSpell(0, None, "1d8", 1, MELE, LIGHTNING) # advantage if wearing metal, can't take reactiosn 
 CHROMATIC_ORB = AttackSpell(1, None, "3d8", 9, RANGED, ACID_DAMAGE) # choose what damage: acid, fire, lightining, cold, posiion, thunder 
 FIRE_BOLT = AttackSpell(0, None, "1d10", 12, RANGED, FIRE_DAMAGE) # flamable objects also ignited 
@@ -41,22 +41,23 @@ Attack with save
     Tasha’s Hideous Laughter 
     Vicious Mockery
     Dissonant Whispers 
-    Posion spray <-- where the fuck did I find this ??? 
+    Posion spray
     Acid Splash
 """
-laughing = INCAPACITATED.add_end_of_turn(create_save_funct(WIS_STR, 12))# make 12 spell casting dc 
+laughing = INCAPACITATED.add_end_of_turn(create_save_funct(WIS_STR, 12))
 TASHAS_HIDEOUS_LAUGHTER = SaveAttackSpell(1, WIS_STR, None, "0d4", 3, half_if_saved= False, side_effects=[laughing])
-ACID_SPLASH = SaveAttackSpell(0,DEX_STR, None, "1d6", 6, half_if_saved=False, damage_type = ACID_DAMAGE) # 12 is spell casting dc 
+ACID_SPLASH = SaveAttackSpell(0,DEX_STR, None, "1d6", 6, half_if_saved=False, damage_type = ACID_DAMAGE)  
 
 mockery = ATTACK_DISADVANTAGE.add_end_of_turn(removed_at_end) 
 VICIOUS_MOCKERY = SaveAttackSpell(0, WIS_STR, None, "1d4", 6, half_if_saved= False, damage_type= PYSCHIC_DAMAGE, side_effects= mockery)
-DISSONANT_WHISPERS = SaveAttackSpell(1, WIS_STR, None, "3d6", damage_type= PYSCHIC_DAMAGE, half_if_saved= True) # moves closer, deafened automatically saved 
+DISSONANT_WHISPERS = SaveAttackSpell(1, WIS_STR, None, "3d6",6, damage_type= PYSCHIC_DAMAGE, half_if_saved= True) # moves closer, deafened automatically saved 
+POISON_SPRAY = SaveAttackSpell(0, CON_STR, None, "1d12", 1, half_if_saved= True)
+
 
 """
 Area of Effect 
     Arms of Hadar <- area of effect damage 
     Burning Hands <- area of effect damage 
-    
     Thunderwave < - damage to area and moved 
 
 """
@@ -74,6 +75,52 @@ Attack Bonus
     Figure out what to do here 
 """
 
+def ensaring_end_of_turn(save_type, save_dc, damage_dice, damage_type):
+    def foo(condition, creature, game):
+        print("in end of turn for ensaring")
+        if create_save_funct(save_type, save_dc)(condition, creature, game):
+            return True 
+        else: 
+            creature.damage(damage_dice.roll(), damage_type, game)
+    return foo 
+
+def ensaring_added_damage_funct(save_type, damage_dice_str, damage_type, name):
+    def foo (condtion, attack, creature, game):
+        """"
+        Have the target make a 
+        saving throw using the 
+        spell casting dc of the 
+        the attacker, if known 
+        otherwise dc is 10 
+
+        If save fails, add condition
+        that will damage target with 
+        1d6 piercing at the end of 
+        each turn, along with being 
+        restrained. This effect can be 
+        saved 
+        """
+
+        if creature.spell_manager is None:
+            save_dc = 12 
+        else: save_dc = creature.spell_manager.spell_dc 
+
+        target = game.get_creature(attack.target)
+
+
+        if create_save_funct(save_type, save_dc)(condtion.name, target, game):
+                return 0 
+        else:
+            dice = Dice(damage_dice_str)
+            condition = RESTRAINED.add_end_of_turn(ensaring_end_of_turn(save_type, save_dc, dice, damage_type)) 
+            condition.name = name
+            target.add_condition(condition)
+            creature.game_data["target for {}".format(name)] = target.name 
+            return 0
+    return foo 
+
+
+ENSARING_STRIKE = AttackBonusSpell(1, "Ensaring Strike", ensaring_added_damage_funct(STR_STR, "1d6", PIERCING_DAMAGE, "Ensaring Strike"), is_conc=True)
 
 """Target Creature 
     Hex <- extra damage whenever you hit target creature 
