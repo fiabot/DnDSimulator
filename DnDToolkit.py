@@ -301,7 +301,6 @@ class Grid():
                 pass 
         return closet_enemy 
 
-    
     def enemies_in_range(self, team, position, dist, dist_min = 0):
         """
         return all enemies of team (anyone who is not in same team)
@@ -333,7 +332,6 @@ class Grid():
                     self.remove_piece(piece)
             except: # not a creature 
                 pass
-
 
     def __str__(self):
         return_str = ""
@@ -420,6 +418,7 @@ class Game():
             return None 
         
         return None 
+    
     def set_teams(self):
         """
         make sure all teams are set correctly 
@@ -447,6 +446,7 @@ class Game():
             i += 1 
         
         return defeated 
+    
     def long_rest(self):
         """
         reset all monster and 
@@ -459,7 +459,6 @@ class Game():
         for player in self.players:
             player.long_rest() 
         
-
     def roll_initiative(self, debug = False):
         initiative = [(monster.roll_initiative(), monster) for monster in self.monsters]
         initiative += [(player.roll_initiative(), player) for player in self.players]

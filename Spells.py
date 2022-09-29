@@ -25,7 +25,6 @@ class SpellManager():
         self.spell_dc =spell_dc 
         self.set_spells()
     
-    
     def set_spells(self):
         """
         set the dc and modifer 
@@ -49,7 +48,6 @@ class SpellManager():
                 spells.append(spell)
         self.known_spells = spells 
 
-    
     def long_rest(self):
         self.current_spell_slots = self.total_spell_slots
 
@@ -71,9 +69,13 @@ class SpellManager():
             self.remove_concetration(game)
         
     def remove_concetration(self, game):
-        self.concetrated_spell.conc_removed(game)
-        self.can_concretate = True 
- 
+        if not self.can_concretate and not self.concetrated_spell is None: 
+            self.concetrated_spell.conc_removed(game)
+            self.can_concretate = True 
+    
+    def __str__(self):
+        return "SPELL CASTER STATS: spell slots: {}, spell dc: {}, ranged mod: {}, mele mod: {}".format(self.current_spell_slots, self.spell_dc, self.ranged_modifer, self.mele_modifer)
+
 class Spell(Action):
     def __init__(self, level, name, spell_type, is_conc = False, conc_remove = None, caster = None):
         super().__init__(name)
@@ -223,7 +225,7 @@ class SaveAttackSpell(AttackSpell):
                         effect.execute(target)
                     
                     if debug: 
-                        print("{} hit {} for {} using".format(self.name, target.name, damage, self.name))
+                        print("{} hit {} for {}".format(self.name, target.name, damage, self.name))
 
                 else:
                     if debug: 
@@ -236,6 +238,8 @@ class SaveAttackSpell(AttackSpell):
                     if (self.save_effects):
                         for effect in self.side_effects:
                             effect.execute(target)
+            elif debug:
+                print("{} cannot cast {}".format(attacker.name, self.name))
                 
         elif debug:
             print("Target or Attacker not found")
@@ -528,7 +532,7 @@ class SavingThrowModiferSpell(Spell):
         
         return actions 
 
-    def execute(self, game, debug = True):
+    def execute(self, game, debug = False):
         caster = game.get_creature(self.caster)
 
         if not (caster is None) and \
@@ -542,3 +546,17 @@ class SavingThrowModiferSpell(Spell):
                     target = game.get_creature(target_name)
                     if not target is None:
                         target.add_condition(self.condition, debug)
+        elif debug:
+            print("{} cannot cast {}".format(self.caster, self.name))
+    def __str__(self):
+        target_str = ""
+        for i in range(len(self.targets)):
+            target_str += self.targets[i]
+
+            if i != len(self.targets) - 1:
+                target_str += ", "
+        
+        return "cast {} on {}".format(self.name, target_str)
+
+
+

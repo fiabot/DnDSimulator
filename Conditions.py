@@ -159,6 +159,5 @@ PRONE = Condition("Prone", can_act = True, can_move = True, is_alive = True,
 SPEED_REDUCED_BY_1 = Condition("Speed reduced by 1", can_act = True, can_move = True, is_alive = True, 
                     get_avail_moves= reduce_move_by(1), end_of_turn = removed_at_end)
 
-BLESS = Condition("Bless",  can_act = True, can_move = True, is_alive = True, throw_extra=added_saving_throw("1d4"))
 
 ATTACK_DISADVANTAGE = Condition("Attack Disadvantage", can_act = True, can_move = True, is_alive = True, attack_advantage= -1)

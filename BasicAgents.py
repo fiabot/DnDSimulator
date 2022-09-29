@@ -67,6 +67,9 @@ class HumanCreature(Creature):
         return_str += "\tAC: {} \n\tHP: {} \n".format(creature.ac, creature.hp)
         return_str += str(creature.features)
 
+        if not creature.spell_manager is None:
+            return_str += "\n\t" + str(creature.spell_manager)
+
         return return_str
 
 class AggressiveCreature(Creature):

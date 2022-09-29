@@ -23,18 +23,18 @@ Attack
     """
 
 MAGIC_MISSILE = AttackSpell(1, 100, "3d4 + 3", 120, RANGED, FORCE_DAMAGE, name = "Magic Missile") # hits automatically, should cast three seperate missiles 
-WITCH_BOLT = AttackSpell(1, None, "1d12", 3, RANGED, LIGHTNING) # creature is supposed to be able to deal an additional 1d12 to creature every turn as an action
-CHILL_TOUCH = AttackSpell(1, None, "1d8", 12, damage_type= NECROTIC) #2can't gain temp hit points, undeads gets disadvantage 
-THORN_WHIP = AttackSpell(1, None, "1d6", 3, attack_type=MELE, damage_type= PIERCING_DAMAGE) # large or smaller gets pulled closer 
-PRODUCE_FLAME = AttackSpell(0 , None, "1d8", 3, attack_type=RANGED, damage_type= FIRE_DAMAGE)  
-SHOCKING_GRASP = AttackSpell(0, None, "1d8", 1, MELE, LIGHTNING) # advantage if wearing metal, can't take reactiosn 
-CHROMATIC_ORB = AttackSpell(1, None, "3d8", 9, RANGED, ACID_DAMAGE) # choose what damage: acid, fire, lightining, cold, posiion, thunder 
-FIRE_BOLT = AttackSpell(0, None, "1d10", 12, RANGED, FIRE_DAMAGE) # flamable objects also ignited 
-RAY_OF_FROST = AttackSpell(0, None, "1d8", 6, RANGED, COLD_DAMAGE, side_effects=[SideEffect(SPEED_REDUCED_BY_1, False)])  
+WITCH_BOLT = AttackSpell(1, None, "1d12", 3, RANGED, LIGHTNING, name = "Witch Bolt") # creature is supposed to be able to deal an additional 1d12 to creature every turn as an action
+CHILL_TOUCH = AttackSpell(1, None, "1d8", 12, damage_type= NECROTIC, name = "Chill Touch") #2can't gain temp hit points, undeads gets disadvantage 
+THORN_WHIP = AttackSpell(1, None, "1d6", 3, attack_type=MELE, damage_type= PIERCING_DAMAGE, name = "Thorn Whip") # large or smaller gets pulled closer 
+PRODUCE_FLAME = AttackSpell(0 , None, "1d8", 3, attack_type=RANGED, damage_type= FIRE_DAMAGE, name = "Produce Fire")  
+SHOCKING_GRASP = AttackSpell(0, None, "1d8", 1, MELE, LIGHTNING, name = "Shocing Grasp") # advantage if wearing metal, can't take reactiosn 
+CHROMATIC_ORB = AttackSpell(1, None, "3d8", 9, RANGED, ACID_DAMAGE, name = "Chromatic Orb") # choose what damage: acid, fire, lightining, cold, posiion, thunder 
+FIRE_BOLT = AttackSpell(0, None, "1d10", 12, RANGED, FIRE_DAMAGE, name = "Fire Bolt") # flamable objects also ignited 
+RAY_OF_FROST = AttackSpell(0, None, "1d8", 6, RANGED, COLD_DAMAGE, side_effects=[SideEffect(SPEED_REDUCED_BY_1, False)], name = "Ray of Frost")  
 
 sickness_effect = POSIONED.add_end_of_turn(removed_at_end)
 RAY_OF_SICKNESS = AttackSpell(1, 2, "2d8", 6, attack_type= RANGED, 
-            damage_type= POISON_DAMAGE, side_effects= [(SideEffect(sickness_effect, True, CON_STR, 12))])
+            damage_type= POISON_DAMAGE, side_effects= [(SideEffect(sickness_effect, True, CON_STR, 12))], name = "Ray of Sickness")
 
 """
 Attack with save 
@@ -45,13 +45,13 @@ Attack with save
     Acid Splash
 """
 laughing = INCAPACITATED.add_end_of_turn(create_save_funct(WIS_STR, 12))
-TASHAS_HIDEOUS_LAUGHTER = SaveAttackSpell(1, WIS_STR, None, "0d4", 3, half_if_saved= False, side_effects=[laughing])
-ACID_SPLASH = SaveAttackSpell(0,DEX_STR, None, "1d6", 6, half_if_saved=False, damage_type = ACID_DAMAGE)  
+TASHAS_HIDEOUS_LAUGHTER = SaveAttackSpell(1, WIS_STR, None, "0d4", 3, half_if_saved= False, side_effects=[laughing], name = "Tasha's Hideous Laughter")
+ACID_SPLASH = SaveAttackSpell(0, DEX_STR, None, "1d6", 6, half_if_saved=False, damage_type = ACID_DAMAGE, name = "Acid Splash")  
 
 mockery = ATTACK_DISADVANTAGE.add_end_of_turn(removed_at_end) 
-VICIOUS_MOCKERY = SaveAttackSpell(0, WIS_STR, None, "1d4", 6, half_if_saved= False, damage_type= PYSCHIC_DAMAGE, side_effects= mockery)
-DISSONANT_WHISPERS = SaveAttackSpell(1, WIS_STR, None, "3d6",6, damage_type= PYSCHIC_DAMAGE, half_if_saved= True) # moves closer, deafened automatically saved 
-POISON_SPRAY = SaveAttackSpell(0, CON_STR, None, "1d12", 1, half_if_saved= True)
+VICIOUS_MOCKERY = SaveAttackSpell(0, WIS_STR, None, "1d4", 6, half_if_saved= False, damage_type= PYSCHIC_DAMAGE, side_effects= mockery, name = "Vicious Mockery")
+DISSONANT_WHISPERS = SaveAttackSpell(1, WIS_STR, None, "3d6",6, damage_type= PYSCHIC_DAMAGE, half_if_saved= True, name = "Dissonant Whispers") # moves closer, deafened automatically saved 
+POISON_SPRAY = SaveAttackSpell(0, CON_STR, None, "1d12", 1, half_if_saved= True, name = "Posion Spray")
 
 
 """
