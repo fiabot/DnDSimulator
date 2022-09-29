@@ -72,7 +72,6 @@ Attack Bonus
     Ensaring Strike ← on next hit becomes restrained, takes damage from spikes 
     Hail of Thorns <- extra damage when you hit next if succeeds effect range of people 
 
-    Figure out what to do here 
 """
 
 def ensaring_end_of_turn(save_type, save_dc, damage_dice, damage_type):
@@ -119,8 +118,42 @@ def ensaring_added_damage_funct(save_type, damage_dice_str, damage_type, name):
             return 0
     return foo 
 
-
+# creatures touching cannot save, large creatures don't have advantage, can isn't save when freed  
 ENSARING_STRIKE = AttackBonusSpell(1, "Ensaring Strike", ensaring_added_damage_funct(STR_STR, "1d6", PIERCING_DAMAGE, "Ensaring Strike"), is_conc=True)
+
+
+def hail_damage_funct(save_type, damage_dice_str, damage_type):
+    def foo (condtion, attack, creature, game):
+        """"
+        Have the creatures wihtin
+        5 feet of targetmake a 
+        saving throw using the 
+        spell casting dc of the 
+        the attacker, if known 
+        otherwise dc is 10 
+
+        if fail take damage, 
+        or half otherwise 
+        """
+
+        if creature.spell_manager is None:
+            save_dc = 12 
+        else: save_dc = creature.spell_manager.spell_dc 
+
+        target = game.get_creature(attack.target)
+        creatures_in_range = game.pieces_in_range(target.position, 1, dist_min = 0)
+        dice = Dice(damage_dice_str)
+
+        for creature in creatures_in_range:
+            damage = dice.roll() 
+            if create_save_funct(save_type, save_dc)(condtion.name, creature, game):
+                    creature.damage(damage//2, damage_type, game)
+            else:
+                creature.damage(damage, damage_type, game)
+        return 0 
+    return foo 
+
+HAIL_OF_THRONS = AttackBonusSpell(1, "Hail of Thorns", hail_damage_funct(DEX_STR, "1d10", PIERCING_DAMAGE))
 
 """Target Creature 
     Hex <- extra damage whenever you hit target creature 

@@ -385,8 +385,6 @@ class TestSpells(unittest.TestCase):
 
         strike.avail_actions(witch, game)[0][1].execute(game)
 
-        
-
         self.assertTrue(witch.has_condition("added damage from {}".format(strike.name)))
 
         # execute attack <-- should inflict condition 
