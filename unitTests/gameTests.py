@@ -64,6 +64,21 @@ class TestGame(unittest.TestCase):
     def test_dice(self):
         dice = Dice(make_dice_string(1, 20, -40))
         self.assertEquals(-40, dice.modifer)
+
+        dice = Dice("2d6 + 1")
+        self.assertEquals(1, dice.modifer)
+        self.assertEquals(2, dice.amount)
+        self.assertEquals(6, dice.type)
+
+        dice = Dice("4d10+3")
+        self.assertEquals(3, dice.modifer)
+        self.assertEquals(4, dice.amount)
+        self.assertEquals(10, dice.type)
+
+        dice = Dice("1d20")
+        self.assertEquals(0, dice.modifer)
+        self.assertEquals(1, dice.amount)
+        self.assertEquals(20, dice.type)
        
 class TestGrid(unittest.TestCase):
     def test_clear(self):

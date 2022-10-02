@@ -70,17 +70,28 @@ class Dice:
         self.dice_string = dice_string 
         d_index = dice_string.find("d")
         space_index = dice_string.find(" ", d_index)
+        plus_index = dice_string.find("+") 
+        minus_index = dice_string.find("-")
 
         self.amount = int(dice_string[:d_index]) 
 
         # if there is not a space, there isn't a modifier 
-        if space_index == -1: 
+        if space_index == -1 and plus_index == -1 and minus_index == -1: 
             self.type = int(dice_string[d_index +1:]) 
             self.modifer = 0 
         else:
-            self.type = int(dice_string[d_index + 1: space_index]) 
+
+            if space_index == -1:
+                mod_index = max(plus_index, minus_index)
+            else:
+                mod_index = space_index 
+            self.type = int(dice_string[d_index + 1: mod_index]) 
+
             
-            next_space = dice_string.find(" ", space_index + 1) # corresponding to space before modifier
+            if space_index == -1:
+                next_space = mod_index + 1
+            else:
+                next_space = dice_string.find(" ", space_index + 1) # corresponding to space before modifier
             # modifier is positive
             if dice_string.find("+") != -1: 
                 self.modifer = int(dice_string[next_space:]) 

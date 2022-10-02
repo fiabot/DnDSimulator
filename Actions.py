@@ -1,5 +1,6 @@
 from DnDToolkit import *
 from Features import friend_in_range
+import json 
 
 class Action:
     def __init__(self, name):
@@ -135,6 +136,8 @@ class Attack(Action):
             return "Attack " + str(self.target) + " with " + self.name 
         else: 
             return self.name 
+
+
 
 
 class SideEffect:
