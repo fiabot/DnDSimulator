@@ -7,8 +7,8 @@ import jsonpickle
 
 reponse = requests.get("https://www.dnd5eapi.co/api/monsters/bandit")
 
-feature_list = []
-actions_list = [] 
+feature_list = {}
+actions_list = []
 
 monster_dict = json.loads(reponse.text)
 
@@ -22,6 +22,7 @@ def get_dist(description):
         feet = description[start + len("reach"): description.find("ft", start)]
         feet = feet.strip() 
         return math.ceil(int(feet) / 10)
+
     elif description.find("range") != -1: 
         start = description.find("range")
 
@@ -46,17 +47,21 @@ def get_actions(li):
             hit = act_json["attack_bonus"]
             if "damage" in act_json and "damage_dice" in act_json["damage"][0]:
                 damage_str = act_json["damage"][0]["damage_dice"]
-                damage_type = act_json["damage"][0]["damage_type"]["name"]
+                damage_type = act_json["damage"][0]["damage_type"]["name"].lower() 
+            elif "damage" in act_json and "choose" in act_json["damage"][0]: 
+                damage_str = act_json["damage"][0]["from"]["options"][0]["damage_dice"]
+                damage_type = act_json["damage"][0]["from"]["options"][0]["damage_type"]["name"].lower() 
+                actions_list.append(act_json) 
             else:
-                print(act_json)
                 damage_str = "0d0"
                 damage_type = SLASHING_DAMAGE
+                actions_list.append(act_json) 
             dist = get_dist(act_json["desc"])
             name = act_json["name"]
             attack = Attack(hit, damage_str, dist, damage_type= damage_type, name = name)
             actions.append(attack)
         else: 
-            actions_list.append(act_json)
+            actions_list.append(act_json) 
     return actions 
 
 def score_to_mod(score):
@@ -112,21 +117,20 @@ def json_to_char(dict):
     immunities = lower_list(dict["damage_immunities"]) 
     resistences = lower_list(dict["damage_resistances"])
 
-    if "special_features" in dict:
-        feature_list.append(dict["special_features"])
+    if "special_abilities" in dict:
+        for feat in dict["special_abilities"]:
+            feature_list[feat["name"]] = feat["desc"]
 
     mods = get_mods(dict)
-    monster = {"ac":ac, "hp":hit_points, "speed": speed, "actions":[], "name": name, 
+    monster = {"ac":ac, "hp":hit_points, "speed": speed, "actions": actions, "name": name, 
                     "modifiers": mods, "level": challenge_rating, "resistances": resistences, 
                     "immunities": immunities}
     return monster 
 
 def get_all_from_level(level):
     res = requests.get("https://www.dnd5eapi.co/api/monsters?challenge_rating={}".format(level))
-    print(json.loads(res.text)["count"])
+    print("Number of creatures:{}".format(json.loads(res.text)["count"])) 
     monster_list = json.loads(res.text)["results"]
-
-    print(monster_list)
 
     characters = {}
     for monster in monster_list:
@@ -138,14 +142,39 @@ def get_all_from_level(level):
         characters[char_dict["name"]] = char_dict
     return characters 
 
+def write_features():
+    file = open("feats_to_impl.txt", "w")
 
-half_level_chars = get_all_from_level(0.5)
-
-half_json = jsonpickle.encode(half_level_chars)
-print(half_json)
-
-
-print("Features to implement: {}".format(feature_list))
-print("Actions to implement: {}".format(actions_list))
+    for key in feature_list:
+        file.write("{} : {} \n\n".format(key, feature_list[key]))
 
 
+    file.close() 
+
+    file = open("acts_to_impl.txt", "w")
+
+    for act in actions_list:
+        file.write("{} : {}\n\n".format(act["name"], act))
+
+    file.close() 
+
+
+
+print("1/8 level creatures:")
+chars = get_all_from_level(0.125)
+
+print("1/4 level creatures:")
+chars.update(get_all_from_level(0.25))
+
+print("1/2 level creatures:")
+chars.update(get_all_from_level(0.5)) 
+
+print("1 level creatures:")
+chars.update(get_all_from_level(1)) 
+
+
+monster_json = jsonpickle.encode(chars)
+write_features()
+
+file = open("monster_manual.txt", "w")
+file.write(monster_json)

@@ -18,7 +18,7 @@ CHAR_STR = "charisma"
 SAVES_STR = "saves"
 FAIL_STR = "fail"
 
-MELE = "mele"
+MELE = "melee"
 RANGED = "ranged"
 
 SLASHING_DAMAGE = "slashing"
@@ -72,35 +72,41 @@ class Dice:
         space_index = dice_string.find(" ", d_index)
         plus_index = dice_string.find("+") 
         minus_index = dice_string.find("-")
+        if d_index != -1: 
+            self.amount = int(dice_string[:d_index]) 
 
-        self.amount = int(dice_string[:d_index]) 
-
-        # if there is not a space, there isn't a modifier 
-        if space_index == -1 and plus_index == -1 and minus_index == -1: 
-            self.type = int(dice_string[d_index +1:]) 
-            self.modifer = 0 
-        else:
-
-            if space_index == -1:
-                mod_index = max(plus_index, minus_index)
+              # if there is not a space, there isn't a modifier 
+            if space_index == -1 and plus_index == -1 and minus_index == -1: 
+                self.type = int(dice_string[d_index +1:]) 
+                self.modifer = 0 
             else:
-                mod_index = space_index 
-            self.type = int(dice_string[d_index + 1: mod_index]) 
 
-            
-            if space_index == -1:
-                next_space = mod_index + 1
-            else:
-                next_space = dice_string.find(" ", space_index + 1) # corresponding to space before modifier
-            # modifier is positive
-            if dice_string.find("+") != -1: 
-                self.modifer = int(dice_string[next_space:]) 
-            # modifier is negative 
-            elif dice_string.find("-") != -1:
-                self.modifer = -int(dice_string[next_space:]) 
-            #something has gone terrible wrong
-            else:
-                self.modifer = 0
+                if space_index == -1:
+                    mod_index = max(plus_index, minus_index)
+                else:
+                    mod_index = space_index 
+                self.type = int(dice_string[d_index + 1: mod_index]) 
+
+                
+                if space_index == -1:
+                    next_space = mod_index + 1
+                else:
+                    next_space = dice_string.find(" ", space_index + 1) # corresponding to space before modifier
+                # modifier is positive
+                if dice_string.find("+") != -1: 
+                    self.modifer = int(dice_string[next_space:]) 
+                # modifier is negative 
+                elif dice_string.find("-") != -1:
+                    self.modifer = -int(dice_string[next_space:]) 
+                #something has gone terrible wrong
+                else:
+                    self.modifer = 0
+        else: 
+            self.amount = 0 
+            self.type = 0 
+            self.modifer = int(dice_string)
+
+      
         self.expected_value() 
         self.default_advantage = advantage 
     

@@ -1,0 +1,138 @@
+Keen Sight : The hippogriff has advantage on Wisdom (Perception) checks that rely on sight. 
+
+Pack Tactics : The lion has advantage on an attack roll against a creature if at least one of the lion's allies is within 5 ft. of the creature and the ally isn't incapacitated. 
+
+Dark Devotion : The cultist has advantage on saving throws against being charmed or frightened. 
+
+Flyby : The owl doesn't provoke opportunity attacks when it flies out of an enemy's reach. 
+
+Amphibious : The toad can breathe air and water 
+
+Keen Smell : The tiger has advantage on Wisdom (Perception) checks that rely on smell. 
+
+Keen Hearing and Smell : The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell. 
+
+Sunlight Sensitivity : While in sunlight, the specter has disadvantage on attack rolls, as well as on Wisdom (Perception) checks that rely on sight. 
+
+Beast of Burden : The mule is considered to be a Large animal for the purpose of determining its carrying capacity. 
+
+Sure-Footed : The goat has advantage on Strength and Dexterity saving throws made against effects that would knock it prone. 
+
+Spellcasting : The acolyte is a 1st-level spellcaster. Its spellcasting ability is Wisdom (spell save DC 12, +4 to hit with spell attacks). The acolyte has following cleric spells prepared:
+
+- Cantrips (at will): light, sacred flame, thaumaturgy
+- 1st level (3 slots): bless, cure wounds, sanctuary 
+
+Charge : If the sea horse moves at least 20 ft. straight toward a target and then hits it with a ram attack on the same turn, the target takes an extra 7 (2d6) bludgeoning damage. If the target is a creature, it must succeed on a DC 11 Strength saving throw or be knocked prone. 
+
+Relentless : If the boar takes 7 damage or less that would reduce it to 0 hit points, it is reduced to 1 hit point instead. 
+
+Fey Ancestry : The drow has advantage on saving throws against being charmed, and magic can't put the drow to sleep. 
+
+Innate Spellcasting : The dryad's innate spellcasting ability is Charisma (spell save DC 14). The dryad can innately cast the following spells, requiring no material components:
+
+At will: druidcraft
+3/day each: entangle, goodberry
+1/day each: barkskin, pass without trace, shillelagh 
+
+Antimagic Susceptibility : The armor is incapacitated while in the area of an antimagic field. If targeted by dispel magic, the armor must succeed on a Constitution saving throw against the caster's spell save DC or fall unconscious for 1 minute. 
+
+False Appearance : While the armor remains motionless, it is indistinguishable from a normal suit of armor. 
+
+Echolocation : The darkmantle can't use its blindsight while deafened. 
+
+Keen Hearing : The swarm has advantage on Wisdom (Perception) checks that rely on hearing. 
+
+Standing Leap : The toad's long jump is up to 20 ft. and its high jump is up to 10 ft., with or without a running start. 
+
+Keen Hearing and Sight : The scout has advantage on Wisdom (Perception) checks that rely on hearing or sight. 
+
+Spider Climb : The spider can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. 
+
+Web Sense : While in contact with a web, the spider knows the exact location of any other creature in contact with the same web. 
+
+Web Walker : The spider ignores movement restrictions caused by webbing. 
+
+Nimble Escape : The goblin can take the Disengage or Hide action as a bonus action on each of its turns. 
+
+Blind Senses : The grimlock can't use its blindsight while deafened and unable to smell. 
+
+Stone Camouflage : The gnome has advantage on Dexterity (Stealth) checks made to hide in rocky terrain. 
+
+Pounce : If the tiger moves at least 20 ft. straight toward a creature and then hits it with a claw attack on the same turn, that target must succeed on a DC 13 Strength saving throw or be knocked prone. If the target is prone, the tiger can make one bite attack against it as a bonus action. 
+
+Keen Senses : The pseudodragon has advantage on Wisdom (Perception) checks that rely on sight, hearing, or smell. 
+
+Magic Resistance : The quasit has advantage on saving throws against spells and other magical effects. 
+
+Limited Telepathy : The pseudodragon can magically communicate simple ideas, emotions, and images telepathically with any creature within 100 ft. of it that can understand a language. 
+
+Death Burst : When the magmin dies, it explodes in a burst of fire and magma. Each creature within 10 ft. of it must make a DC 11 Dexterity saving throw, taking 7 (2d6) fire damage on a failed save, or half as much damage on a successful one. Flammable objects that aren't being worn or carried in that area are ignited. 
+
+Swarm : The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny quipper. The swarm can't regain hit points or gain temporary hit points. 
+
+Undead Fortitude : If damage reduces the zombie to 0 hit points, it must make a Constitution saving throw with a DC of 5+the damage taken, unless the damage is radiant or from a critical hit. On a success, the zombie drops to 1 hit point instead. 
+
+Hold Breath : While out of water, the octopus can hold its breath for 1 hour. 
+
+Gnome Cunning : The gnome has advantage on Intelligence, Wisdom, and Charisma saving throws against magic. 
+
+Water Breathing : The swarm can breathe only underwater. 
+
+Rampage : When the hyena reduces a creature to 0 hit points with a melee attack on its turn, the hyena can take a bonus action to move up to half its speed and make a bite attack. 
+
+Amorphous : The shadow can move through a space as narrow as 1 inch wide without squeezing. 
+
+Corrode Metal : Any nonmagical weapon made of metal that hits the ooze corrodes. After dealing damage, the weapon takes a permanent and cumulative -1 penalty to damage rolls. If its penalty drops to -5, the weapon is destroyed. Nonmagical ammunition made of metal that hits the ooze is destroyed after dealing damage.
+The ooze can eat through 2-inch-thick, nonmagical metal in 1 round. 
+
+Martial Advantage : Once per turn, the hobgoblin can deal an extra 7 (2d6) damage to a creature it hits with a weapon attack if that creature is within 5 ft. of an ally of the hobgoblin that isn't incapacitated. 
+
+Ignited Illumination : As a bonus action, the magmin can set itself ablaze or extinguish its flames. While ablaze, the magmin sheds bright light in a 10-foot radius and dim light for an additional 10 ft. 
+
+Aggressive : As a bonus action, the orc can move up to its speed toward a hostile creature that it can see. 
+
+Iron Scent : The rust monster can pinpoint, by scent, the location of ferrous metal within 30 feet of it. 
+
+Rust Metal : Any nonmagical weapon made of metal that hits the rust monster corrodes. After dealing damage, the weapon takes a permanent and cumulative -1 penalty to damage rolls. If its penalty drops to -5, the weapon is destroyed. Non magical ammunition made of metal that hits the rust monster is destroyed after dealing damage. 
+
+Blood Frenzy : The swarm has advantage on melee attack rolls against any creature that doesn't have all its hit points. 
+
+Limited Amphibiousness : The sahuagin can breathe air and water, but it needs to be submerged at least once every 4 hours to avoid suffocating. 
+
+Shark Telepathy : The sahuagin can magically command any shark within 120 feet of it, using a limited telepathy. 
+
+Shadow Stealth : While in dim light or darkness, the shadow can take the Hide action as a bonus action. Its stealth bonus is also improved to +6. 
+
+Sunlight Weakness : While in sunlight, the shadow has disadvantage on attack rolls, ability checks, and saving throws. 
+
+Trampling Charge : If the horse moves at least 20 ft. straight toward a creature and then hits it with a hooves attack on the same turn, that target must succeed on a DC 14 Strength saving throw or be knocked prone. If the target is prone, the horse can make another attack with its hooves against it as a bonus action. 
+
+Brute : A melee weapon deals one extra die of its damage when the bugbear hits with it (included in the attack). 
+
+Surprise Attack : If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6) damage from the attack. 
+
+Two-Headed : The dog has advantage on Wisdom (Perception) checks and on saving throws against being blinded, charmed, deafened, frightened, stunned, or knocked unconscious. 
+
+Speak with Beasts and Plants : The dryad can communicate with beasts and plants as if they shared a language. 
+
+Tree Stride : Once on her turn, the dryad can use 10 ft. of her movement to step magically into one living tree within her reach and emerge from a second living tree within 60 ft. of the first tree, appearing in an unoccupied space within 5 ft. of the second tree. Both trees must be large or bigger. 
+
+Duergar Resilience : The duergar has advantage on saving throws against poison, spells, and illusions, as well as to resist being charmed or paralyzed. 
+
+Underwater Camouflage : The octopus has advantage on Dexterity (Stealth) checks made while underwater. 
+
+Keen Sight and Smell : The vulture has advantage on Wisdom (Perception) checks that rely on sight or smell. 
+
+Shapechanger : The quasit can use its action to polymorph into a beast form that resembles a bat (speed 10 ft. fly 40 ft.), a centipede (40 ft., climb 40 ft.), or a toad (40 ft., swim 40 ft.), or back into its true form . Its statistics are the same in each form, except for the speed changes noted. Any equipment it is wearing or carrying isn't transformed . It reverts to its true form if it dies. 
+
+Devil's Sight : Magical darkness doesn't impede the imp's darkvision. 
+
+Running Leap : With a 10-foot running start, the lion can long jump up to 25 ft.. 
+
+Incorporeal Movement : The specter can move through other creatures and objects as if they were difficult terrain. It takes 5 (1d10) force damage if it ends its turn inside an object. 
+
+Cunning Action : On each of its turns, the spy can use a bonus action to take the Dash, Disengage, or Hide action. 
+
+Sneak Attack (1/Turn) : The spy deals an extra 7 (2d6) damage when it hits a target with a weapon attack and has advantage on the attack roll, or when the target is within 5 ft. of an ally of the spy that isn't incapacitated and the spy doesn't have disadvantage on the attack roll. 
+
