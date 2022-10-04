@@ -80,9 +80,20 @@ def create_creature(agent_class, creat_dict):
     else: 
         features = FeatureManager() 
 
+    if "immunities" in creat_dict:
+        immunites = creat_dict["immunities"]
+    else:
+        immunites = [] 
+    
+    if "resistences" in creat_dict:
+        resis = creat_dict["resistences"]
+    else: 
+        resis = [] 
+
     monster = agent_class(ac = creat_dict["ac"], hp = creat_dict["hp"],
             speed = creat_dict["speed"], actions = creat_dict["actions"], name = creat_dict["name"], 
-            modifiers = creat_dict["modifiers"], features = features, level = creat_dict["level"])
+            modifiers = creat_dict["modifiers"], features = features, level = creat_dict["level"], 
+            immunities = immunites, resistences = resis)
     
     return monster 
 
