@@ -46,31 +46,74 @@ def get_dist(description):
 
 def get_actions(li):
     actions = []
+    multi_attacks = [] 
     is_impl = True 
     for act_json in li: 
+        # is damage attack 
         if "attack_bonus" in act_json:
             hit = act_json["attack_bonus"]
+            dist = get_dist(act_json["desc"])
+            name = act_json["name"]
+            # normal attack damage 
             if "damage" in act_json and "damage_dice" in act_json["damage"][0]:
                 damage_str = act_json["damage"][0]["damage_dice"]
                 damage_type = act_json["damage"][0]["damage_type"]["name"].lower() 
+            
+            # different damage for range 
             elif "damage" in act_json and "choose" in act_json["damage"][0]: 
                 damage_str = act_json["damage"][0]["from"]["options"][0]["damage_dice"]
                 damage_type = act_json["damage"][0]["from"]["options"][0]["damage_type"]["name"].lower() 
                 actions_list.append(act_json) 
                 is_impl = False 
+            # other kind of attack 
             else:
                 damage_str = "0d0"
                 damage_type = SLASHING_DAMAGE
                 actions_list.append(act_json) 
                 is_impl = False 
-            dist = get_dist(act_json["desc"])
-            name = act_json["name"]
+
+            
             attack = Attack(hit, damage_str, dist, damage_type= damage_type, name = name)
             actions.append(attack)
-            
+        
+        # if multi attack 
+        elif act_json["name"] == "Multiattack":
+            attack_names = [] 
+            # set amount of actions 
+            if act_json["multiattack_type"] == 'actions':
+                for action in act_json["actions"]:
+                    if action["count"] == 1:
+                        attack_names.append(action["action_name"])
+                    elif isinstance(action["count"], str) and "d" in action["count"] :
+                        roll = int(Dice(action["count"]).expected_value())
+                        for i in range(roll):
+                            attack_names.append(action["action_name"])
+                    else:
+                        amount = int(action["count"])
+                        for i in range(amount):
+                            attack_names.append(action["action_name"])
+                multi_attacks.append(attack_names)
+            else: 
+                actions_list.append(act_json) 
+                is_impl = False 
+        # other kind of attack 
         else: 
             actions_list.append(act_json) 
             is_impl = False 
+        
+
+    for mult_attack in multi_attacks:
+        avail_attacks = []
+        for name in mult_attack:
+            act = [act for act in actions if act.name == name]
+            if len(act) > 0:
+                avail_attacks.append(act[0])
+        action = MultiAttack(avail_attacks)
+        # remove actions from list <-- alway does multiattack 
+        #list(filter(lambda a: a.name in mult_attack, actions))
+        
+        actions.append(action) 
+            
     return actions, is_impl 
 
 def score_to_mod(score):
@@ -211,6 +254,7 @@ for name in chars:
     if chars[name]["fully_impl"]:
         fully_impl += 1 
 
+print("NUMBER FULLY IMPLEMENETED: ", (fully_impl))
 print("PERCENT FULLY IMPLEMENETED: ", (fully_impl / len(chars)))
 
 

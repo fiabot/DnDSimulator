@@ -81,6 +81,29 @@ class TestCreature(unittest.TestCase):
 
         monster.long_rest()
         self.assertEqual(3, monster.spell_manager.current_spell_slots)
+    
+    def test_multiattack(self):
+        sword = Attack(4, "2d8 + 4", 1, name = "Sword", damage_type= SLASHING_DAMAGE, attack_type= MELE)
+        bow = Attack(4, "0d4 + 4", 5, name = "Bow", damage_type= SLASHING_DAMAGE, attack_type= MELE)
+        multi_attack = MultiAttack([sword, bow])
+        monster = Creature(ac = 1, hp = 20, speed = 1, name = "Monster")
+        player= Creature(ac = 12, hp = 20, speed = 3, actions= [multi_attack], name = "Player")
+        game = Game([player], [monster], [(0,0)], [(1,1)], Grid(5,5))
+
+        self.assertEquals(sword.name, multi_attack.smallest_range_attack().name)
+        self.assertLess(0, len(multi_attack.avail_actions(player, game)))
+        self.assertLess(0, len(player.avail_actions(game))) 
+
+        for action in multi_attack.avail_actions(player, game):
+            attacks = action[1].attacks 
+
+            for attack in attacks: 
+                self.assertEqual(attack.target, monster.name)
+                self.assertEqual(attack.attacker, player.name)
+        
+        multi_attack.avail_actions(player, game)[0][1].execute(game, True)
+
+        self.assertLess(monster.hp, 20)
 
 
 

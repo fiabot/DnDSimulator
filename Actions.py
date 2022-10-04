@@ -137,7 +137,36 @@ class Attack(Action):
         else: 
             return self.name 
 
+class MultiAttack(Action):
+    def __init__(self, attacks):
+        self.attacks = attacks 
+        attack_names = [attack.name for attack in attacks]
+        name = "Multiattack with: " + " and ".join(attack_names)
+        super().__init__(name)
+    
+    def smallest_range_attack(self):
+        attack_ranges = [(attack.dist, attack) for attack in self.attacks]
+        return min(attack_ranges)[1]
+    
+    def avail_actions(self, creature, game):
+        first_attack_opts = self.smallest_range_attack().avail_actions(creature, game)
 
+        actions = [] 
+
+        for action in first_attack_opts:
+            new_attacks = [] 
+            for attack in self.attacks:
+                new_attacks.append(attack.set_target(creature.name, action[1].target))
+            
+            actions.append((action[0], MultiAttack(new_attacks)))
+        
+        return actions 
+    
+    def execute(self, game, debug=False):
+        if (debug):
+            print("Attack with multiple attack")
+        for attack in self.attacks:
+            attack.execute(game, debug)
 
 
 class SideEffect:
