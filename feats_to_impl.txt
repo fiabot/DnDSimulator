@@ -1,9 +1,5 @@
 Keen Sight : The hippogriff has advantage on Wisdom (Perception) checks that rely on sight. 
 
-Pack Tactics : The lion has advantage on an attack roll against a creature if at least one of the lion's allies is within 5 ft. of the creature and the ally isn't incapacitated. 
-
-Dark Devotion : The cultist has advantage on saving throws against being charmed or frightened. 
-
 Flyby : The owl doesn't provoke opportunity attacks when it flies out of an enemy's reach. 
 
 Amphibious : The toad can breathe air and water 
@@ -16,16 +12,10 @@ Sunlight Sensitivity : While in sunlight, the specter has disadvantage on attack
 
 Beast of Burden : The mule is considered to be a Large animal for the purpose of determining its carrying capacity. 
 
-Sure-Footed : The goat has advantage on Strength and Dexterity saving throws made against effects that would knock it prone. 
-
 Spellcasting : The acolyte is a 1st-level spellcaster. Its spellcasting ability is Wisdom (spell save DC 12, +4 to hit with spell attacks). The acolyte has following cleric spells prepared:
 
 - Cantrips (at will): light, sacred flame, thaumaturgy
 - 1st level (3 slots): bless, cure wounds, sanctuary 
-
-Charge : If the sea horse moves at least 20 ft. straight toward a target and then hits it with a ram attack on the same turn, the target takes an extra 7 (2d6) bludgeoning damage. If the target is a creature, it must succeed on a DC 11 Strength saving throw or be knocked prone. 
-
-Relentless : If the boar takes 7 damage or less that would reduce it to 0 hit points, it is reduced to 1 hit point instead. 
 
 Fey Ancestry : The drow has advantage on saving throws against being charmed, and magic can't put the drow to sleep. 
 
@@ -59,15 +49,11 @@ Blind Senses : The grimlock can't use its blindsight while deafened and unable t
 
 Stone Camouflage : The gnome has advantage on Dexterity (Stealth) checks made to hide in rocky terrain. 
 
-Pounce : If the tiger moves at least 20 ft. straight toward a creature and then hits it with a claw attack on the same turn, that target must succeed on a DC 13 Strength saving throw or be knocked prone. If the target is prone, the tiger can make one bite attack against it as a bonus action. 
-
 Keen Senses : The pseudodragon has advantage on Wisdom (Perception) checks that rely on sight, hearing, or smell. 
 
 Magic Resistance : The quasit has advantage on saving throws against spells and other magical effects. 
 
 Limited Telepathy : The pseudodragon can magically communicate simple ideas, emotions, and images telepathically with any creature within 100 ft. of it that can understand a language. 
-
-Death Burst : When the magmin dies, it explodes in a burst of fire and magma. Each creature within 10 ft. of it must make a DC 11 Dexterity saving throw, taking 7 (2d6) fire damage on a failed save, or half as much damage on a successful one. Flammable objects that aren't being worn or carried in that area are ignited. 
 
 Swarm : The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny quipper. The swarm can't regain hit points or gain temporary hit points. 
 
@@ -78,8 +64,6 @@ Hold Breath : While out of water, the octopus can hold its breath for 1 hour.
 Gnome Cunning : The gnome has advantage on Intelligence, Wisdom, and Charisma saving throws against magic. 
 
 Water Breathing : The swarm can breathe only underwater. 
-
-Rampage : When the hyena reduces a creature to 0 hit points with a melee attack on its turn, the hyena can take a bonus action to move up to half its speed and make a bite attack. 
 
 Amorphous : The shadow can move through a space as narrow as 1 inch wide without squeezing. 
 
@@ -117,8 +101,6 @@ Two-Headed : The dog has advantage on Wisdom (Perception) checks and on saving t
 Speak with Beasts and Plants : The dryad can communicate with beasts and plants as if they shared a language. 
 
 Tree Stride : Once on her turn, the dryad can use 10 ft. of her movement to step magically into one living tree within her reach and emerge from a second living tree within 60 ft. of the first tree, appearing in an unoccupied space within 5 ft. of the second tree. Both trees must be large or bigger. 
-
-Duergar Resilience : The duergar has advantage on saving throws against poison, spells, and illusions, as well as to resist being charmed or paralyzed. 
 
 Underwater Camouflage : The octopus has advantage on Dexterity (Stealth) checks made while underwater. 
 

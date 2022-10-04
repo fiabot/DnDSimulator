@@ -1,4 +1,5 @@
 from sys import is_finalizing
+from unittest.mock import NonCallableMagicMock
 from Conditions import * 
 from DnDToolkit import *; 
 ATTACK_STR = "attack" 
@@ -17,8 +18,12 @@ def clamp_advantage(advantage):
 
 
 class FeatureManager: 
-    def __init__ (self, features= [], condition_immunities = []):
+    def __init__ (self, features= None, condition_immunities = None):
         self.feature_list = features 
+        if features is None: 
+            features = [] 
+        if condition_immunities is None: 
+            condition_immunities = [] 
         self.features= {} 
         for feat in features: 
             if feat.type in self.features:

@@ -63,7 +63,7 @@ class TestCreature(unittest.TestCase):
     
     def test_spells(self):
         healing_word = HealingSpell(1, "healing word", 2, "1d4 + 1")
-        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, [healing_word]), name= "monster")
+        monster = Creature(ac = 12, hp = 20, speed = 1, spell_manager= SpellManager(3, mele_modifer= 2,  ranged_modifer= 2, spell_dc= 12, known_spells= [healing_word]), name= "monster")
         monster2 = Creature(ac = 12, hp = 20, speed = 1, name = "monster2")
         player= Creature(ac = 12, hp = 20, speed = 3, name = "player")
         game = Game([player], [monster, monster2], [(0,0)], [(4,4), (4,3)], Grid(5,5))

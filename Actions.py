@@ -153,4 +153,3 @@ class SideEffect:
             if debug:
                 print("The {} condition was added to creature {} from attack".format(self.inflicted_condition.name, target.name))
             target.add_condition(self.inflicted_condition)
-
