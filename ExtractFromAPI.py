@@ -5,6 +5,7 @@ from FeatureCatelog import *
 import requests 
 from CreatureClasses import * 
 import json
+from SpellBook import SPELL_BOOK
 from Spells import SpellManager 
 import jsonpickle
 
@@ -72,7 +73,68 @@ def get_two_dist(description):
             large_dist = 0 
     
     return (small_dist, large_dist)
+
+def make_spell_manager(description, char_json):
+    print(description)
+    dc_start = description.find("spell save DC ") + len("spell save DC ")
+    dc_end = description.find(",", dc_start)
+    if dc_end == -1:
+        dc_end = description.find(")", dc_start)
+    dc = int(description[dc_start: dc_end]) 
     
+    mod_start = description.find("+")
+    if mod_start != -1: 
+
+        att_modifer = int(description[mod_start + 1: description.find(" ", mod_start)])
+    else:
+        att_modifer = 0 
+    
+    spell_slot_start = description.find("1st level (") + len("1st level (")
+    if spell_slot_start != -1:
+        spell_slots = description[spell_slot_start :description.find(" ", spell_slot_start)]
+        spell_slots = int(spell_slots)
+    else:
+        spell_slots = 0 
+    
+    abl_start = description.find("spellcasting ability is ") + len("spellcasting ability is ")
+
+    if abl_start != -1:
+        ablilty = description[abl_start: description.find(" ", abl_start)].lower()
+        spell_mod = score_to_mod(int(char_json[ablilty])) 
+    else:
+        spell_mod = 0 
+
+    cantrips_start = description.find("Cantrips (at will): ") + len("Cantrips (at will): ")
+
+    if cantrips_start != -1: 
+        cantrip_str = description[cantrips_start: description.find("\n", cantrips_start)]
+        cantrip_names = cantrip_str.split(", ")
+    else: 
+        cantrip_names = [] 
+
+    spell_start = description.find("):", spell_slot_start) + len("): ")
+    known_spells = [] 
+    
+    if spell_start != -1:
+        spell_str = description[spell_start: description.find("\n", spell_start)]
+        spell_names = spell_str.split(", ")
+
+    found_all_spells = True 
+    print(cantrip_names + spell_names)
+    for spell in cantrip_names + spell_names:
+        if spell in SPELL_BOOK:
+            spell = spell.lower().strip() 
+            print("{} was in the spell book".format(spell))
+            known_spells.append(SPELL_BOOK[spell])
+        else:
+            print("{} was NOT in the spell book".format(spell)) 
+            found_all_spells = False 
+    spell_man = SpellManager(spell_slots, att_modifer, att_modifer, dc, known_spells, spell_mod)
+    return spell_man, found_all_spells 
+    
+
+
+
 
 
 def make_two_ranged_weapon(act_json):
@@ -218,7 +280,7 @@ def get_mods(dict):
 def lower_list(list):
     return (s.lower() for s in list)
 
-def get_feats_and_spells(special_abil_li):
+def get_feats_and_spells(special_abil_li, char_json):
     spell_man = None
     features = [] 
 
@@ -228,6 +290,10 @@ def get_feats_and_spells(special_abil_li):
         name = feat["name"].lower().strip() 
         if name in ALL_FEATURES: 
             features.append(ALL_FEATURES[name])
+        elif name == "spellcasting":
+            print("spell caster")
+            spell_man, has_spell = make_spell_manager(feat["desc"], char_json)
+            fully_imp = fully_imp and has_spell 
         else: 
             fully_imp = False
             feature_list[feat["name"]] = feat["desc"] 
@@ -254,7 +320,7 @@ def json_to_char(dict):
     resistences = lower_list(dict["damage_resistances"])
 
     if "special_abilities" in dict:
-        feats, spell_man, is_impl2 = get_feats_and_spells(dict["special_abilities"])
+        feats, spell_man, is_impl2 = get_feats_and_spells(dict["special_abilities"], dict)
         feat_manager = FeatureManager(feats, dict["condition_immunities"])
     else: 
         feat_manager = FeatureManager([], dict["condition_immunities"])
