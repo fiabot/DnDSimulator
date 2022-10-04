@@ -47,6 +47,7 @@ def get_dist(description):
 def get_actions(li):
     actions = []
     multi_attacks = [] 
+    multi_attack_choices = [] 
     is_impl = True 
     for act_json in li: 
         # is damage attack 
@@ -93,15 +94,30 @@ def get_actions(li):
                         for i in range(amount):
                             attack_names.append(action["action_name"])
                 multi_attacks.append(attack_names)
+            # multiple choices 
             else: 
-                actions_list.append(act_json) 
+                choices = [] 
+                for choice in act_json["action_options"]["from"]["options"]:
+                    choice_names = [] 
+                    if "items" in choice:
+                        for attack in choice["items"]:
+                            
+                            if isinstance(attack["count"], int):
+                                choice_names += ([attack["action_name"]] * attack["count"])
+                            else:
+                                choice_names.append(attack["action_name"])
+                    else:
+                        choice_names += ([choice["action_name"]] * choice["count"])
+
+                    choices.append(choice_names)
+                multi_attack_choices.append(choices) 
                 is_impl = False 
         # other kind of attack 
         else: 
             actions_list.append(act_json) 
             is_impl = False 
         
-
+    # add any multi attacks 
     for mult_attack in multi_attacks:
         avail_attacks = []
         for name in mult_attack:
@@ -111,8 +127,20 @@ def get_actions(li):
         action = MultiAttack(avail_attacks)
         # remove actions from list <-- alway does multiattack 
         #list(filter(lambda a: a.name in mult_attack, actions))
-        
         actions.append(action) 
+    
+    # for multi attacks with choices, choose highest damage value 
+    for choices in multi_attack_choices:
+        choices_actions = [] 
+        for choice in choices: 
+            choice_actions = []
+            for attack_name in choice: 
+                choice_actions += [act for act in actions if act.name == attack_name]
+            choices_actions.append(choice_actions)
+        
+        for acts in choices_actions:
+            action = MultiAttack(acts)
+            actions.append(action) 
             
     return actions, is_impl 
 
