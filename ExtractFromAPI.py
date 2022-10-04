@@ -16,6 +16,9 @@ actions_list = []
 
 monster_dict = json.loads(reponse.text)
 
+
+
+
 def get_speed(speed_str):
     speed = int(speed_str[:speed_str.find(" ")])
     return math.ceil(speed / 10) 
@@ -44,6 +47,48 @@ def get_dist(description):
     else:
         print("can't find")
 
+def get_two_dist(description):
+    small_dist = 0 
+    large_dist= 0 
+    if description.find("reach") != -1:
+        start = description.find("reach")
+        feet = description[start + len("reach"): description.find("ft", start)]
+        feet = feet.strip() 
+        small_dist = math.ceil(int(feet) / 10)
+
+    if description.find("range") != -1: 
+        start = description.find("range")
+
+        if description.find("/", start) != -1:
+            feet =  description[description.find("/", start) + 1: description.find("ft", start)]
+        else:
+            feet = description[start + len("range"): description.find("ft", start)]
+        feet = feet.strip() 
+        try:
+            large_dist = math.ceil(int(feet) / 10)
+        except:
+            print("Error finding distance within {}".format(description))
+            print("Feed found {}".format(feet))
+            large_dist = 0 
+    
+    return (small_dist, large_dist)
+    
+
+
+def make_two_ranged_weapon(act_json):
+    small_damage_str = "0d4"
+    large_damage_str = "0d4"
+    hit = act_json["attack_bonus"]
+    small_dist, large_dist = get_two_dist(act_json["desc"])
+    name = act_json["name"]
+    damage_type = act_json["damage"][0]["from"]["options"][0]["damage_type"]["name"].lower()  
+    for damage_option in act_json["damage"][0]["from"]["options"]:
+        if damage_option["notes"] == "One handed":
+            small_damage_str = damage_option["damage_dice"]
+        else:
+            large_damage_str = damage_option["damage_dice"]
+    return TwoHanded(hit, small_damage_str, large_damage_str, small_dist, large_dist, damage_type= damage_type, name = name)
+
 def get_actions(li):
     actions = []
     multi_attacks = [] 
@@ -52,29 +97,24 @@ def get_actions(li):
     for act_json in li: 
         # is damage attack 
         if "attack_bonus" in act_json:
-            hit = act_json["attack_bonus"]
-            dist = get_dist(act_json["desc"])
-            name = act_json["name"]
+            attack = None 
             # normal attack damage 
             if "damage" in act_json and "damage_dice" in act_json["damage"][0]:
+                hit = act_json["attack_bonus"]
+                dist = get_dist(act_json["desc"])
+                name = act_json["name"]
                 damage_str = act_json["damage"][0]["damage_dice"]
                 damage_type = act_json["damage"][0]["damage_type"]["name"].lower() 
-            
+                attack = Attack(hit, damage_str, dist, damage_type= damage_type, name = name)
             # different damage for range 
             elif "damage" in act_json and "choose" in act_json["damage"][0]: 
-                damage_str = act_json["damage"][0]["from"]["options"][0]["damage_dice"]
-                damage_type = act_json["damage"][0]["from"]["options"][0]["damage_type"]["name"].lower() 
-                actions_list.append(act_json) 
-                is_impl = False 
+                attack = make_two_ranged_weapon(act_json)
             # other kind of attack 
             else:
-                damage_str = "0d0"
-                damage_type = SLASHING_DAMAGE
                 actions_list.append(act_json) 
                 is_impl = False 
 
             
-            attack = Attack(hit, damage_str, dist, damage_type= damage_type, name = name)
             actions.append(attack)
         
         # if multi attack 
@@ -108,10 +148,8 @@ def get_actions(li):
                                 choice_names.append(attack["action_name"])
                     else:
                         choice_names += ([choice["action_name"]] * choice["count"])
-
                     choices.append(choice_names)
                 multi_attack_choices.append(choices) 
-                is_impl = False 
         # other kind of attack 
         else: 
             actions_list.append(act_json) 

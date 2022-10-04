@@ -105,6 +105,38 @@ class TestCreature(unittest.TestCase):
 
         self.assertLess(monster.hp, 20)
 
+    def test_two_handed(self):
+
+        sword = TwoHanded(hit_bonus= 4, damage_dice_string_small= "0d3 + 4", damage_dice_string_large= "0d4 + 10", dist_small= 1, dist_large= 5, name = "two handed sword")
+        
+        monster = Creature(ac = 1, hp = 20, speed = 0, name = "Monster")
+        player= Creature(ac = 12, hp = 20, speed = 3, actions= [sword], name = "Player")
+        game = Game([player], [monster], [(0,0)], [(1,0)], Grid(10,10))
+
+     
+        self.assertLess(0, len(sword.avail_actions(player, game)))
+        self.assertLess(0, len(player.avail_actions(game))) 
+
+        for attack in sword.avail_actions(player, game):
+            
+            self.assertEqual(attack[1].target, monster.name)
+            self.assertEqual(attack[1].attacker, player.name)
+        
+        # large damage (close distance) 
+        sword.avail_actions(player, game)[0][1].execute(game, True)
+
+        self.assertEqual(monster.hp, 10)
+
+        # small damage (large distance)
+        game.map.move_piece(monster, (3,1))
+        sword.avail_actions(player, game)[0][1].execute(game, True)
+
+        self.assertEqual(monster.hp, 6)
+
+        # far away (no actions)
+        game.map.move_piece(monster, (9,9))
+        self.assertEqual(0, len(sword.avail_actions(player, game)))
+
 
 
 

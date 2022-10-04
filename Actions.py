@@ -168,6 +168,56 @@ class MultiAttack(Action):
         for attack in self.attacks:
             attack.execute(game, debug)
 
+class TwoHanded(Attack):
+    def __init__(self, hit_bonus, damage_dice_string_small, damage_dice_string_large, dist_small, dist_large, attack_type=MELE, damage_type=SLASHING_DAMAGE, name="Attack", side_effects=None, attacker=None, target=None):
+        
+        super().__init__(hit_bonus, damage_dice_string_small, dist_large, attack_type, damage_type, name, side_effects, attacker, target)
+
+        self.small_damage = Dice(damage_dice_string_small)
+        self.large_damage =Dice(damage_dice_string_large)
+        self.close_range = dist_small
+        self.wide_range = dist_large
+    def execute(self, game, debug = False):
+        """
+        Excute attack on target
+        if target is none, do nothing
+        """
+        # if there is not a target, dont do anything 
+        target = game.get_creature(self.target)
+        attacker = game.get_creature(self.attacker)
+        if not target is None and not attacker is None: 
+
+            # roll attack applying any special features 
+            
+            self.hit_dice = Dice(make_dice_string(1, 20, self.hit_bonus))
+            hit = attacker.get_hit_dice(self, game, debug).roll() 
+
+            if debug:
+                print("{} rolled a {} to hit {} with {}".format(attacker.name, hit, target.name, self.name ))
+
+            # if hit succeeds, deal damage 
+            if hit >= target.ac: 
+                # find if it was one handed or two 
+                if game.map.distance(target.position, attacker.position) > self.close_range:
+                    if debug:
+                        print("Making a one handed attack")
+                    damage = self.small_damage.roll() + attacker.get_added_damage(self, game, debug)
+                else: 
+                    if debug:
+                        print("Making a two handed attack")
+                    damage = self.large_damage.roll() + attacker.get_added_damage(self, game, debug)
+                target.damage(damage, self.damage_type,game)
+                 
+                for effect in self.side_effects:
+                    effect.execute(target, debug)
+                
+                if debug: 
+                    print("Hit creature {} for {} using {}".format(target.name, damage, self.name))
+            
+            elif debug: 
+                print("Attack {} missed".format(self.name))
+        elif debug:
+            print("Target or Attacker not found")
 
 class SideEffect:
     def __init__(self, inflicted_condition, can_save, save_type= None, save_dc = 0):
