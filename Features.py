@@ -90,7 +90,9 @@ class FeatureManager:
         if DAMAGE_STR in self.features:
             
             for feat in self.features[DAMAGE_STR]:
+                print(feat.name)
                 if feat.condition(attack, creature, game):
+                    
                     added_damage += feat.damage_added(attack, creature, game) 
                     if debug: 
                         print("Feature {} added {} damage to attack".format(feat.name, added_damage - old_damage))
@@ -141,6 +143,7 @@ class FeatureManager:
     def drop_to_zero(self, amount, creature, game):
         if DEATH_STR in self.features:
             for feat in self.features[DEATH_STR]: 
+                print(feat.name)
                 if feat.condition(amount, creature, game):
                     feat.effect(amount, creature, game) 
     
@@ -360,79 +363,3 @@ class DeathFeature(Feature):
         super().__init__(DEATH_STR, name)
         self.condition = condition 
         self.effect = effect 
-
-# conditions 
-def friend_in_range(attack, attacker, game):
-    """
-    Return true if there is an ally 
-    1 tile from creature 
-    """
-    tiles = game.map.tiles_in_range(attacker.position, 1, 1)
-
-    found_friend = False 
-    i = 0 
-    while not found_friend and i < len(tiles):
-        tile = tiles[i]
-        if not tile is None: 
-            try: 
-                found_friend = tile[0].team == attacker.team
-            except: 
-                pass 
-        i += 1 
-    
-    return found_friend 
-
-wisd = lambda type : type == WIS_STR 
-charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
-has_relent = lambda amount, creature, game: not "Relentless Endurance" in creature.game_data 
-
-def can_rampage(amount, creature, game):
-    return game.map.distance(game.map.closest_enemy(creature.team, creature.position).position, creature.position) <= 1
-
-
-# effects 
-def use_relent(amount, creature, game):
-    creature.game_data["Relentless Endurance"] = 1 
-    if creature.hp == 0:
-        creature.hp = 1 
-
-def bonus_damage (dice_string):
-    def damage_added (attack,attacker, game):
-        return Dice(dice_string).roll() 
-    return damage_added 
-
-def does_charge(attack, attacker, game): 
-    return game.map.distance(attacker.position, attacker.last_pos) >= 2
-
-def charge_damage(dice_string, save_dc):
-    def charge_damage(attack, attacker, game):
-        is_prone = attacker.saving_throw(STR_STR, PRONE.name) >= save_dc
-        if is_prone: 
-            game.get_creature(attack.target).add_condition(PRONE)
-        
-        return Dice(dice_string).roll() 
-    return charge_damage
-
-def rampage(amount, creature, game): 
-    bite = None 
-    i = 0 
-    while bite is None and i < len(creature.actions):
-        act = creature.actions[i]
-        if act.name == "bite":
-            bite = act
-        i += 1 
-    if not bite is None: 
-        bite_copy = deepcopy(bite)
-        bite_copy.target = game.map.closest_enemy(creature.team, creature.position).name 
-        bite_copy.attacker = creature.name 
-        bite.execute(game) 
-
-        
-
-SNEAK_ATTACK = DamageFeature("Sneak Attack", friend_in_range, bonus_damage("1d8"))
-DARK_DEVOTION = SavingThrowFeature("Dark Devotion", charm_fright, 1, 0) 
-WISDOM_ADV = SkillCheckFeature("Keen sight", wisd, 1 , 20)
-RELENTLESS_ENDUR = DeathFeature("Relentless Endurance", has_relent, use_relent)
-CHARGE = DamageFeature("charge", does_charge, charge_damage("2d6", 13))
-RAMPAGE = DeathFeature("Rampage", can_rampage, rampage) 
-PACK_TACTICS = AttackFeature("Pack Tactics", friend_in_range, 1, 0)

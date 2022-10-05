@@ -3,23 +3,12 @@ from CreatureClasses import *
 import copy 
 
 class RandomCreature(Creature): 
-    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, level = 0.5, spell_manager = None):
-        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
-                        spell_manager=spell_manager)
 
     def turn(self, game):
 
         return random.choice(self.avail_actions(game))
 
 class HumanCreature(Creature):
-    def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
-                    position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, level = 0.5, spell_manager = None):
-        super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
-                        spell_manager=spell_manager)
-
     def format_action (self, action):
         move = action[0]
         action = action[1]
@@ -81,9 +70,9 @@ class AggressiveCreature(Creature):
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, level = 0.5, spell_manager= None):
+                    immunities = None, resistences = None, level = 0.5, spell_manager= None, makes_death_saves = False):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
-                        spell_manager=spell_manager)
+                        spell_manager=spell_manager, makes_death_saves = makes_death_saves)
         self.action_order()
     
     def action_order(self):

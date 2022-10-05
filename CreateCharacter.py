@@ -14,20 +14,22 @@ def make_attack():
         name = input("attack name: ")
         hit = int(input("hit modifier: "))
         damage_dice = input("damage dice: ").lower() 
-        damaga_type = input("damage type: ").lower()
+        damage_type = input("damage type: ").lower()
         dist = int(input("Attack range (in grid units): "))
         attack_type = input("Ranged or Melee: ").lower() 
-        act = Attack(hit, damage_dice, damaga_type, dist, attack_type, name)
+        
+        act = Attack(hit, damage_dice, dist, damage_type, name)
     else: 
         name = input("attack name: ")
         hit = int(input("hit modifier: "))
         close_dice = input("close range damage dice: ").lower() 
         wide_dice = input("wide range damage dice: ").lower() 
-        damaga_type = input("damage type: ").lower()
+        damage_type = input("damage type: ").lower()
         short_dist = int(input("Close range distance(in grid units): "))
         long_dist = int(input("Wide range distance(in grid units): "))
         attack_type = input("Ranged or Melee: ").lower() 
-        act = TwoHanded(hit, wide_dice, close_dice, short_dist, long_dist, attack_type, damaga_type, name)
+    
+        act = TwoHanded(hit, close_dice, wide_dice, short_dist, long_dist, attack_type, damage_type, name)
     
     return act 
 
@@ -49,7 +51,7 @@ def create_character():
     mods[CON_STR] = int(input("Consititution mod: "))
     mods[STR_STR] = int(input("Strength mod: "))
     mods[CHAR_STR] = int(input("Charisma mod: "))
-    mods[INT_STR] = int(input("Integer mod: "))
+    mods[INT_STR] = int(input("Intelligence mod: "))
     mods[WIS_STR] = int(input("Wisdom mod: "))
 
     diff_save = input("input saving throws (y/n)?").lower().startswith("y")
@@ -60,7 +62,7 @@ def create_character():
         save_mods[CON_STR] = int(input("Consititution Saving mod: "))
         save_mods[STR_STR] = int(input("Strength Saving mod: "))
         save_mods[CHAR_STR] = int(input("Charisma Saving mod: "))
-        save_mods[INT_STR] = int(input("Integer Saving mod: "))
+        save_mods[INT_STR] = int(input("Intelligence Saving mod: "))
         save_mods[WIS_STR] = int(input("Wisdom saving mod: "))
     
     else:
@@ -84,7 +86,14 @@ def create_character():
         
         amount = int(input("number of immunities: "))
         for i in range(amount):
-            immunities.append(input("enter immunities: "))
+            immunities.append(input("enter immunities: ").lower())
+    
+    con_immunities = [] 
+    if has_imm:
+        
+        amount = int(input("number of condition immunities: "))
+        for i in range(amount):
+            con_immunities.append(input("enter condition immunities: ").lower())
     
     has_feats = input("input special features (y/n)?").lower().startswith("y")
 
@@ -93,13 +102,13 @@ def create_character():
         amount = int(input("number of features: "))
         for i in range(amount):
             print("for feature {} of {}".format(i + 1, amount))
-            feat = input("enter feature name: ")
+            feat = input("enter feature name: ").lower() 
             if feat in ALL_FEATURES:
-                feats.append(ALL_FEATURES[feat])
+                print("Feature is available")
             else:
                 print("features {} is not available in this simulation".format(feat))
+            feats.append(feat)
     
-    feat_man = FeatureManager(feats)
 
     num_acts = int(input("number of actions (not spells):"))
     acts = [] 
@@ -118,30 +127,32 @@ def create_character():
             acts.append(make_attack())
     
     is_spell_caster = input("can cast spells (y/n)? ").lower().startswith("y")
-
+    spell_man = {} 
     if is_spell_caster:
-        save_dc = int(input("spell casting dc: "))
-        melee_mod = int(input("melee attack modifier: "))
-        ranged_mod = int(input("ranged attack modifier"))
-        spell_mod = int(input("spell casting modifer: "))
-        spell_slots = int(input("number of spell slots: "))
+        spell_man["dc"] = int(input("spell casting dc: "))
+        spell_man["attack mod"] = int(input("attack modifier: "))
+        spell_man["spell mod"] = int(input("spell casting modifer: "))
+        spell_man["spell slots"] = int(input("number of spell slots: "))
 
         num_spells = int(input("number of known spells: "))
 
         known_spells = [] 
         for i in range(num_spells):
-            spell_name = input("spell name")
+            spell_name = input("spell name").lower() 
             if spell_name in SPELL_BOOK:
-                known_spells.append(SPELL_BOOK[spell_name])
+                known_spells.append(spell_name)
+            else:
+                print("The spell {} is not available in this simulation".format(spell_name))
+                known_spells.append(spell_name)
+        spell_man["known spells"] = known_spells
         
-        spell_man = SpellManager(spell_slots, ranged_mod, melee_mod, save_dc, known_spells, spell_mod)
     else:
         spell_man = None 
     
     monster = {"ac":ac, "hp":hp, "speed": speed, "actions": acts, "name": name, 
                     "modifiers": modifers, "level": level, "resistances": resistences, 
-                    "immunities": immunities, "features":feat_man, "spells": spell_man, 
-                    "makes saves": makes_saves}
+                    "immunities": immunities, "features":feats, "spells": spell_man, 
+                    "makes saves": makes_saves, "condition imun": con_immunities}
     return monster 
 
 if __name__ == "__main__":
@@ -158,7 +169,7 @@ if __name__ == "__main__":
     while create_char: 
         player = create_character()
         if player["name"] in players:
-            overwrite = input("player {} already exists, overwrite? ").lower().startswith("y")
+            overwrite = input("player {} already exists, overwrite? ".format(player["name"])).lower().startswith("y")
             if overwrite:
                 players[player["name"]] = player 
         else:
@@ -166,11 +177,11 @@ if __name__ == "__main__":
 
         create_char = input("create another character? ").lower().startswith("y")
     
-    new_json = jsonpickle.encode(players)
+        new_json = jsonpickle.encode(players)
 
-    write_file = open("player_files.txt", "w")
-    write_file.write(new_json)
-    write_file.close() 
+        write_file = open("player_files.txt", "w")
+        write_file.write(new_json)
+        write_file.close() 
 
 
 

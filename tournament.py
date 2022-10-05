@@ -37,7 +37,7 @@ def tourament(player_class, monster_class, game_count, manual, min_size = 2, max
 
         # creatue new parties 
         size = random.randrange(min_size, max_size)
-        players, monsters = create_identical_parties(player_class, monster_class, manual, size)
+        players, monsters = create_random_identical_parties(player_class, monster_class, manual, size)
         make_unqiue(monsters + players)
 
         if debug:

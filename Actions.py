@@ -1,5 +1,4 @@
 from DnDToolkit import *
-from Features import friend_in_range
 import json 
 
 class Action:
@@ -146,7 +145,15 @@ class MultiAttack(Action):
     
     def smallest_range_attack(self):
         attack_ranges = [(attack.dist, attack) for attack in self.attacks]
-        return min(attack_ranges)[1]
+        smallest_range = 10000000
+        smallest_attack = None 
+
+        for attack in attack_ranges:
+            if attack[0] < smallest_range:
+                smallest_range = attack[0]
+                smallest_attack = attack[1]
+        
+        return smallest_attack 
     
     def avail_actions(self, creature, game):
         first_attack_opts = self.smallest_range_attack().avail_actions(creature, game)

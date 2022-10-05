@@ -298,6 +298,12 @@ class Grid():
 
         for piece in self.pieces:
             distance = self.distance(position, piece.position) 
+            if isinstance(distance, str):
+                print("ERROR: distance with value {}".format(distance))
+            if isinstance(dist_max, str):
+                print("ERROR: dist max with value {}".format(dist_max))
+            if isinstance(dist_min, str):
+                print("ERROR: dist min with value {}".format(dist_min))
             if distance <= dist_max and distance >= dist_min:
                 in_range.append(piece)
         

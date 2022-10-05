@@ -75,12 +75,12 @@ def get_two_dist(description):
     return (small_dist, large_dist)
 
 def make_spell_manager(description, char_json):
-    print(description)
+    spell_man = {}
     dc_start = description.find("spell save DC ") + len("spell save DC ")
     dc_end = description.find(",", dc_start)
     if dc_end == -1:
         dc_end = description.find(")", dc_start)
-    dc = int(description[dc_start: dc_end]) 
+    spell_man["dc"] = int(description[dc_start: dc_end]) 
     
     mod_start = description.find("+")
     if mod_start != -1: 
@@ -88,13 +88,16 @@ def make_spell_manager(description, char_json):
         att_modifer = int(description[mod_start + 1: description.find(" ", mod_start)])
     else:
         att_modifer = 0 
-    
+    spell_man["attack mod"] = att_modifer
+
     spell_slot_start = description.find("1st level (") + len("1st level (")
     if spell_slot_start != -1:
         spell_slots = description[spell_slot_start :description.find(" ", spell_slot_start)]
         spell_slots = int(spell_slots)
     else:
         spell_slots = 0 
+    
+    spell_man["spell slots"] = spell_slots 
     
     abl_start = description.find("spellcasting ability is ") + len("spellcasting ability is ")
 
@@ -103,6 +106,8 @@ def make_spell_manager(description, char_json):
         spell_mod = score_to_mod(int(char_json[ablilty])) 
     else:
         spell_mod = 0 
+    
+    spell_man["spell mod"] = spell_mod 
 
     cantrips_start = description.find("Cantrips (at will): ") + len("Cantrips (at will): ")
 
@@ -125,11 +130,13 @@ def make_spell_manager(description, char_json):
         if spell in SPELL_BOOK:
             spell = spell.lower().strip() 
             print("{} was in the spell book".format(spell))
-            known_spells.append(SPELL_BOOK[spell])
+            known_spells.append(spell)
         else:
             print("{} was NOT in the spell book".format(spell)) 
             found_all_spells = False 
-    spell_man = SpellManager(spell_slots, att_modifer, att_modifer, dc, known_spells, spell_mod)
+            known_spells.append(spell)
+    
+    spell_man["known spells"] = known_spells 
     return spell_man, found_all_spells 
     
 
@@ -289,7 +296,7 @@ def get_feats_and_spells(special_abil_li, char_json):
     for feat in special_abil_li:
         name = feat["name"].lower().strip() 
         if name in ALL_FEATURES: 
-            features.append(ALL_FEATURES[name])
+            features.append(name)
         elif name == "spellcasting":
             print("spell caster")
             spell_man, has_spell = make_spell_manager(feat["desc"], char_json)
@@ -297,6 +304,7 @@ def get_feats_and_spells(special_abil_li, char_json):
         else: 
             fully_imp = False
             feature_list[feat["name"]] = feat["desc"] 
+            features.append(name)
     
     return features, spell_man, fully_imp 
 
@@ -318,20 +326,22 @@ def json_to_char(dict):
     #monster = Creature(ac = ac, hp = hit_points, speed = speed, name = name, actions = actions)
     immunities = lower_list(dict["damage_immunities"]) 
     resistences = lower_list(dict["damage_resistances"])
+    condition_immunities = dict["condition_immunities"]
 
     if "special_abilities" in dict:
         feats, spell_man, is_impl2 = get_feats_and_spells(dict["special_abilities"], dict)
-        feat_manager = FeatureManager(feats, dict["condition_immunities"])
+        feat_manager = feats
     else: 
-        feat_manager = FeatureManager([], dict["condition_immunities"])
+        feat_manager = []
+        
         spell_man = None 
         is_impl2 = True 
 
     mods = get_mods(dict)
     monster = {"ac":ac, "hp":hit_points, "speed": speed, "actions": actions, "name": name, 
                     "modifiers": mods, "level": challenge_rating, "resistances": resistences, 
-                    "immunities": immunities, "features":feat_manager, "spells": spell_man, 
-                    "fully_impl": is_impl1 and is_impl2}
+                    "immunities": immunities, "features":feat_manager, "condition imun": condition_immunities,
+                    "spells": spell_man, "fully_impl": is_impl1 and is_impl2}
     return monster 
 
 def get_all_from_level(level):

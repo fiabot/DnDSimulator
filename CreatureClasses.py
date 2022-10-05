@@ -198,7 +198,8 @@ class Creature:
         if self.can_act():
             total_actions = [] 
             for action in self.actions:
-                total_actions += action.avail_actions(self, game) 
+                if action is not None: 
+                    total_actions += action.avail_actions(self, game) 
             
             return total_actions
         else:
