@@ -396,3 +396,4 @@ write_features()
 
 file = open("monster_manual.txt", "w")
 file.write(monster_json)
+file.close() 

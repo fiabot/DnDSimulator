@@ -29,7 +29,8 @@ class Modifiers:
 class Creature:
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, level = 0.5, spell_manager = None):
+                    immunities = None, resistences = None, level = 0.5, spell_manager = None, 
+                    makes_death_saves = False):
         """
         Initialize a creature 
         ac = numerical armor class 
@@ -50,6 +51,7 @@ class Creature:
         self.team = team 
         self.actions = actions 
         self.speed = speed 
+        self.makes_death_saves = makes_death_saves
         if actions is None:
             self.actions = [] 
         else:
@@ -165,7 +167,11 @@ class Creature:
         self.features.drop_to_zero(amount, self, game)
         if not self.spell_manager is None: 
             self.spell_manager.remove_concetration(game)
-        if self.hp == 0:
+        
+        if self.makes_death_saves: 
+            if self.hp == 0 and not (self.has_condition(STABLE.name) or self.has_condition(ASLEEP.name) or (not self.is_alive())):
+                self.add_condition(ASLEEP)
+        elif self.hp == 0:
             self.die()
 
     def avail_movement(self, game):
