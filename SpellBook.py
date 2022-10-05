@@ -119,7 +119,7 @@ def ensaring_added_damage_funct(save_type, damage_dice_str, damage_type, name):
     return foo 
 
 # creatures touching cannot save, large creatures don't have advantage, can isn't save when freed  
-ENSARING_STRIKE = AttackBonusSpell(1, "ensaring strike", ensaring_added_damage_funct(STR_STR, "1d6", PIERCING_DAMAGE, "Ensaring Strike"), is_conc=True)
+ENSARING_STRIKE = AttackBonusSpell(1, "ensaring strike", ensaring_added_damage_funct(STR_STR, "1d6", PIERCING_DAMAGE, "ensaring strike"), is_conc=True)
 
 
 def hail_damage_funct(save_type, damage_dice_str, damage_type):

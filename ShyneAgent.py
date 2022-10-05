@@ -185,16 +185,3 @@ class ShyneCreature(Creature):
             print("\tAverage Future Time    : {}".format(times["sim"] / times["inst"]))
             print("Sums: full : {}, copying : {}, future sim: {}".format(times["total"], times["copy"], times["sim"]))
 
-
-if __name__ == "__main__":
-    map = Grid(10, 10, space=1)
-    shyne_wolf = create_creature(ShyneCreature, direWolf)
-    players = [shyne_wolf] + [create_creature(ShyneCreature, direWolf), create_creature(ShyneCreature, direWolf), create_creature(ShyneCreature, direWolf)]
-    rand_wolf = create_creature(AggressiveCreature, direWolf)
-    monsters = [rand_wolf] + [create_creature(AggressiveCreature, direWolf), create_creature(AggressiveCreature, direWolf), create_creature(AggressiveCreature, direWolf)]
-    print(players)
-    game = Game(players, monsters, [(0,0), (1, 0), (2, 0), (3, 0)], [(9,9), (8,9), (7, 9), (6, 9)], map = map)
-
-    game.play_game() 
-    shyne_wolf.display_times() 
-    

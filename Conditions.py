@@ -100,7 +100,7 @@ def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = Tru
         dc and saving type 
         """
 
-        target = game.get_creatures(attack.target)
+        target = game.get_creature(attack.target)
 
 
         damage = Dice(damage_dice_str).roll() 
@@ -111,6 +111,7 @@ def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = Tru
                 return 0 
         else:
             return damage 
+    return foo 
 
 def target_creature_funct(creature_name, damage_dice):
     def foo (condition, attack, creature, game):
