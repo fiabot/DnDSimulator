@@ -113,7 +113,7 @@ class Attack(Action):
         range of attack
         """
 
-        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist) if enemy.is_alive()] 
+        return [enemy for enemy in grid.enemies_in_range(team, position, self.dist) if enemy.hp > 0] 
     
     def avail_actions(self, creature, game):
         actions = [] 

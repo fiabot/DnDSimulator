@@ -41,7 +41,7 @@ wisd = lambda type : type == WIS_STR
 charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
 has_relent = lambda amount, creature, game: not "Relentless Endurance" in creature.game_data 
 prone_saving = lambda type, effect: (type == DEX_STR or type == STR_STR) and effect == PRONE.name
-is_char = lambda type, effect: effect == "charmed" or effect == ASLEEP.name 
+is_char = lambda type, effect: effect == "charmed" 
 death_is_true = lambda amount, creature, game : True
 fortitude_condition = lambda amount, creature, game: creature.saving_throw(CON_STR, "Undead Fortitude") > 5 + amount 
 can_use_gnome_cun = lambda type, effect: effect == "magic" and (type == WIS_STR or type == INT_STR or type == CHAR_STR)

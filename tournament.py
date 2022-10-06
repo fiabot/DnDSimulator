@@ -6,23 +6,6 @@ import random
 import time 
 
 
-
-def make_unqiue(creatures):
-    """
-    make all creatures have 
-    unique names 
-    """
-
-    names = {}
-
-    for creature in creatures: 
-        name = creature.name 
-        if name in names:   
-            creature.name = name + str(names[name]) 
-            names[name] += 1 
-        else:
-            names[name] = 1
-
 def tourament(player_class, monster_class, game_count, manual, min_size = 2, max_size = 5, grid_size = 20, debug = False, round_limit = 20):
     map = Grid(grid_size, grid_size, space = 1)
     results = {PLAYERTEAM:0, MONSTERTEAM:0, TIE:0, INCOMPLETE:0}

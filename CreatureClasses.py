@@ -88,6 +88,7 @@ class Creature:
                     if (act.hit_dice.expected_value() > self.op_attack.hit_dice.expected_value()):
                         self.op_attack = act 
         self.has_reaction = True 
+        self.damage_taken = 0 
 
     def change_ac(self, new_ac):
         self.game_data["base ac"] = self.ac 
@@ -137,15 +138,17 @@ class Creature:
         """
         deal damage to creature 
         """
-        if not type in self.immunities:
-            if type in self.resistances:
-                amount = amount // 2 
-            self.hp -= amount
+        if self.hp > 0:
+            if not type in self.immunities:
+                if type in self.resistances:
+                    amount = amount // 2 
+                self.hp -= amount
+                self.damage_taken += amount 
 
-            if not self.spell_manager is None:
-                self.spell_manager.take_damage(amount, self, game)
-            if self.hp <= 0: 
-                self.zero_condition(amount, game) 
+                if not self.spell_manager is None:
+                    self.spell_manager.take_damage(amount, self, game)
+                if self.hp <= 0: 
+                    self.zero_condition(amount, game) 
     
     def roll_initiative(self):
         """
@@ -163,16 +166,19 @@ class Creature:
         player they should fall unconcious
         and start making death saves 
         """
+        
         self.hp = 0 # there is not negative HP 
         self.features.drop_to_zero(amount, self, game)
         if not self.spell_manager is None: 
             self.spell_manager.remove_concetration(game)
         
-        if self.makes_death_saves: 
+        if self.makes_death_saves:
             if self.hp == 0 and not (self.has_condition(STABLE.name) or self.has_condition(ASLEEP.name) or (not self.is_alive())):
                 self.add_condition(ASLEEP)
+            self.hp = 0 
         elif self.hp == 0:
             self.die()
+          
 
     def avail_movement(self, game):
         """
@@ -228,6 +234,7 @@ class Creature:
         """
 
         self.hp = self.max_hp
+        self.damage_taken = 0 
         self.features.reset_conditions() 
         if "base ac" in self.game_data:
             self.ac = self.game_data["base ac"]

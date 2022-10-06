@@ -90,7 +90,6 @@ class FeatureManager:
         if DAMAGE_STR in self.features:
             
             for feat in self.features[DAMAGE_STR]:
-                print(feat.name)
                 if feat.condition(attack, creature, game):
                     
                     added_damage += feat.damage_added(attack, creature, game) 
@@ -143,7 +142,6 @@ class FeatureManager:
     def drop_to_zero(self, amount, creature, game):
         if DEATH_STR in self.features:
             for feat in self.features[DEATH_STR]: 
-                print(feat.name)
                 if feat.condition(amount, creature, game):
                     feat.effect(amount, creature, game) 
     
@@ -193,6 +191,11 @@ class FeatureManager:
             self.conditions.append(condition)
             if not condition.on_added is None: 
                 condition.on_added(creature)
+        elif debug and condition.name in self.condition_immunities:
+            print("Couldn't add condition {} because it's in condition immunties".format(condition.name))
+        elif debug and condition.name in [condition.name for condition in self.conditions]:
+            print("Couldn't add condition {} because it was already added".format(condition.name))
+
 
     def remove_condition(self, condition_name):
         removed = False 

@@ -64,6 +64,7 @@ def death_save(condition, creature, game):
     roll = Dice("1d20").roll() 
         
     if (roll >= 10):
+        
         if (SAVES_STR in creature.game_data):
             creature.game_data[SAVES_STR] += 1 
         else: 
@@ -78,16 +79,19 @@ def death_save(condition, creature, game):
         else:
             return False 
     else:
+        
         if (FAIL_STR in creature.game_data):
                 creature.game_data[FAIL_STR] += 1 
         else: 
             creature.game_data[FAIL_STR] = 1 
+        
         
         if roll == 1:
             creature.game_data[FAIL_STR] += 1 
         
         if creature.game_data[FAIL_STR] >= 3:
             creature.add_condition(DEAD)
+
             return True 
         else:
             return False 

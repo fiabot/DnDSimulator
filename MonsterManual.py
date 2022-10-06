@@ -75,6 +75,22 @@ ghoul_mods = {DEX_STR: 2, CON_STR: 0, STR_STR: 1, CHAR_STR: -2, INT_STR: -2, WIS
 ghoul = {"ac":12, "hp":22, "speed":3, "actions":[midbite, claws], "name":"ghoul", 
                 "modifiers": Modifiers(2, ghoul_mods, ghoul_mods), 
                 "features" : FeatureManager(condition_immunities= [POSIONED.name]), "level": 1}"""
+def make_unqiue(creatures):
+    """
+    make all creatures have 
+    unique names 
+    """
+
+    names = {}
+
+    for creature in creatures: 
+        name = creature.name 
+        if name in names:   
+            creature.name = name + str(names[name]) 
+            print(names)
+            names[name] += 1 
+        else:
+            names[name] = 1
 
 def create_creature(agent_class, creat_dict):
     """

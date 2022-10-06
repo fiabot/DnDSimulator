@@ -64,7 +64,12 @@ class ShyneCreature(Creature):
             if (creature.team == team and equal) or (creature.team != team and (not equal)):
                 max_hp += creature.max_hp 
                 cur_hp += creature.hp 
-        return cur_hp / max_hp 
+        if max_hp == 0:
+            print("ZERO ERROR")
+            for creature in creatures:
+                print("CREATURE: {} with hp {}".format(creature.name, creature.max_hp))
+        else:
+            return cur_hp / max_hp 
 
     
     def static_evaluator(self, game):

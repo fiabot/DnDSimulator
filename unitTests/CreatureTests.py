@@ -52,6 +52,7 @@ class TestCreature(unittest.TestCase):
         monster = Creature(ac = 12, hp = 20, speed = 1, name = "Monster")
         monster.add_condition(RESTRAINED)
         self.assertEqual(1, len(monster.features.conditions))
+        self.assertTrue(monster.has_condition(RESTRAINED.name))
 
         # can't add a condition twice 
         monster.add_condition(RESTRAINED)
@@ -136,6 +137,34 @@ class TestCreature(unittest.TestCase):
         # far away (no actions)
         game.map.move_piece(monster, (9,9))
         self.assertEqual(0, len(sword.avail_actions(player, game)))
+
+
+    def test_death_saves(self):
+        creature = Creature(12, 20, 0, makes_death_saves= True)
+        
+        game = Game([creature], [], [(0,0)], [(0,0)], map = Grid(5,5))
+        creature.damage(100, SLASHING_DAMAGE, game)
+        self.assertTrue(creature.has_condition(ASLEEP.name))
+
+        while creature.has_condition(ASLEEP.name):
+            if FAIL_STR in creature.game_data: 
+                print("FAILS:" , creature.game_data[FAIL_STR])
+                self.assertTrue(creature.game_data[FAIL_STR] < 3)
+            
+            if SAVE_STR in creature.game_data: 
+                print("SUCCS:", creature.game_data[SAVE_STR])
+                self.assertTrue(creature.game_data[SAVE_STR] < 3)
+            self.assertTrue(creature.features.is_alive())
+            self.assertFalse(creature.features.can_act())
+            self.assertFalse(creature.features.can_move())
+            
+            creature.end_of_turn(game)
+        
+        
+        
+        self.assertTrue((not creature.features.is_alive()) or creature.has_condition(STABLE.name))
+
+            
 
 
 

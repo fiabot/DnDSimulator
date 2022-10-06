@@ -1,4 +1,5 @@
 from copy import deepcopy
+import copy
 import random
 
 
@@ -397,6 +398,9 @@ class Game():
         self.player_pos = player_pos 
         self.monster_pos = monster_pos 
         self.create_dict() 
+        self.games_played = 0
+        self.stat_log = [] 
+        self.stats = {"success": 0, "total damage" : 0, "ending health": 0, "deaths": 0} 
 
         self.reset() 
 
@@ -466,6 +470,7 @@ class Game():
         while defeated and i < len(party):
             if party[i].can_act() or party[i].can_move():
                 defeated = False 
+
             i += 1 
         
         return defeated 
@@ -517,6 +522,8 @@ class Game():
         self.order = self.roll_initiative() 
         self.turn = 0 
         self.round = 0 
+        self.turn_log = [] 
+        
     
     def create_copy(self):
         new_game = deepcopy(self)
@@ -556,7 +563,7 @@ class Game():
         else:
             return INCOMPLETE 
         
-    def next_turn(self, creature, action, debug = False):
+    def next_turn(self, creature, action, debug = False, log = False):
         """
         complete a turn given a creature 
         and an action
@@ -588,10 +595,44 @@ class Game():
                 print("\n")
                 self.display_health()
                 print("\n")
+            if log:
+                self.turn_log.append([self.round, creature.name, action[0], action[1].name, str(self.map)])
 
             self.map.clear_dead() 
+    def get_damage_stats(self):
+        max_health = 0 
+        total_damage = 0 
+        current_health = 0 
+        deaths = 0 
 
-    def play_game(self, round_limit = 50, debug = False):
+        for player in self.players:
+            max_health += player.max_hp 
+            total_damage += player.damage_taken 
+            current_health += player.hp 
+            if not player.features.is_alive():
+                deaths += 1 
+        
+        return total_damage / max_health , current_health / max_health, deaths 
+   
+    def set_stats(self, winner, log = True):
+        if winner == PLAYERTEAM:
+            self.stats["success"] += 1 
+        damage, health, deaths  = self.get_damage_stats()
+        self.stats["total damage"] += damage 
+        self.stats["ending health"] += health 
+        self.stats["deaths"] += deaths 
+
+        if log:
+            self.stat_log.append(copy.copy(self.stats))
+
+    def get_average_stats(self):
+        ave_stats = {}
+        for key in self.stats:
+            ave_stats[key] = self.stats[key] / self.games_played
+        
+        return ave_stats
+
+    def play_game(self, round_limit = 50, debug = False, log = True):
         self.reset() 
 
         if debug:
@@ -600,9 +641,12 @@ class Game():
         while self.get_winner() == INCOMPLETE and self.round < round_limit:
             creature = self.update_init() 
             action = creature.turn(game = self) 
-            self.next_turn(creature, action, debug) 
+            self.next_turn(creature, action, debug, log) 
         
         winner = self.get_winner() 
+        self.games_played += 1 
+
+        self.set_stats(winner, log)
         
         return winner, self.round  
 
