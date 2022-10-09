@@ -20,14 +20,13 @@ monster_dict = json.loads(reponse.text)
 special_spell_man = {}
 
 
-
-special_spell_man["fire breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+special_spell_man["fire breath (recharge 6)"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
                             'spell slots': 6, 'known spells': ['fire breath']}
-special_spell_man["frost breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+special_spell_man["frost breath (recharge 6)"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
                             'spell slots': 6, 'known spells': ['frost breath']}
-special_spell_man["steam breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+special_spell_man['steam breath (recharge 6)'] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
                             'spell slots': 6, 'known spells': ['steam breath']}
-special_spell_man["blinding breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+special_spell_man["blinding breath (recharge 6)"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
                             'spell slots': 6, 'known spells': ['blinding breath']}
 special_spell_man["breath weapons"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
                             'spell slots': 6, 'known spells': ['acid breath', "sleep breath", "slowing breath"]}
@@ -155,10 +154,6 @@ def make_spell_manager(description, char_json):
     return spell_man, found_all_spells 
     
 
-
-
-
-
 def make_two_ranged_weapon(act_json):
     small_damage_str = "0d4"
     large_damage_str = "0d4"
@@ -194,6 +189,8 @@ def get_actions(li):
             # different damage for range 
             elif "damage" in act_json and "choose" in act_json["damage"][0]: 
                 attack = make_two_ranged_weapon(act_json)
+            
+            # special kind of attack 
             elif act_json["name"].lower() in special_spell_man:
                 spell_mang = special_spell_man[act_json["name"].lower()]
             # other kind of attack 
@@ -237,6 +234,10 @@ def get_actions(li):
                         choice_names += ([choice["action_name"]] * choice["count"])
                     choices.append(choice_names)
                 multi_attack_choices.append(choices) 
+        
+        # other kinds of special attacks 
+        elif act_json["name"].lower() in special_spell_man:
+                spell_mang = special_spell_man[act_json["name"].lower()]
         # other kind of attack 
         else: 
             actions_list.append(act_json) 
