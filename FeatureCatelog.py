@@ -38,16 +38,17 @@ def friend_non_incapac(attack, attacker, game):
     
 
 wisd = lambda type : type == WIS_STR 
-charm_fright = lambda type, effect: effect == "charmed" or effect == "frightened"
+charm_fright = lambda type, effect, is_magic = False: effect == "charmed" or effect == "frightened"
 has_relent = lambda amount, creature, game: not "Relentless Endurance" in creature.game_data 
-prone_saving = lambda type, effect: (type == DEX_STR or type == STR_STR) and effect == PRONE.name
-is_char = lambda type, effect: effect == "charmed" 
+prone_saving = lambda type, effect, is_magic = False: (type == DEX_STR or type == STR_STR) and effect == PRONE.name
+is_char = lambda type, effect, is_magic =False: effect == "charmed" 
 death_is_true = lambda amount, creature, game : True
 fortitude_condition = lambda amount, creature, game: creature.saving_throw(CON_STR, "Undead Fortitude") > 5 + amount 
-can_use_gnome_cun = lambda type, effect: effect == "magic" and (type == WIS_STR or type == INT_STR or type == CHAR_STR)
-can_use_two_header = lambda type, effect: type == WIS_STR.name 
-can_use_drug = lambda type, effect: effect == POSIONED.name or effect == PARALYZED.name or effect == "magic"
-is_fright = lambda type, effect: effect == "frightened"
+can_use_gnome_cun = lambda type, effect, is_magic = False: effect == "magic" and (type == WIS_STR or type == INT_STR or type == CHAR_STR)
+can_use_two_header = lambda type, effect, is_magic = False: type == WIS_STR.name 
+can_use_drug = lambda type, effect, is_magic = False: effect == POSIONED.name or effect == PARALYZED.name or effect == "magic"
+is_fright = lambda type, effect, is_magic = False: effect == "frightened"
+can_cunning = lambda type, effect, is_magic = False: is_magic and (type == WIS_STR or type == CHAR_STR or type == INT_STR)
 def create_damage_less_than(value):
     def foo(amount, creature, game):
         return amount < value
@@ -126,10 +127,12 @@ MARTIAL_ADVANTAGE = DamageFeature("matrial advantage", friend_non_incapac, bonus
 TWO_HEADED = SavingThrowFeature("two-header", can_use_two_header, 1, 0)
 DUERGAR_RESIL = SavingThrowFeature("duergar resilience", can_use_drug, 1, 0)
 BRAVE = SavingThrowFeature("brave", is_fright, 1, 0)
+GNOME_CUNNING = SavingThrowFeature("gnome cunning", can_use_gnome_cun, 1, 0)
+FEY_ANCESTORY = SavingThrowFeature("fey ancestory", is_char, 1, 0)
 
 feature_list = [SNEAK_ATTACK, DARK_DEVOTION , RELENTLESS_ENDUR, CHARGE, RAMPAGE, PACK_TACTICS, RELENTLESS, 
                 TRAMPLING_CHARGE, SURE_FOOTED, POUNCE, DEATH_BURST, UNDEAD_FORTITUDE, MARTIAL_ADVANTAGE , 
-                  TWO_HEADED , DUERGAR_RESIL, BRAVE]
+                  TWO_HEADED , DUERGAR_RESIL, BRAVE, GNOME_CUNNING]
 
 ALL_FEATURES = {} 
 

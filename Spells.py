@@ -69,7 +69,7 @@ class SpellManager():
             self.concetrated_spell = spell 
 
     def take_damage(self, damage ,creature, game):
-        save = creature.saving_throw(CON_STR, LOOSING_CON_EFFECT)
+        save = creature.saving_throw(CON_STR, LOOSING_CON_EFFECT, is_magic = True)
 
         if save < max(10,  damage // 2): 
             self.remove_concetration(game)
@@ -220,7 +220,7 @@ class SaveAttackSpell(AttackSpell):
                     
                 damage = self.damage_dice.roll() + attacker.get_added_damage(self, game, debug)
 
-                if target.saving_throw(self.save_type, self.type) < self.save_dc: 
+                if target.saving_throw(self.save_type, self.type, is_magic = True) < self.save_dc: 
                     target.damage(damage, self.damage_type,game)
 
                     for effect in self.side_effects:
@@ -299,7 +299,7 @@ class AreaSpell(Spell):
 
                         damage = self.damage_dice.roll() + caster.get_added_damage(self, game, debug)
 
-                        if target.saving_throw(self.save_type, self.type) < self.save_dc: 
+                        if target.saving_throw(self.save_type, self.type, is_magic = True) < self.save_dc: 
                             target.damage(damage, self.damage_type,game)
 
                             for effect in self.side_effects:

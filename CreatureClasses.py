@@ -250,12 +250,12 @@ class Creature:
         """
         return self.features.get_skill_dice(type, self).roll() 
     
-    def saving_throw(self, type, effect):
+    def saving_throw(self, type, effect, is_magic = False):
         """
         Roll a skill check using 
         any features 
         """
-        return self.features.get_save_dice(type, effect, self).roll() 
+        return self.features.get_save_dice(type, effect, self, is_magic = False).roll() 
 
     def can_act(self):
         return self.features.can_act() 

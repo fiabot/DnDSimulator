@@ -106,19 +106,19 @@ class FeatureManager:
             
         return added_damage 
     
-    def get_save_dice(self, type, effect, creature): 
+    def get_save_dice(self, type, effect, creature, is_magic = False): 
         if (self.does_throw_fail(type, effect)):
             return FailDice()
         else: 
-            mod = creature.modifiers.get_save_mod(type) + self.condition_throw_mod(type, effect)
+            mod = creature.modifiers.get_save_mod(type) + self.condition_throw_mod(type, effect, is_magic)
             advantage = 0 
             if SAVE_STR in self.features:
                 for feat in self.features[SAVE_STR]:
-                    if feat.condition(type, effect):
+                    if feat.condition(type, effect, is_magic):
                         mod += feat.modifier_granted 
                         advantage += feat.advantage_granted 
             
-            advantage += self.condition_throw_advantage(type, effect)
+            advantage += self.condition_throw_advantage(type, effect, is_magic)
 
                 
             return Dice(make_dice_string(1, 20, mod), advantage) 
@@ -239,26 +239,26 @@ class FeatureManager:
             i += 1 
         return fail 
     
-    def condition_throw_advantage(self, type, effect = None):
+    def condition_throw_advantage(self, type, effect = None, is_magic = False):
         ad = 0 
         i = 0
         while ad == 0 and i < len(self.conditions):
             cond = self.conditions[i]
 
             if (not cond.throw_advantage is None):
-                ad = cond.throw_advantage(type, effect)
+                ad = cond.throw_advantage(type, effect, is_magic)
 
             i += 1 
         return ad 
 
-    def condition_throw_mod(self, type, effect):
+    def condition_throw_mod(self, type, effect, is_magic = False):
         extra = 0 
         i = 0
         while extra == 0 and i < len(self.conditions):
             cond = self.conditions[i]
 
             if (not cond.throw_extra is None):
-                extra = cond.throw_extra(type, effect)
+                extra = cond.throw_extra(type, effect, is_magic)
                 if cond.use_once:
                     self.remove_condition(cond.name)
 

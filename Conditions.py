@@ -7,7 +7,7 @@ from DnDToolkit import *;
 class Condition:
     def __init__(self, name, can_act, can_move, is_alive, attack_advantage = 0, defense_advantage = 0,
                 on_added = None, end_of_turn = None, get_avail_moves = None, does_throw_fail = None, 
-                throw_advantage = None, throw_extra = None, does_attack_fail = None, added_damage = None, use_once = False):
+                throw_advantage = None, throw_extra = None, does_attack_fail = None, added_damage = None, use_once = False, is_magic = False):
         self.name = name 
         self.can_act = can_act
         self.can_move = can_move 
@@ -23,6 +23,7 @@ class Condition:
         self.added_damage = added_damage
         self.use_once = use_once
         self.throw_extra = throw_extra
+        self.is_magic = False 
     
     def add_end_of_turn(self, end_funct):
         new_condition = deepcopy(self)
@@ -37,14 +38,14 @@ class Condition:
     def __str__(self):
         return "{} Condition".format(self.name)
 
-def create_save_funct(save_type, save_dc):
+def create_save_funct(save_type, save_dc, is_magic = False):
     def save_throw(condition, creature, game):
-        throw = creature.saving_throw(save_type, condition)
+        throw = creature.saving_throw(save_type, condition, is_magic)
         return throw > save_dc 
     return save_throw 
 
 def create_save_dis(save_type):
-    def throw_advantage(type, effect):
+    def throw_advantage(type, effect, is_magic):
         if type == save_type: 
             return -1 
         else: 
@@ -128,7 +129,7 @@ def target_creature_funct(creature_name, damage_dice):
 def added_saving_throw(dice_str):
     dice = Dice(dice_str)
 
-    def throw_extra(type, effect):
+    def throw_extra(type, effect, is_magic):
         return dice.roll() 
     return throw_extra 
 

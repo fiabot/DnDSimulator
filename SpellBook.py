@@ -107,7 +107,7 @@ def ensaring_added_damage_funct(save_type, damage_dice_str, damage_type, name):
         target = game.get_creature(attack.target)
 
 
-        if create_save_funct(save_type, save_dc)(condtion.name, target, game):
+        if create_save_funct(save_type, save_dc, is_magic=True)(condtion.name, target, game):
                 return 0 
         else:
             dice = Dice(damage_dice_str)
@@ -146,7 +146,7 @@ def hail_damage_funct(save_type, damage_dice_str, damage_type):
 
         for creature in creatures_in_range:
             damage = dice.roll() 
-            if create_save_funct(save_type, save_dc)(condtion.name, creature, game):
+            if create_save_funct(save_type, save_dc, is_magic=True)(condtion.name, creature, game):
                     creature.damage(damage//2, damage_type, game)
             else:
                 creature.damage(damage, damage_type, game)
