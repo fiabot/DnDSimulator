@@ -46,8 +46,6 @@ Stone Camouflage : The gnome has advantage on Dexterity (Stealth) checks made to
 
 Keen Senses : The pseudodragon has advantage on Wisdom (Perception) checks that rely on sight, hearing, or smell. 
 
-Magic Resistance : The quasit has advantage on saving throws against spells and other magical effects. 
-
 Limited Telepathy : The pseudodragon can magically communicate simple ideas, emotions, and images telepathically with any creature within 100 ft. of it that can understand a language. 
 
 Swarm : The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny quipper. The swarm can't regain hit points or gain temporary hit points. 
@@ -55,8 +53,6 @@ Swarm : The swarm can occupy another creature's space and vice versa, and the sw
 Undead Fortitude : If damage reduces the zombie to 0 hit points, it must make a Constitution saving throw with a DC of 5+the damage taken, unless the damage is radiant or from a critical hit. On a success, the zombie drops to 1 hit point instead. 
 
 Hold Breath : While out of water, the octopus can hold its breath for 1 hour. 
-
-Gnome Cunning : The gnome has advantage on Intelligence, Wisdom, and Charisma saving throws against magic. 
 
 Water Breathing : The swarm can breathe only underwater. 
 
@@ -86,8 +82,6 @@ Shadow Stealth : While in dim light or darkness, the shadow can take the Hide ac
 Sunlight Weakness : While in sunlight, the shadow has disadvantage on attack rolls, ability checks, and saving throws. 
 
 Trampling Charge : If the horse moves at least 20 ft. straight toward a creature and then hits it with a hooves attack on the same turn, that target must succeed on a DC 14 Strength saving throw or be knocked prone. If the target is prone, the horse can make another attack with its hooves against it as a bonus action. 
-
-Brute : A melee weapon deals one extra die of its damage when the bugbear hits with it (included in the attack). 
 
 Surprise Attack : If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6) damage from the attack. 
 

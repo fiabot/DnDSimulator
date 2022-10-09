@@ -20,6 +20,9 @@ Attack
     Ray of Sickness ← attack with save 
     Fire Bolt 
     Ray of Frost  
+
+    special monster effect:
+    Web 
     """
 
 MAGIC_MISSILE = AttackSpell(1, 100, "3d4 + 3", 120, RANGED, FORCE_DAMAGE, name = "magic missile") # hits automatically, should cast three seperate missiles 
@@ -36,6 +39,8 @@ sickness_effect = POSIONED.add_end_of_turn(removed_at_end)
 RAY_OF_SICKNESS = AttackSpell(1, 2, "2d8", 6, attack_type= RANGED, 
             damage_type= POISON_DAMAGE, side_effects= [(SideEffect(sickness_effect, True, CON_STR, 12))], name = "ray of sickness")
 
+web_effect = RESTRAINED.add_end_of_turn(create_save_funct(STR_STR, 12, True))
+WEB = AttackSpell(0, 5, "0d0", 3, RANGED, PIERCING_DAMAGE, name = "web", side_effects= [SideEffect(web_effect, False)])
 """
 Attack with save 
     Tasha’s Hideous Laughter 
@@ -58,13 +63,31 @@ POISON_SPRAY = SaveAttackSpell(0, CON_STR, None, "1d12", 1, half_if_saved= True,
 Area of Effect 
     Arms of Hadar <- area of effect damage 
     Burning Hands <- area of effect damage 
-    Thunderwave < - damage to area and moved 
+    Thunderwave < - damage to area and moved \
+
+    Breath weapons: 
+    Steam Breath (Recharge 6) 
+    Frost Breath (Recharge 6) 
+    Fire Breath (Recharge 6)
+    Breath Weapons
+
 
 """
 ARMS_OF_HADAR = AreaSpell(1, "arms of hadar", STR_STR, None, "2d6", NECROTIC, 1, half_on_save= True) # can't take reactions 
 BURNING_HANDS = AreaSpell(1, "burning hands", DEX_STR, None, "3d6", FIRE_DAMAGE, 2, half_on_save= True) # sets other stuff on fire 15 feet 
 THUNDERWAVE = AreaSpell(1, "thunder wave", CON_STR, None, "2d8", THUNDER, 2, half_on_save= True) #15 feet, creature is pushed away from you 
 
+
+STEAM_BREATH = AreaSpell(1, "Steam Breadth", DEX_STR, 10, "1d8", FIRE_DAMAGE, 2, half_on_save= True)
+FROST_BREATH = AreaSpell(1, "frost breath", DEX_STR, 10, "2d4", COLD_DAMAGE, 15, half_on_save= True)
+FIRE_BREATH = AreaSpell(1, "fire breath", DEX_STR, 11, "2d6", FIRE_DAMAGE, 2, half_on_save=True)
+ACID_BREATH = AreaSpell(1, "acid breath", DEX_STR, 11, "4d8", ACID_DAMAGE, 2, half_on_save= True)
+BLINDING_BREATH = AreaSpell(1, "blinding breath", DEX_STR, 10, "0d0", FIRE_DAMAGE, 2, 
+                                side_effects=[ SideEffect (BLINDED.add_end_of_turn(create_save_funct(DEX_STR, 10, True)), False) ] ) 
+
+slow_effect = PRONE.add_end_of_turn(create_save_funct(DEX_STR, 11, True))
+SLOWING_BREATH = AreaSpell(1, "slowing breath", DEX_STR, 11, "0d0",  FIRE_DAMAGE, 2, 
+                        side_effects=[SideEffect(slow_effect, False)])
 
 """
 
@@ -198,7 +221,8 @@ spell_list = [RESISTANCE, BLESS, FALSE_LIFE, ARMOR_OF_AGATHYS, MAGE_ARMOR, HUNTE
                         HEX, HAIL_OF_THRONS, ENSARING_STRIKE , THUNDERWAVE , BURNING_HANDS, ARMS_OF_HADAR, 
                         POISON_SPRAY, DISSONANT_WHISPERS,VICIOUS_MOCKERY, ACID_SPLASH, TASHAS_HIDEOUS_LAUGHTER, RAY_OF_SICKNESS,
                          MAGIC_MISSILE, WITCH_BOLT, CHILL_TOUCH, THORN_WHIP , PRODUCE_FLAME, SHOCKING_GRASP, 
-                        CHROMATIC_ORB, FIRE_BOLT, RAY_OF_FROST, CURE_WOUNDS, HEALING_WORD] 
+                        CHROMATIC_ORB, FIRE_BOLT, RAY_OF_FROST, CURE_WOUNDS, HEALING_WORD, STEAM_BREATH, FROST_BREATH,
+                        FIRE_BREATH, ACID_BREATH, BLINDING_BREATH, WEB] 
 
 SPELL_BOOK = {}
 

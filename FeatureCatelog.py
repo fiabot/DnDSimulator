@@ -35,7 +35,7 @@ def friend_non_incapac(attack, attacker, game):
             except: 
                 pass 
         i += 1 
-    
+damage_is_true = lambda attack, attacker, game: True   
 
 wisd = lambda type : type == WIS_STR 
 charm_fright = lambda type, effect, is_magic = False: effect == "charmed" or effect == "frightened"
@@ -49,6 +49,7 @@ can_use_two_header = lambda type, effect, is_magic = False: type == WIS_STR.name
 can_use_drug = lambda type, effect, is_magic = False: effect == POSIONED.name or effect == PARALYZED.name or effect == "magic"
 is_fright = lambda type, effect, is_magic = False: effect == "frightened"
 can_cunning = lambda type, effect, is_magic = False: is_magic and (type == WIS_STR or type == CHAR_STR or type == INT_STR)
+is_magic = lambda type, effect, is_magic = False: is_magic 
 def create_damage_less_than(value):
     def foo(amount, creature, game):
         return amount < value
@@ -70,6 +71,13 @@ def bonus_damage (dice_string):
     def damage_added (attack,attacker, game):
         return Dice(dice_string).roll() 
     return damage_added 
+
+def one_more_dice(attack, attacker, game):
+    if not attack.hit_dice is None: 
+        dice = Dice(make_dice_string(1, attack.hit_dice.type, 0))
+        return dice.roll() 
+    else:
+        return 0
 
 def create_does_charge(dist):
     def does_charge(attack, attacker, game): 
@@ -129,10 +137,12 @@ DUERGAR_RESIL = SavingThrowFeature("duergar resilience", can_use_drug, 1, 0)
 BRAVE = SavingThrowFeature("brave", is_fright, 1, 0)
 GNOME_CUNNING = SavingThrowFeature("gnome cunning", can_use_gnome_cun, 1, 0)
 FEY_ANCESTORY = SavingThrowFeature("fey ancestory", is_char, 1, 0)
+MAGIC_REISTANCE = SavingThrowFeature("magic resistance", is_magic, 1, 0)
+BRUTE = DamageFeature("brute", damage_is_true, added_damage_funct)
 
 feature_list = [SNEAK_ATTACK, DARK_DEVOTION , RELENTLESS_ENDUR, CHARGE, RAMPAGE, PACK_TACTICS, RELENTLESS, 
                 TRAMPLING_CHARGE, SURE_FOOTED, POUNCE, DEATH_BURST, UNDEAD_FORTITUDE, MARTIAL_ADVANTAGE , 
-                  TWO_HEADED , DUERGAR_RESIL, BRAVE, GNOME_CUNNING]
+                  TWO_HEADED , DUERGAR_RESIL, BRAVE, GNOME_CUNNING, MAGIC_REISTANCE, BRUTE]
 
 ALL_FEATURES = {} 
 

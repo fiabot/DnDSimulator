@@ -17,8 +17,23 @@ actions_list = []
 
 monster_dict = json.loads(reponse.text)
 
+special_spell_man = {}
 
 
+
+special_spell_man["fire breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+                            'spell slots': 6, 'known spells': ['fire breath']}
+special_spell_man["frost breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+                            'spell slots': 6, 'known spells': ['frost breath']}
+special_spell_man["steam breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+                            'spell slots': 6, 'known spells': ['steam breath']}
+special_spell_man["blinding breath"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+                            'spell slots': 6, 'known spells': ['blinding breath']}
+special_spell_man["breath weapons"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+                            'spell slots': 6, 'known spells': ['acid breath', "sleep breath", "slowing breath"]}
+
+special_spell_man["web"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
+                            'spell slots': 1, 'known spells': ['web']}
 
 def get_speed(speed_str):
     speed = int(speed_str[:speed_str.find(" ")])
@@ -163,6 +178,7 @@ def get_actions(li):
     multi_attacks = [] 
     multi_attack_choices = [] 
     is_impl = True 
+    spell_mang = None 
     for act_json in li: 
         # is damage attack 
         if "attack_bonus" in act_json:
@@ -178,6 +194,8 @@ def get_actions(li):
             # different damage for range 
             elif "damage" in act_json and "choose" in act_json["damage"][0]: 
                 attack = make_two_ranged_weapon(act_json)
+            elif act_json["name"].lower() in special_spell_man:
+                spell_mang = special_spell_man[act_json["name"].lower()]
             # other kind of attack 
             else:
                 actions_list.append(act_json) 
@@ -249,7 +267,7 @@ def get_actions(li):
             action = MultiAttack(acts)
             actions.append(action) 
             
-    return actions, is_impl 
+    return actions, spell_mang,  is_impl 
 
 def score_to_mod(score):
     """
@@ -321,7 +339,7 @@ def json_to_char(dict):
     else:
         speed = 0
 
-    actions, is_impl1 = get_actions(dict["actions"])
+    actions, spell_man1, is_impl1 = get_actions(dict["actions"])
     challenge_rating = float(dict["challenge_rating"]) 
     #monster = Creature(ac = ac, hp = hit_points, speed = speed, name = name, actions = actions)
     immunities = lower_list(dict["damage_immunities"]) 
@@ -329,13 +347,21 @@ def json_to_char(dict):
     condition_immunities = dict["condition_immunities"]
 
     if "special_abilities" in dict:
-        feats, spell_man, is_impl2 = get_feats_and_spells(dict["special_abilities"], dict)
+        feats, spell_man2, is_impl2 = get_feats_and_spells(dict["special_abilities"], dict)
         feat_manager = feats
     else: 
         feat_manager = []
         
-        spell_man = None 
+        spell_man2 = None 
         is_impl2 = True 
+
+    # hopefully there is not spells in both features and actiona 
+    if spell_man2 is None and spell_man1 is None:
+        spell_man = None
+    elif not spell_man1 is None:
+        spell_man = spell_man1
+    else:
+        spell_man = spell_man2
 
     mods = get_mods(dict)
     monster = {"ac":ac, "hp":hit_points, "speed": speed, "actions": actions, "name": name, 
