@@ -75,15 +75,19 @@ class Attack(Action):
             # roll attack applying any special features 
             
             self.hit_dice = Dice(make_dice_string(1, 20, self.hit_bonus))
-            hit = attacker.get_hit_dice(self, game, debug).roll() 
+            hit, nat_hit = attacker.get_hit(self, game, debug)
 
             if debug:
                 print("{} rolled a {} to hit {} with {}".format(attacker.name, hit, target.name, self.name ))
 
             # if hit succeeds, deal damage 
             if hit >= target.ac: 
-                
-                damage = self.damage_dice.roll() + attacker.get_added_damage(self, game, debug)
+                if nat_hit == 20:
+                    dice = Dice(make_dice_string(self.damage_dice.amount * 2, self.damage_dice.type, self.damage_dice.modifer),
+                                 self.damage_dice.default_advantage)
+                else:
+                    dice = self.damage_dice 
+                damage = dice.roll() + attacker.get_added_damage(self, game, debug)
                 target.damage(damage, self.damage_type,game)
                  
                 for effect in self.side_effects:
@@ -197,7 +201,7 @@ class TwoHanded(Attack):
             # roll attack applying any special features 
             
             self.hit_dice = Dice(make_dice_string(1, 20, self.hit_bonus))
-            hit = attacker.get_hit_dice(self, game, debug).roll() 
+            hit, nat_hit  = attacker.get_hit(self, game, debug)
 
             if debug:
                 print("{} rolled a {} to hit {} with {}".format(attacker.name, hit, target.name, self.name ))
@@ -206,13 +210,20 @@ class TwoHanded(Attack):
             if hit >= target.ac: 
                 # find if it was one handed or two 
                 if game.map.distance(target.position, attacker.position) > self.close_range:
+                    dice = None 
                     if debug:
                         print("Making a one handed attack")
-                    damage = self.small_damage.roll() + attacker.get_added_damage(self, game, debug)
+                    dice = self.small_damage
                 else: 
                     if debug:
                         print("Making a two handed attack")
-                    damage = self.large_damage.roll() + attacker.get_added_damage(self, game, debug)
+                    dice = self.large_damage
+
+                # double dice on nat 20 
+                if nat_hit == 20:
+                    dice = Dice(make_dice_string(dice.amount * 2, dice.type, dice.modifier), dice.default_advantage)
+                
+                damage = dice.roll() + attacker.get_added_damage(self, game, debug)
                 target.damage(damage, self.damage_type,game)
                  
                 for effect in self.side_effects:

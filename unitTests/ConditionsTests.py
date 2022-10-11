@@ -8,6 +8,7 @@ from CreatureClasses import *
 from Spells import * 
 from Conditions import * 
 from Features import * 
+from FeatureCatelog import * 
 
 class TestCondition(unittest.TestCase):
     def test_added_damage(self):
@@ -78,6 +79,20 @@ class TestCondition(unittest.TestCase):
         monster.add_condition(extra_save_one)
         self.assertLess(21, monster.saving_throw(DEX_STR, PRONE.name))
         self.assertGreater(21, monster.saving_throw(DEX_STR, PRONE.name))
+
+    def lucky(self):
+        attack = Attack(20, "0d20", 3) 
+        hit_dice = Dice("1d20", 4)
+
+        player = Creature(12, 30, 3, name = "Player", actions = [attack])
+        monster = Creature(12, 30, 3, name="Monster")
+
+        grid = Grid(5,5)
+        game = Game([player], [monster], [(0,0)], [(1, 1)], grid)
+
+        self.assertGreater(LUCKY.new_hit(4, hit_dice, attack, player, game), 4) 
+
+        
 
         
 

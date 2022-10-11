@@ -116,7 +116,24 @@ def death_burst_fun(amount, creature, game):
         else:
             piece.damage(roll // 2, FIRE_DAMAGE)
 
-        
+def re_roll_below(re_roll_value):
+    def foo (hit, dice, attack, attacker, game):
+        nat_hit = hit - dice.modifer 
+        if nat_hit <= re_roll_value:
+            return dice.roll() 
+        else:
+            return hit 
+    return foo 
+
+def savage(hit, dice, attack, attacker, game):
+    nat_hit = hit - dice.modifer 
+    if nat_hit == 20:
+        target = game.get_creature(attack.target)
+        if not target is None: 
+            damage = Dice(make_dice_string(1, attack.damage_dice.type, 0)).roll() 
+            target.damage(damage, attack.damage_type, game)
+    
+    return hit 
 
 SNEAK_ATTACK = DamageFeature("sneak attack", friend_in_range, bonus_damage("2d6"))
 DARK_DEVOTION = SavingThrowFeature("dark devotion", charm_fright, 1, 0) 
@@ -139,6 +156,9 @@ GNOME_CUNNING = SavingThrowFeature("gnome cunning", can_use_gnome_cun, 1, 0)
 FEY_ANCESTORY = SavingThrowFeature("fey ancestory", is_char, 1, 0)
 MAGIC_REISTANCE = SavingThrowFeature("magic resistance", is_magic, 1, 0)
 BRUTE = DamageFeature("brute", damage_is_true, added_damage_funct)
+LUCKY = ReRollFeature("lucky", re_roll_below(1))
+GREAT_WEAPON_FIGHTING = ReRollFeature("great weapon fighting", re_roll_below(2))
+SAVAGE_ATTACK = ReRollFeature("savage attack", savage)
 
 feature_list = [SNEAK_ATTACK, DARK_DEVOTION , RELENTLESS_ENDUR, CHARGE, RAMPAGE, PACK_TACTICS, RELENTLESS, 
                 TRAMPLING_CHARGE, SURE_FOOTED, POUNCE, DEATH_BURST, UNDEAD_FORTITUDE, MARTIAL_ADVANTAGE , 

@@ -100,7 +100,7 @@ class Creature:
             new_action.execute(game) 
             self.has_reaction = False 
 
-    def get_hit_dice(self, attack, game, debug = False):
+    def get_hit(self, attack, game, debug = False):
         """
         return the hit dice after applying any 
         special features 

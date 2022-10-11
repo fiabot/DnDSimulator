@@ -7,6 +7,7 @@ DAMAGE_STR = "damage"
 SAVE_STR = "saving"
 SKILL_STR = "skill"
 DEATH_STR = "death"
+REROLL_STR = "re-roll"
 
 def clamp_advantage(advantage): 
     if(advantage > 0):
@@ -71,7 +72,15 @@ class FeatureManager:
 
             elif isinstance(dice, Dice):
                 dice = Dice(dice.dice_string, total_advantage)
-            return dice 
+            hit = dice.roll() 
+
+            if REROLL_STR in self.features:
+                for feat in self.features[REROLL_STR]:
+                    hit = feat.new_hit(hit, dice, attack, creature, game)
+            
+            return hit , hit - dice.modifer 
+                    
+
     
     def get_added_damage(self, attack, creature, game, debug = False): 
         """
@@ -366,3 +375,8 @@ class DeathFeature(Feature):
         super().__init__(DEATH_STR, name)
         self.condition = condition 
         self.effect = effect 
+
+class ReRollFeature(Feature):
+    def __init__(self, name, new_hit):
+        super().__init__(REROLL_STR, name)
+        self.new_hit = new_hit
