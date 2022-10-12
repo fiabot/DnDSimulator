@@ -5,6 +5,21 @@ from MonsterManual import *
 import math 
 
 class ShyneCreature(Creature):
+    """
+    Variation of JinJerry agent that prunes poor preformining solutiosn 
+
+    To make a deciions the following algorithm is implemented:
+        1. set options to all my available next moves 
+        2. set value for all options to 0 
+        3. for depth in depths:
+                4. for option in options 
+                        5. g = create a copy of the game state 
+                        6. preform option in g
+                        7. for depth turns randomly preform actions in g
+                        8. option_value = (option_value + static evaluator for g) / 2
+        10. return action with highest value  
+    
+    """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
                     immunities = None, resistences = None, depths = [0, 10, 20, 30, 40], debug= True, level = 0.5,
@@ -17,25 +32,6 @@ class ShyneCreature(Creature):
         self.time_components = {} 
         for i in self.depths:
             self.time_components[i] = {"sim": 0, "copy": 0, "total": 0, "inst": 0}
-    
-    def forward_model(self, map, creature, turn):
-        """
-        simulates a next turn given a turn 
-        a creature to preform that turn
-
-        assumes that map is a copy 
-        and not the main game map
-        """
-
-        #TODO figure out way to abstact this 
-
-        #move creature 
-        map.move_piece(creature, turn[0])
-
-        # complete actions 
-        turn[1].execute()
-
-        return map 
 
     def decide_action(self, game, creature):
         """
@@ -48,8 +44,8 @@ class ShyneCreature(Creature):
         avail_moves = [] 
         while len(avail_moves) == 0:
             action = random.choice(creature.actions) 
-            avail_moves = action.avail_actions(creature, game)
-        #avail_moves = creature.avail_actions(grid)
+            if not action is None:
+                avail_moves = action.avail_actions(creature, game)
 
         return random.choice(avail_moves)
     
@@ -76,26 +72,10 @@ class ShyneCreature(Creature):
         """
         return an estimation of how well 
         our team is doing given a 
-        grid and an order
+        grid and an order of creatures s
         """
-        order = game.order 
-        return self.get_hp_ratio(order, self.team) - self.get_hp_ratio(order, self.team, equal=False)
-
-    def create_game_copy(self, map, order):
-        """
-        create a copy of the game 
-        TODO: Move this out of agent 
-        """
- 
-        order_copy = copy.deepcopy(order)
-        map_copy = copy.deepcopy(map)
-
-        #this may be the jankyiest solution but..... 
-        map_copy.clear_grid() 
-        map_copy.place_pieces(order_copy)
-
-        return map_copy, order_copy
-
+        creatures = game.order 
+        return self.get_hp_ratio(creatures, self.team) - self.get_hp_ratio(creatures, self.team, equal=False)
 
         
     def simulate_game(self, game, depth):
@@ -178,9 +158,17 @@ class ShyneCreature(Creature):
         return options_evaluations[0][1]
     
     def average_time(self):
+        """
+        return average time 
+        each turn took 
+        """
         return sum(self.times) / len(self.times) 
     
     def display_times(self):
+        """
+        display in depth 
+        time anaylsis 
+        """
         print("Average total turn time: {}".format(self.average_time()))
         for depth in self.time_components:
             times = self.time_components[depth]

@@ -1,7 +1,14 @@
 from sys import is_finalizing
 from unittest.mock import NonCallableMagicMock
 from Conditions import * 
-from DnDToolkit import *; 
+from DnDToolkit import *
+
+"""
+define feature manager and 
+feature class types 
+
+"""
+
 ATTACK_STR = "attack" 
 DAMAGE_STR = "damage"
 SAVE_STR = "saving"
@@ -19,6 +26,12 @@ def clamp_advantage(advantage):
 
 
 class FeatureManager: 
+    """
+    Feature manager keeps 
+    track of all features and 
+    conditions a creature has
+    and applies them 
+    """
     def __init__ (self, features= None, condition_immunities = None):
         self.feature_list = features 
         if features is None: 
@@ -36,6 +49,13 @@ class FeatureManager:
         self.condition_immunities = condition_immunities 
     
     def get_attack_roll(self, attack, creature, game, debug = False):
+        """
+        get an attack roll after applying 
+        all effecting features and conditions 
+
+        Will also apply defense advantages 
+        from target features 
+        """
         if self.does_attack_fail(attack, creature, game, debug):
             return FailDice() 
         else:
@@ -84,9 +104,9 @@ class FeatureManager:
     
     def get_added_damage(self, attack, creature, game, debug = False): 
         """
-        If an attack hits from this creature, 
-        figure out if any damage is added 
-        from conditions or features 
+        If attacking another creature, 
+        figure out if any damage should be 
+        added 
 
         Will run added_damage function 
         of condition, which could have 
@@ -116,6 +136,10 @@ class FeatureManager:
         return added_damage 
     
     def get_save_dice(self, type, effect, creature, is_magic = False): 
+        """
+        returin saving throw dice after applying 
+        all feautres and conditions 
+        """
         if (self.does_throw_fail(type, effect)):
             return FailDice()
         else: 
@@ -133,6 +157,11 @@ class FeatureManager:
             return Dice(make_dice_string(1, 20, mod), advantage) 
     
     def get_skill_dice(self, type, creature): 
+        """
+        return skill dice after applying all
+        features and conditions 
+        
+        """
         if (self.does_throw_fail(type)):
             return FailDice()
         else: 
@@ -149,12 +178,21 @@ class FeatureManager:
             return Dice(make_dice_string(1, 20, mod), advantage) 
     
     def drop_to_zero(self, amount, creature, game):
+        """
+        apply any conditions effects if the 
+        creature drops to 0 
+        """
         if DEATH_STR in self.features:
             for feat in self.features[DEATH_STR]: 
                 if feat.condition(amount, creature, game):
                     feat.effect(amount, creature, game) 
     
     def avail_moves(self, creature, game):
+        """
+        return available moves 
+        after applying all effects 
+        and conditions 
+        """
         if not self.can_move:
             return [creature.position]
         else:
@@ -172,6 +210,9 @@ class FeatureManager:
                 return moves 
 
     def can_move(self):
+        """
+        return true if creature can move 
+        """
         return_bool = True 
         for con in self.conditions:
             return_bool = return_bool and con.can_move 
@@ -179,6 +220,10 @@ class FeatureManager:
         return return_bool 
 
     def can_act(self):
+        """"
+        return true if creature 
+        can make actions 
+        """
         return_bool = True 
         for con in self.conditions:
             return_bool = return_bool and con.can_act
@@ -186,6 +231,10 @@ class FeatureManager:
         return return_bool 
     
     def is_alive(self):
+        """
+        return true if creature is 
+        alive 
+        """
         return_bool = True 
         for con in self.conditions:
             return_bool = return_bool and con.is_alive
@@ -193,6 +242,14 @@ class FeatureManager:
         return return_bool 
 
     def add_condition(self, condition, creature, debug = False):
+        """
+        add condition to creature and 
+        run any on added functions 
+
+        cannot add a condition with the same 
+        name 
+        
+        """
         if (not condition.name in self.condition_immunities and 
             not condition.name in [condition.name for condition in self.conditions]):
             if debug:
@@ -207,6 +264,10 @@ class FeatureManager:
 
 
     def remove_condition(self, condition_name):
+        """
+        remove a condition from 
+        creature given creature name 
+        """
         removed = False 
         i = 0 
         while not removed and i < len(self.conditions):
@@ -215,6 +276,12 @@ class FeatureManager:
             i += 1 
     
     def defense_advantage(self):
+        """
+        return the advantage 
+        of attack for creatures 
+        attacking this creature
+        from conditions  
+        """
         advantage = 0 
         for cond in self.conditions:
             advantage += cond.defense_advantage 
@@ -225,6 +292,10 @@ class FeatureManager:
         return advantage 
 
     def condition_advantage(self, debug):
+        """
+        get advantage of attack from
+        conditions 
+        """
         advantage = 0 
         for cond in self.conditions:
             advantage += cond.attack_advantage 
@@ -239,6 +310,11 @@ class FeatureManager:
         return advantage 
 
     def does_throw_fail(self, type, effect = None):
+        """
+        returns true if 
+        saving throw will 
+        automatically fail 
+        """
         fail = False 
         i = 0 
         while not fail and i < len(self.conditions):
@@ -249,6 +325,10 @@ class FeatureManager:
         return fail 
     
     def condition_throw_advantage(self, type, effect = None, is_magic = False):
+        """
+        advantage of saving throw 
+        from conditions 
+        """
         ad = 0 
         i = 0
         while ad == 0 and i < len(self.conditions):
@@ -261,6 +341,10 @@ class FeatureManager:
         return ad 
 
     def condition_throw_mod(self, type, effect, is_magic = False):
+        """
+        mod of saving throw 
+        from conditions 
+        """
         extra = 0 
         i = 0
         while extra == 0 and i < len(self.conditions):
@@ -275,6 +359,11 @@ class FeatureManager:
         return extra
 
     def does_attack_fail(self, attack, attacker, game, debug = False):
+        """
+        return true if attack will 
+        automatically fail 
+        from conditions 
+        """
         fail = False 
         i = 0
         while not fail and i < len(self.conditions):
@@ -289,15 +378,27 @@ class FeatureManager:
         return fail 
 
     def end_of_turn(self, creature, game):
+        """
+        apply any end of turn 
+        functions for conditions 
+        """
         for cond in self.conditions:
             if not cond.end_of_turn is None:
                 if cond.end_of_turn(cond, creature, game):
                     self.remove_condition(cond.name)
     
     def is_stable(self):
+        """
+        return true if 
+        has stable condition 
+        """
         return self.has_condition(STABLE.name)
     
     def has_condition(self, condition_name):
+        """
+        return true if have 
+        condition with name 
+        """
         has_con = False 
         i = 0 
         while not has_con and i < len(self.conditions):
@@ -306,6 +407,10 @@ class FeatureManager:
         return has_con
     
     def reset_conditions(self):
+        """
+        reset all conditions to none 
+        as if completed long rest 
+        """
         self.conditions = [] 
     
     def __str__(self):
@@ -330,6 +435,10 @@ class Feature:
         return "{} Feature : {}".format(self.type, self.name)
 
 class AttackFeature (Feature):
+    """
+    feature that effects the 
+    advantage or mod of an attack
+    """
     def __init__(self, name, condition, advantage, modifer, added_dice = None):
         super().__init__(ATTACK_STR, name)
         self.condition = condition 
@@ -353,12 +462,19 @@ class AttackFeature (Feature):
             return new_hit_dice 
     
 class DamageFeature (Feature): 
+    """
+    feature that adds damage to 
+    attack given come condition 
+    """
     def __init__(self, name, condition, damage_added):
         super().__init__(DAMAGE_STR, name) 
         self.condition = condition 
         self.damage_added = damage_added
 
 class SkillCheckFeature (Feature):
+    """
+    add advantage or mod to skill check
+    """
     def __init__(self, name, condition, advantage_granted, modifier_granted):
         super().__init__(SKILL_STR, name)
         self.condition = condition 
@@ -366,17 +482,32 @@ class SkillCheckFeature (Feature):
         self.modifier_granted = modifier_granted 
 
 class SavingThrowFeature(SkillCheckFeature):
+    """
+    add advantage or mod to saving throw
+    """
     def __init__(self, name, condition, advantage_granted, modifier_granted):
         super().__init__(name, condition, advantage_granted, modifier_granted)
         self.type = SAVE_STR
 
 class DeathFeature(Feature):
+    """
+    feature that if a condition is met 
+    will do an effect when creature drops to 0 
+    hp
+    """
     def __init__(self, name, condition, effect):
         super().__init__(DEATH_STR, name)
         self.condition = condition 
         self.effect = effect 
 
 class ReRollFeature(Feature):
+    """
+    feature that effects if a hit 
+    attack should be re-rolled 
+
+    can also deal extra damage 
+    if hit is high 
+    """
     def __init__(self, name, new_hit):
         super().__init__(REROLL_STR, name)
         self.new_hit = new_hit

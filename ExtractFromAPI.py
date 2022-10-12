@@ -8,18 +8,19 @@ import json
 from SpellBook import SPELL_BOOK
 from Spells import SpellManager 
 import jsonpickle
+"""
+Convert mosnters from API 
+into monster manual dictionary 
 
-
-reponse = requests.get("https://www.dnd5eapi.co/api/monsters/bandit")
+"""
 
 feature_list = {}
 actions_list = []
 
-monster_dict = json.loads(reponse.text)
 
 special_spell_man = {}
 
-
+# list special actions as spell manager dictionaries 
 special_spell_man["fire breath (recharge 6)"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
                             'spell slots': 6, 'known spells': ['fire breath']}
 special_spell_man["frost breath (recharge 6)"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1, 
@@ -35,10 +36,17 @@ special_spell_man["web"] = {'dc': 11, 'attack mod': 3, 'spell mod': 1,
                             'spell slots': 1, 'known spells': ['web']}
 
 def get_speed(speed_str):
+    """
+    get grid units from speed string 
+    """
     speed = int(speed_str[:speed_str.find(" ")])
     return math.ceil(speed / 10) 
 
 def get_dist(description):
+    """
+    get attack distance from attack 
+    description 
+    """
     if description.find("reach") != -1:
         start = description.find("reach")
         feet = description[start + len("reach"): description.find("ft", start)]
@@ -63,6 +71,10 @@ def get_dist(description):
         print("can't find")
 
 def get_two_dist(description):
+    """
+    get distance when there are multiple 
+    distances to pay attention to 
+    """
     small_dist = 0 
     large_dist= 0 
     if description.find("reach") != -1:
@@ -89,6 +101,10 @@ def get_two_dist(description):
     return (small_dist, large_dist)
 
 def make_spell_manager(description, char_json):
+    """
+    extract spell manager from 
+    action description 
+    """
     spell_man = {}
     dc_start = description.find("spell save DC ") + len("spell save DC ")
     dc_end = description.find(",", dc_start)
@@ -139,14 +155,11 @@ def make_spell_manager(description, char_json):
         spell_names = spell_str.split(", ")
 
     found_all_spells = True 
-    print(cantrip_names + spell_names)
     for spell in cantrip_names + spell_names:
         if spell in SPELL_BOOK:
             spell = spell.lower().strip() 
-            print("{} was in the spell book".format(spell))
             known_spells.append(spell)
         else:
-            print("{} was NOT in the spell book".format(spell)) 
             found_all_spells = False 
             known_spells.append(spell)
     
@@ -155,6 +168,9 @@ def make_spell_manager(description, char_json):
     
 
 def make_two_ranged_weapon(act_json):
+    """
+    make an attack if it has two ranges 
+    """
     small_damage_str = "0d4"
     large_damage_str = "0d4"
     hit = act_json["attack_bonus"]
@@ -169,6 +185,10 @@ def make_two_ranged_weapon(act_json):
     return TwoHanded(hit, small_damage_str, large_damage_str, small_dist, large_dist, damage_type= damage_type, name = name)
 
 def get_actions(li):
+    """
+    get list of actions and/or 
+    a spell manager 
+    """
     actions = []
     multi_attacks = [] 
     multi_attack_choices = [] 
@@ -307,6 +327,10 @@ def lower_list(list):
     return (s.lower() for s in list)
 
 def get_feats_and_spells(special_abil_li, char_json):
+    """
+    extract features and/or spells 
+    from special ability lists 
+    """
     spell_man = None
     features = [] 
 
@@ -330,6 +354,11 @@ def get_feats_and_spells(special_abil_li, char_json):
 
 
 def json_to_char(dict):
+    """
+    convert an API monster 
+    dict into a character 
+    dict for this simulation 
+    """
     name = dict["name"]
     ac = dict["armor_class"]
     hit_points  = dict["hit_points"]
@@ -372,6 +401,10 @@ def json_to_char(dict):
     return monster 
 
 def get_all_from_level(level):
+    """
+    get character dicts for all monsters 
+    of a level 
+    """
     res = requests.get("https://www.dnd5eapi.co/api/monsters?challenge_rating={}".format(level))
     print("Number of creatures:{}".format(json.loads(res.text)["count"])) 
     monster_list = json.loads(res.text)["results"]
@@ -387,6 +420,10 @@ def get_all_from_level(level):
     return characters 
 
 def write_features():
+    """
+    note all features and actions not 
+    implemented 
+    """
     file = open("feats_to_impl.txt", "w")
 
     for key in feature_list:
@@ -404,6 +441,7 @@ def write_features():
 
 
 
+# get all mosnters up to level 1 
 print("1/8 level creatures:")
 chars = get_all_from_level(0.125)
 
@@ -431,6 +469,7 @@ print("PERCENT FULLY IMPLEMENETED: ", (fully_impl / len(chars)))
 monster_json = jsonpickle.encode(chars)
 write_features()
 
+# add monsters to fiel 
 file = open("monster_manual.txt", "w")
 file.write(monster_json)
 file.close() 

@@ -4,11 +4,20 @@ from Conditions import *;
 from DnDToolkit import *; 
 from Actions import *; 
 from Features import *; 
+"""
+Bases classes for 
+definine a creature 
 
+"""
 
 BASE_SKILLS = {STR_STR : 0, DEX_STR: 0 , CON_STR: 0, INT_STR: 0, WIS_STR : 0, CHAR_STR : 0}
 
 class Modifiers:
+    """
+    modifers for making skills checks, 
+    saving throws, or inative rolls 
+    
+    """
     def __init__(self, initiative = 0, skill_dict = BASE_SKILLS, save_dict = BASE_SKILLS):
         self.initative = initiative 
         self.skill_mods = skill_dict 
@@ -35,10 +44,18 @@ class Creature:
         Initialize a creature 
         ac = numerical armor class 
         hp = max hit points either as value or dice roll, depending on rolled value 
-        position = starting position as a tuple of row and column 
         name = name of creature 
         team = what side creatures fights for, decides who is an enemy or friend 
         action = available actions as a list 
+        speed = amount creatures is able to move in grid units 
+        features = a feaature manager with any special features added 
+        modifers = skill and saving throw mods 
+        immunities = damage types the character cannot take damage from
+        resistences = damage types the character takes half damage from 
+        level = player level or challenge rating 
+        spell manager = if the creatures is a spell caster, this will include 
+                        spell casting info along with spells known 
+        makes death saves = whether the creature dies when at 0 hp, or becomes uncious instead 
 
         """
         self.ac = ac 
@@ -91,10 +108,18 @@ class Creature:
         self.damage_taken = 0 
 
     def change_ac(self, new_ac):
+        """
+        Temporarily change 
+        AC until next long rest 
+        """
         self.game_data["base ac"] = self.ac 
         self.ac = new_ac 
 
     def opportunity_attack(self, creature, game):
+        """
+        remove an extra melee attack
+        on a creautre 
+        """
         if not self.op_attack is None and self.has_reaction:
             new_action = self.op_attack.set_target(self.name, creature.name)
             new_action.execute(game) 
@@ -108,6 +133,12 @@ class Creature:
         return self.features.get_attack_roll(attack, self, game, debug)
     
     def heal(self, amount, debug = False):
+        """
+        Heal HP up to max hit pints 
+
+        if above 0 and asleep or stable, 
+        wake up 
+        """
         if self.is_alive():
             self.hp += amount 
 
@@ -137,6 +168,10 @@ class Creature:
     def damage(self, amount, type, game):
         """
         deal damage to creature 
+
+        apply immunities and resistences 
+
+        if at or below 0 hp, go to zero condition 
         """
         if self.hp > 0:
             if not type in self.immunities:
@@ -152,8 +187,8 @@ class Creature:
     
     def roll_initiative(self):
         """
-        Roll( for initative
-        by default no modifications 
+        Roll for intiative 
+        using init mod
         """
         return self.init_dice.roll() 
     
@@ -162,9 +197,14 @@ class Creature:
         what happens when creature drops to 
         0 hp
 
-        by default creatures dies, for 
-        player they should fall unconcious
-        and start making death saves 
+        apply any features that happen
+        when a creature drops to 0 
+
+        if still at 0 and creature does 
+        not make death saves, creature dies 
+
+        otherwise if still at 0, creature 
+        will start making death saves 
         """
         
         self.hp = 0 # there is not negative HP 
@@ -174,6 +214,7 @@ class Creature:
         
         if self.makes_death_saves:
             if self.hp == 0 and not (self.has_condition(STABLE.name) or self.has_condition(ASLEEP.name) or (not self.is_alive())):
+                self.uncons_amount  += 1 
                 self.add_condition(ASLEEP)
             self.hp = 0 
         elif self.hp == 0:
@@ -220,6 +261,10 @@ class Creature:
         return self.avail_actions(game)[0]
 
     def end_of_turn(self, game):
+        """
+        retore reactions and 
+        apply any features 
+        """
         self.last_pos = self.position 
         self.has_reaction = True 
         self.features.end_of_turn(self, game) 
@@ -235,6 +280,7 @@ class Creature:
 
         self.hp = self.max_hp
         self.damage_taken = 0 
+        self.uncons_amount  = 0
         self.features.reset_conditions() 
         if "base ac" in self.game_data:
             self.ac = self.game_data["base ac"]
@@ -270,7 +316,6 @@ class Creature:
         return self.features.defense_advantage()
     
     def add_condition(self, condition, debug = False):
-
         self.features.add_condition(condition, self, debug)
 
     def has_condition(self, condition):
@@ -282,11 +327,4 @@ class Creature:
     def __str__(self):
         return self.name
 
-class Player(Creature):
-    def zero_condition(self, amount, game): 
-        self.hp = 0 # there is not negative HP 
-        self.features.drop_to_zero(amount, self, game)
-        # make sure that our features didn't change our hp 
-        if self.hp == 0 and not (self.has_condition(STABLE.name) or self.has_condition(ASLEEP.name) or (not self.is_alive())):
-                self.add_condition(ASLEEP)
 

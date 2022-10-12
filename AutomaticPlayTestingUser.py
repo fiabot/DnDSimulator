@@ -92,7 +92,7 @@ round_limit = int(input("round limit: "))
 
 results = {PLAYERTEAM:0, MONSTERTEAM:0, TIE:0, INCOMPLETE:0}
 for game_num in range(num_games):
-    winner = game.play_game(round_limit= round_limit, debug= True)
+    winner = game.play_game(round_limit= round_limit)
     results[winner[0]] += 1 
     print(results)
 print(game.get_average_stats())

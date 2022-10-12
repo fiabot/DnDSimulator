@@ -3,6 +3,13 @@ from smtpd import DebuggingServer
 from Actions import * 
 from Conditions import * 
 import itertools
+
+"""
+classes for spell manager and 
+spell types 
+
+"""
+
 HEALING_STR = "healing"
 ATTACK_SPELL = "attack spell"
 SAVE_ATTACK_SPELL = "save attack spell"
@@ -15,6 +22,11 @@ SAVING_MOD_SPELL = "saving modifer spell"
 LOOSING_CON_EFFECT = "losing concetration"
 
 class SpellManager():
+    """
+    manages known spells 
+    along with spell casting 
+    stats 
+    """
     def __init__(self, spell_slots, ranged_modifer, mele_modifer, spell_dc, known_spells, spell_mod = 0):
         self.total_spell_slots = spell_slots
         self.current_spell_slots = self.total_spell_slots
@@ -55,12 +67,25 @@ class SpellManager():
         self.known_spells = spells 
 
     def long_rest(self):
+        """
+        restore spells slots 
+        """
         self.current_spell_slots = self.total_spell_slots
 
     def can_cast(self, spell):
+        """
+        if has spell slots to preform spell 
+        """
         return self.current_spell_slots >= spell.level 
     
     def cast(self, spell, game):
+        """
+        cast spell 
+
+        use spell slot
+
+        add concetration if applicable 
+        """
         self.current_spell_slots -= spell.level 
         if spell.is_conc:
             if not self.can_concretate:
@@ -69,12 +94,22 @@ class SpellManager():
             self.concetrated_spell = spell 
 
     def take_damage(self, damage ,creature, game):
+        """
+        make saving throw to keep 
+        consitration when damaged 
+
+        if failed, will lose concetration 
+        """
         save = creature.saving_throw(CON_STR, LOOSING_CON_EFFECT, is_magic = True)
 
         if save < max(10,  damage // 2): 
             self.remove_concetration(game)
         
     def remove_concetration(self, game):
+        """
+        loss concetration either by 
+        choice or throw effect 
+        """
         if not self.can_concretate and not self.concetrated_spell is None: 
             self.concetrated_spell.conc_removed(game)
             self.can_concretate = True 
@@ -83,6 +118,10 @@ class SpellManager():
         return "Spell Casting Stats: spell slots: {}, can concetrate: {}, spell dc: {}, ranged mod: {}, mele mod: {}".format(self.current_spell_slots, self.can_concretate, self.spell_dc, self.ranged_modifer, self.mele_modifer)
 
 class Spell(Action):
+    """
+    base class for spell 
+    is an action
+    """
     def __init__(self, level, name, spell_type, is_conc = False, conc_remove = None, caster = None):
         super().__init__(name)
         self.level = level 
@@ -120,6 +159,10 @@ class Spell(Action):
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
 class HealingSpell(Spell):
+    """
+    spell that adds to a 
+    players HP
+    """
     def __init__(self, level, name,  range, healing_dice_str, caster=None, target = None):
         super().__init__(level, name, spell_type = HEALING_STR, is_conc = False, conc_remove = None, caster = caster)
         self.range = range 
@@ -163,6 +206,10 @@ class HealingSpell(Spell):
         return "heal {} with {}".format(self.target, self.name)
             
 class AttackSpell(Attack, Spell):
+    """
+    Acts liks a normal attack
+    but can use a spell attack
+    """
     def __init__(self, level, hit_bonus, damage_dice_string, dist, attack_type=RANGED, damage_type=PIERCING_DAMAGE, name="Attack", side_effects=None, attacker=None, target=None):
         Spell.__init__(self, level, name, spell_type = ATTACK_SPELL, is_conc= False, caster = attacker)
         Attack.__init__(self, hit_bonus, damage_dice_string, dist, attack_type, damage_type, name, side_effects, attacker, target)
@@ -196,6 +243,12 @@ class AttackSpell(Attack, Spell):
             Attack.execute(self, game, debug)
 
 class SaveAttackSpell(AttackSpell):
+    """
+    regular attack, but 
+    the target makes a saving 
+    throw rather than an attack
+    throw meaning made 
+    """
 
     def __init__(self, level, save_type, save_dc, damage_dice, dist, half_if_saved = True, side_effect_if_save = False, attack_type=RANGED, damage_type=PIERCING_DAMAGE, name="Attack", side_effects=None, attacker=None, target=None):
         super().__init__(level, -20, damage_dice, dist, attack_type, damage_type, name, side_effects, attacker, target)
@@ -247,6 +300,13 @@ class SaveAttackSpell(AttackSpell):
             print("Target or Attacker not found")
 
 class AreaSpell(Spell):
+    """
+    an area of effect spell 
+
+    Deals damage and/or inflicts 
+    an effect to everyone in range 
+    who fails a saving throw 
+    """
     def __init__(self, level, name, save_type, save_dc, damage_dice_str, damage_type, 
                     dist, half_on_save = True, effect_on_save = False, side_effects = None, caster=None):
 
@@ -323,6 +383,11 @@ class AreaSpell(Spell):
                         pass 
 
 class AttackBonusSpell(Spell):
+    """
+    Add extra damage to next attack
+
+    can be conceration 
+    """
     def __init__(self, level, name, added_damage_effect, is_conc = False,  caster=None):
         if is_conc:
             conc_remove = self.remove_con() 
@@ -330,7 +395,7 @@ class AttackBonusSpell(Spell):
             conc_remove = None 
         super().__init__(level, name,  spell_type = ATTACK_BONUS_SPELL, is_conc = is_conc, conc_remove = conc_remove, caster = caster)
         self.inflicted_con =Condition(can_act= True, can_move= True, is_alive= True, name = "added damage from {}".format(self.name), 
-                                added_damage= added_damage_effect, end_of_turn= REMOVE_AT_END)
+                                added_damage= added_damage_effect, end_of_turn= REMOVE_AT_END, is_magic=True)
     def remove_con(self):
         def foo (game):
             print("Remove caster" , self.caster)
@@ -354,6 +419,13 @@ class AttackBonusSpell(Spell):
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
 class TargetCreatureSpell(Spell):
+    """
+    similar to attack bonus, but 
+    targets a specific creature 
+
+    extra damage will be dealt when attacking 
+    that creature 
+    """
     def __init__(self, level, name, damage_str, dist, condition_choices = None, caster=None, target = None):
         self.name = name 
         self.damage_dice_str = damage_str
@@ -410,6 +482,10 @@ class TargetCreatureSpell(Spell):
             target.add_condition(self.selected_cond, debug)
 
 class DefenseSpell(Spell):
+    """
+    Adds to the AC of a 
+    creature 
+    """
     def __init__(self, level, name,  range, base, modifier_string = None, caster=None, target = None):
         super().__init__(level, name, spell_type = DEFENSE_SPELL, is_conc = False, conc_remove = None, caster = caster)
         self.range = range 
@@ -465,6 +541,9 @@ class DefenseSpell(Spell):
         return "heal {} with {}".format(self.target, self.name)
 
 class TempHPSpell(Spell):
+    """
+    Gives a creature temp HP
+    """
     def __init__(self, level, name, temp_dic_str, is_conc=False, conc_remove=None, caster=None):
         super().__init__(level, name, TEMP_HP_SPELL, is_conc, conc_remove, caster)
         self.temp_dice_str = temp_dic_str 
@@ -485,6 +564,14 @@ class TempHPSpell(Spell):
             print("problem with {} attempting to cast {}".format(self.caster, self.name))
 
 class SavingThrowModiferSpell(Spell):
+    """
+    Add a conditions that 
+    changes how a saving throw is made 
+
+    particularly adds a bonus dice 
+    to saving throw such as 
+    with bless 
+    """
     def __init__(self, level, name, mod_dice_str, dist,one_time = True, attack = False, num_effected = 1, caster=None, targets = None):
         self.dist = dist 
         self.mod_dice_str = mod_dice_str

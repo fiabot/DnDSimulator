@@ -2,7 +2,10 @@
 from Features import *
 from Conditions import * 
 from DnDToolkit import * 
+"""
+All currently implemented features 
 
+"""
 def friend_in_range(attack, attacker, game):
     """
     Return true if there is an ally 

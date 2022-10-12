@@ -7,8 +7,11 @@ import jsonpickle
 from BasicAgents import *
 from CreatureClasses import *
 from DnDToolkit import *
-
-#from JinJerryAgent import * 
+"""
+Load a manual of all available 
+creatures along with a
+seperate monster and player manaul 
+""" 
 
 # actions 
 """spear = Attack(2, "1d6", 6,  name = "spear")
@@ -191,8 +194,11 @@ monster_man_file.close()
 player_man_file = open("player_files.txt", "r")
 player_json = player_man_file.read() 
 player_man_file.close()
+
 MANUAL = jsonpickle.decode(monster_json)
 MANUAL.update(jsonpickle.decode(player_json))
+MONSTER_MANUAL = jsonpickle.decode(monster_json)
+PLAYER_MANUAL = jsonpickle.decode(player_json)
 #MANUAL.update(jsonpickle.decode(player_json))
 
 if __name__ == "__main__":

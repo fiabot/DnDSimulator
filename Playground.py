@@ -8,6 +8,7 @@ from JinJerryAgent import *;
 from ShyneAgent import *
 from SpellBook import *
 from Spells import *; 
+from FeatureCatelog import * 
 
 # create sample actions 
 sword = Attack(4, "1d8", 1, name = "Sword")

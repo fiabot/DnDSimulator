@@ -9,6 +9,15 @@ from SpellBook import SPELL_BOOK
 from Spells import SpellManager 
 import jsonpickle 
 
+"""
+Create a creature given human 
+input 
+
+add creature dictionary 
+to player files text file 
+
+"""
+
 def make_attack():    
     if not input("Multiple attack ranges (y/n): ").lower().startswith("y"):
         name = input("attack name: ")

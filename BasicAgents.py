@@ -3,12 +3,18 @@ from CreatureClasses import *
 import copy 
 
 class RandomCreature(Creature): 
+    """
+    Randomly selects an action
+    """
 
     def turn(self, game):
 
         return random.choice(self.avail_actions(game))
 
 class HumanCreature(Creature):
+    """
+    Takes human input for chooseing a move 
+    """
     def format_action (self, action):
         move = action[0]
         action = action[1]

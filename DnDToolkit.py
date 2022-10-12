@@ -48,6 +48,10 @@ def free_moves(speed, creature, game):
     return movement 
 
 def make_dice_string(amount, type, modifer = 0):
+    """
+    make a dice string givne 
+    amount type and modifer 
+    """
     return_str = "{}d{}".format(amount, type)
     if(modifer > 0):
         return_str += " + {}".format(modifer)
@@ -57,6 +61,10 @@ def make_dice_string(amount, type, modifer = 0):
     return return_str
 
 def is_friend(creature, other):
+    """
+    return true if creature is a 
+    friend 
+    """
     try: 
         return creature.team == other.team 
     except:
@@ -67,6 +75,8 @@ class Dice:
         """
         Takes a string in the form of '2d8 + 4' and 
         converts it into the appropriate dice roll
+
+        Will also take a default advantage 
         """
         self.dice_string = dice_string 
         d_index = dice_string.find("d")
@@ -112,6 +122,10 @@ class Dice:
         self.default_advantage = advantage 
     
     def expected_value(self):
+        """
+        The average expected 
+        value of this dice 
+        """
         one_roll = self.type // 2 + 0.5 
         total_roll = one_roll * self.amount 
         self.expected = total_roll + self.modifer 
@@ -130,6 +144,18 @@ class Dice:
         return amount 
     
     def roll(self, advantage = None):
+        """
+        roll dice
+
+        if advantage is none, use 
+        default advantage 
+
+        otherwise apply advantage 
+
+        roll with advantage > 0 
+        roll with no advantage = 0 
+        roll with disadvantage < 0 
+        """
         if advantage is None: 
             advantage = self.default_advantage 
         
@@ -155,10 +181,18 @@ class Dice:
         return "{} with {}".format(self.dice_string, ad_str)
 
 class FailDice (Dice):
+    """
+    Dice that will return 
+    0 always 
+    """
     def __init__(self):
         super().__init__("0d20", 0) 
 
 class CompoundDice: 
+    """
+    Dice with different kinds 
+    of dice within it 
+    """
     def __init__(self, dice_list) -> None:
         self.dice_list = dice_list
     
@@ -170,6 +204,10 @@ class CompoundDice:
         return total  
 
 class Grid():
+    """
+    representation of 
+    game map. 
+    """
     def __init__(self, height, width, space = 10):
         self.height = height
         self.width = width 
@@ -198,6 +236,10 @@ class Grid():
         self.grid[position[0]][position[1]] = None
 
     def clear_grid(self):
+        """
+        sets positions to None 
+        and removes any pieces 
+        """
         for piece in self.pieces: 
             self.clear_position(piece.position)
         
@@ -207,18 +249,20 @@ class Grid():
         """
         place a piece in the grid at given position 
 
-        pieces must have .position value 
+        pieces must have .position value
         """
 
         # only place piece if space is empty 
         if self.is_free(position): 
             self.pieces.append(piece)
             self.grid[position[0]][position[1]] = piece 
+            piece.position = position 
     
     def place_pieces(self, pieces):
         """
         place a list of pieces in the grid
         assumes each piece has a .position value
+        with desired position 
         """
 
         for piece in pieces:
@@ -399,8 +443,7 @@ class Game():
         self.monster_pos = monster_pos 
         self.create_dict() 
         self.games_played = 0
-        self.stat_log = [] 
-        self.stats = {"success": 0, "total damage" : 0, "ending health": 0, "deaths": 0} 
+        self.stat_log = []     
 
         self.reset() 
 
@@ -425,6 +468,11 @@ class Game():
         self.map.place_pieces(self.players)
     
     def create_dict(self):
+        """
+        Create a dicitonary 
+        to look up creatures 
+        in game 
+        """
         self.all_creatures = {} 
         for monster in self.monsters:
             self.all_creatures[monster.name] = monster
@@ -443,8 +491,7 @@ class Game():
             return self.all_creatures[name]
         else: 
             return None 
-        
-        return None 
+
     
     def set_teams(self):
         """
@@ -488,6 +535,10 @@ class Game():
             player.long_rest() 
         
     def roll_initiative(self, debug = False):
+        """
+        roll intative for all 
+        creature and set order 
+        """
         initiative = [(monster.roll_initiative(), monster) for monster in self.monsters]
         initiative += [(player.roll_initiative(), player) for player in self.players]
 
@@ -500,7 +551,10 @@ class Game():
         return [init[1] for init in initiative]
     
     def display_health(self):
-
+        """
+        display health info 
+        for all creatures in game 
+        """
         print("----------" + MONSTERTEAM + " status-------------")
         monster_health = ""
 
@@ -516,6 +570,10 @@ class Game():
         print(player_health)
     
     def reset(self):
+        """
+        reset game state 
+        to starting state 
+        """
         self.set_teams() 
         self.set_up_board()
         self.long_rest() 
@@ -524,8 +582,13 @@ class Game():
         self.round = 0 
         self.turn_log = [] 
         
+        self.stats = {"success": 0, "total damage" : 0, "ending health": 0, "deaths": 0, "amount asleep": 0} 
+        
     
     def create_copy(self):
+        """
+        return a copy of the game 
+        """
         new_game = deepcopy(self)
 
         # With deep copy the pieces on
@@ -538,9 +601,16 @@ class Game():
         return new_game 
     
     def next_creature(self):
+        """
+        get creature next on intiative 
+        """
         return self.order[self.turn]
     
     def update_init(self):
+        """
+        update current place 
+        in initative 
+        """
         creature = self.next_creature()
         self.turn += 1 
 
@@ -551,6 +621,11 @@ class Game():
         return creature 
     
     def get_winner(self):
+        """
+        return which team won 
+        or if game is incomplete or 
+        tied 
+        """
         monster_defeat = self.team_defeated(self.monsters)
         player_defeat = self.team_defeated(self.players)
 
@@ -599,40 +674,68 @@ class Game():
                 self.turn_log.append([self.round, creature.name, action[0], action[1].name, str(self.map)])
 
             self.map.clear_dead() 
+
     def get_damage_stats(self):
+        """
+        Get damage and health 
+        data for the players 
+        in the game for 
+        game log 
+        """
         max_health = 0 
         total_damage = 0 
         current_health = 0 
         deaths = 0 
+        uncons_amount = 0 
+        
 
         for player in self.players:
             max_health += player.max_hp 
             total_damage += player.damage_taken 
             current_health += player.hp 
+            uncons_amount += player.uncons_amount 
             if not player.features.is_alive():
                 deaths += 1 
         
-        return total_damage / max_health , current_health / max_health, deaths 
+        return total_damage / max_health , current_health / max_health, deaths, uncons_amount 
    
-    def set_stats(self, winner, log = True):
+    def set_stats(self, winner):
+        """
+        set current game stats 
+        and add them to stat log 
+        """
         if winner == PLAYERTEAM:
             self.stats["success"] += 1 
-        damage, health, deaths  = self.get_damage_stats()
-        self.stats["total damage"] += damage 
-        self.stats["ending health"] += health 
-        self.stats["deaths"] += deaths 
+        damage, health, deaths, uncons_amount   = self.get_damage_stats()
+        self.stats["amount asleep"] = uncons_amount 
+        self.stats["total damage"] = damage 
+        self.stats["ending health"] = health 
+        if winner != PLAYERTEAM:
+            self.stats["deaths"]  = len(self.players)
+        else:
+            self.stats["deaths"] = deaths 
 
-        if log:
-            self.stat_log.append(copy.copy(self.stats))
+        
+        self.stat_log.append(copy.copy(self.stats))
 
     def get_average_stats(self):
+        """
+        return the average stats for the 
+        game 
+        """
         ave_stats = {}
         for key in self.stats:
-            ave_stats[key] = self.stats[key] / self.games_played
+            stat_list = [stat[key] for stat in self.stat_log]
+            ave_stats[key] = sum(stat_list) / len(stat_list)
         
         return ave_stats
 
     def play_game(self, round_limit = 50, debug = False, log = True):
+        """
+        play one game 
+        and return the winner 
+        and how many rounds were completed 
+        """
         self.reset() 
 
         if debug:
@@ -646,7 +749,7 @@ class Game():
         winner = self.get_winner() 
         self.games_played += 1 
 
-        self.set_stats(winner, log)
+        self.set_stats(winner)
         
         return winner, self.round  
 

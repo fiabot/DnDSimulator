@@ -1,6 +1,12 @@
 from unittest.mock import NonCallableMagicMock
 from Spells import * 
 """
+Implements all available spells 
+
+"""
+
+
+"""
 Healing 
     Healing Word
     Cure wounds 

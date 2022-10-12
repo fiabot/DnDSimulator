@@ -1,10 +1,34 @@
 from copy import deepcopy
 import math 
 from DnDToolkit import *; 
-
+"""
+Define conditions and 
+set up constants for base 
+conditions 
+"""
 
 
 class Condition:
+    """
+    A condition is something that 
+    can be added to a player throughout 
+    the game. This can have a number 
+    of effects including: 
+        1. effecting advantage of attack or saving throws 
+        2. effecting what moves are available to creature 
+        3. changing if the creature can move, can act, or is alive 
+        4. add extra damage when the affected creatures makes an attack
+    
+    Additionaly a condition can do something 
+        1. when added 
+        2. at the end of a creatures turn 
+    
+    A condition can be removed, either by another 
+    source or if an end of turn function returns true 
+    
+    Conditions are considered immutatable so 
+    any changes should be made on a copy 
+    """
     def __init__(self, name, can_act, can_move, is_alive, attack_advantage = 0, defense_advantage = 0,
                 on_added = None, end_of_turn = None, get_avail_moves = None, does_throw_fail = None, 
                 throw_advantage = None, throw_extra = None, does_attack_fail = None, added_damage = None, use_once = False, is_magic = False):
@@ -26,11 +50,19 @@ class Condition:
         self.is_magic = False 
     
     def add_end_of_turn(self, end_funct):
+        """
+        create copy of condition 
+        with a end of turn function 
+        """
         new_condition = deepcopy(self)
         new_condition.end_of_turn = end_funct 
         return new_condition 
 
     def add_on_added(self, on_added):
+        """
+        create a copy of condition 
+        with an on added function 
+        """
         new_condition = deepcopy(self)
         new_condition.on_added = on_added 
         return new_condition 
@@ -38,13 +70,26 @@ class Condition:
     def __str__(self):
         return "{} Condition".format(self.name)
 
+# helper functions for conditions 
+
 def create_save_funct(save_type, save_dc, is_magic = False):
+    """
+    Create an end of turn 
+    funciton the removes a 
+    condition with a successful
+    saving throw 
+    """
     def save_throw(condition, creature, game):
         throw = creature.saving_throw(save_type, condition, is_magic)
         return throw > save_dc 
     return save_throw 
 
 def create_save_dis(save_type):
+    """
+    create a function to give a 
+    creature disadvantage to a specific 
+    type of saving throw 
+    """
     def throw_advantage(type, effect, is_magic):
         if type == save_type: 
             return -1 
@@ -53,14 +98,27 @@ def create_save_dis(save_type):
     return throw_advantage 
 
 def half_movement(creature, game):
+    """
+    an get_available moves function
+    where the speed is reduced by half 
+    """
     return free_moves(speed = math.ceil(creature.speed / 2), creature = creature, game = game)
 
 def reduce_move_by(reduce_amount):
+    """
+    an get_avail_moves function 
+    that reduced a creatures movement 
+    by a constant amount 
+    """
     def foo(creature, game):
         return free_moves (speed = creature.speed - reduce_amount, creature = creature, game = game)
     return foo 
 
 def death_save(condition, creature, game):
+    """
+    An end of turn function 
+    to represent a death save 
+    """
 
     roll = Dice("1d20").roll() 
         
@@ -98,6 +156,11 @@ def death_save(condition, creature, game):
             return False 
 
 def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = True):
+    """
+    create a function to add damage to 
+    an attack if the creature fails 
+    a saving throw 
+    """
     def foo (condtion, attack, creature, game):
         """"
         Have the target make a 
@@ -119,6 +182,11 @@ def added_damage_funct(save_type, save_dc, damage_dice_str, halfed_if_save = Tru
     return foo 
 
 def target_creature_funct(creature_name, damage_dice):
+    """
+    Add extra damage to a 
+    particular creature when that creature 
+    is hit 
+    """
     def foo (condition, attack, creature, game):
         if attack.target == creature_name:
             return Dice(damage_dice).roll() 
@@ -127,6 +195,13 @@ def target_creature_funct(creature_name, damage_dice):
     return foo
 
 def added_saving_throw(dice_str):
+    """
+    create a function 
+    for adding an extra 
+    dice roll to a saving 
+    throw such as with 
+    bless 
+    """
     dice = Dice(dice_str)
 
     def throw_extra(type, effect, is_magic):
@@ -135,7 +210,8 @@ def added_saving_throw(dice_str):
 
 removed_at_end = lambda condition, creature, game :True 
 REMOVE_AT_END = lambda condition, creature, game :True 
-# Set up conditions 
+
+# Set up base conditions 
 AWAKE = Condition("Awake", can_act = True, can_move = True, is_alive = True)
 
 DEAD = Condition("Dead", can_act = False, can_move = False, is_alive = False)

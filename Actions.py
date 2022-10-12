@@ -1,7 +1,9 @@
-from DnDToolkit import *
-import json 
+from DnDToolkit import * 
 
 class Action:
+    """
+    Base methods for action 
+    """
     def __init__(self, name):
         self.name = name 
     def __str__(self):
@@ -39,11 +41,15 @@ class NullAction(Action):
         return actions 
 
 class Attack(Action):
+    """
+        Basic attack where a hit roll
+        is compared to the ac of a 
+        creature and damage 
+        of a particular type 
+        is given to a player 
+    """
     def __init__(self, hit_bonus, damage_dice_string, dist, attack_type = MELE, damage_type = SLASHING_DAMAGE, name = "Attack",side_effects =None,  attacker = None, target = None):
-        """
-        hit bonus = modifer to d20 roll for hit 
-        damage_dice_string = damage dice written in the format "2d8" or "2d8 + 4" 
-        """
+       
         Action.__init__(self, name) 
 
         if hit_bonus is None:
@@ -64,8 +70,18 @@ class Attack(Action):
     
     def execute(self, game, debug = False):
         """
-        Excute attack on target
-        if target is none, do nothing
+        Get hit from hit dice and any 
+        creature features, compare 
+        hit to the AC of the target
+
+        If hit beats AC, deal damage 
+        according to damage dice and 
+        any special features of attacker 
+
+        if nat 20 is rolled, damage 
+        dice is doubled 
+
+        if target or attacker is none, do nothing
         """
         # if there is not a target, dont do anything 
         target = game.get_creature(self.target)
@@ -103,7 +119,9 @@ class Attack(Action):
 
     def set_target(self, attacker, target):
         """
-        Assign target 
+        Assign target and attacker 
+
+        return a copy of the current action 
         """
         new_action = deepcopy(self)
         new_action.target = target 
@@ -120,6 +138,13 @@ class Attack(Action):
         return [enemy for enemy in grid.enemies_in_range(team, position, self.dist) if enemy.hp > 0] 
     
     def avail_actions(self, creature, game):
+        """
+        return the combiation of movement 
+        and action where the actions 
+        are copies of self with 
+        a particular target set 
+        
+        """
         actions = [] 
 
         for move in creature.avail_movement(game):
@@ -141,6 +166,11 @@ class Attack(Action):
             return self.name 
 
 class MultiAttack(Action):
+    """
+    Attack with multiple attacks 
+    in one aciton. Target must 
+    be the same for both attacks 
+    """
     def __init__(self, attacks):
         self.attacks = attacks 
         attack_names = [attack.name for attack in attacks]
@@ -148,6 +178,11 @@ class MultiAttack(Action):
         super().__init__(name)
     
     def smallest_range_attack(self):
+        """
+        To determine available attacks, 
+        use the smallest attack range 
+        in attack set 
+        """
         attack_ranges = [(attack.dist, attack) for attack in self.attacks]
         smallest_range = 10000000
         smallest_attack = None 
@@ -160,6 +195,11 @@ class MultiAttack(Action):
         return smallest_attack 
     
     def avail_actions(self, creature, game):
+        """
+        Return movement and action combination
+        where action contains a copy of self 
+        with all attacks set to a target 
+        """
         first_attack_opts = self.smallest_range_attack().avail_actions(creature, game)
 
         actions = [] 
@@ -174,12 +214,22 @@ class MultiAttack(Action):
         return actions 
     
     def execute(self, game, debug=False):
+        """
+        Execute every attack
+        in attack set 
+        """
         if (debug):
             print("Attack with multiple attack")
         for attack in self.attacks:
             attack.execute(game, debug)
 
 class TwoHanded(Attack):
+    """
+    Attack with different damages 
+    determiend by distance of attacker
+    to target 
+    
+    """
     def __init__(self, hit_bonus, damage_dice_string_small, damage_dice_string_large, dist_small, dist_large, attack_type=MELE, damage_type=SLASHING_DAMAGE, name="Attack", side_effects=None, attacker=None, target=None):
         
         super().__init__(hit_bonus, damage_dice_string_small, dist_large, attack_type, damage_type, name, side_effects, attacker, target)
@@ -190,8 +240,11 @@ class TwoHanded(Attack):
         self.wide_range = dist_large
     def execute(self, game, debug = False):
         """
-        Excute attack on target
-        if target is none, do nothing
+        Find distance between attacker 
+        and target. If greater than 
+        small distance, use far distance 
+        dice. Otherwise use small distance 
+        dice 
         """
         # if there is not a target, dont do anything 
         target = game.get_creature(self.target)
@@ -221,7 +274,7 @@ class TwoHanded(Attack):
 
                 # double dice on nat 20 
                 if nat_hit == 20:
-                    dice = Dice(make_dice_string(dice.amount * 2, dice.type, dice.modifier), dice.default_advantage)
+                    dice = Dice(make_dice_string(dice.amount * 2, dice.type, dice.modifer), dice.default_advantage)
                 
                 damage = dice.roll() + attacker.get_added_damage(self, game, debug)
                 target.damage(damage, self.damage_type,game)
@@ -238,6 +291,10 @@ class TwoHanded(Attack):
             print("Target or Attacker not found")
 
 class SideEffect:
+    """
+    An condition that is inflicted along 
+    with an attack or spell
+    """
     def __init__(self, inflicted_condition, can_save, save_type= None, save_dc = 0):
         self.inflicted_condition = inflicted_condition
         self.can_save = can_save
