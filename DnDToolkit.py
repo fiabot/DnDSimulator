@@ -1,6 +1,7 @@
 from copy import deepcopy
 import copy
 import random
+import time
 
 
 # constants 
@@ -582,7 +583,8 @@ class Game():
         self.round = 0 
         self.turn_log = [] 
         
-        self.stats = {"success": 0, "total damage" : 0, "ending health": 0, "deaths": 0, "amount asleep": 0} 
+        self.stats = {"success": 0, "total damage" : 0, "ending health": 0, 
+                    "deaths": 0, "amount asleep": 0, "spells": 0, "time":0} 
         
     
     def create_copy(self):
@@ -687,7 +689,8 @@ class Game():
         current_health = 0 
         deaths = 0 
         uncons_amount = 0 
-        
+        total_spells = 0 
+        spells_used = 0 
 
         for player in self.players:
             max_health += player.max_hp 
@@ -696,20 +699,30 @@ class Game():
             uncons_amount += player.uncons_amount 
             if not player.features.is_alive():
                 deaths += 1 
+            if not player.spell_manager is None:
+                total_spells += player.spell_manager.total_spell_slots
+                spells_used += player.spell_manager.total_spell_slots - player.spell_manager.current_spell_slots
         
-        return total_damage / max_health , current_health / max_health, deaths, uncons_amount 
+        if total_spells == 0:
+            percent_spells = 0
+        else:
+            percent_spells = spells_used / total_spells
+        
+        return total_damage / max_health , current_health / max_health, deaths, uncons_amount, percent_spells
    
-    def set_stats(self, winner):
+    def set_stats(self, winner, time):
         """
         set current game stats 
         and add them to stat log 
         """
         if winner == PLAYERTEAM:
             self.stats["success"] += 1 
-        damage, health, deaths, uncons_amount   = self.get_damage_stats()
+        self.stats["time"] = time 
+        damage, health, deaths, uncons_amount, spells   = self.get_damage_stats()
         self.stats["amount asleep"] = uncons_amount 
         self.stats["total damage"] = damage 
         self.stats["ending health"] = health 
+        self.stats["spells"] = spells 
         if winner != PLAYERTEAM:
             self.stats["deaths"]  = len(self.players)
         else:
@@ -737,6 +750,7 @@ class Game():
         and how many rounds were completed 
         """
         self.reset() 
+        start = time.perf_counter()
 
         if debug:
             print(self.map)
@@ -745,11 +759,12 @@ class Game():
             creature = self.update_init() 
             action = creature.turn(game = self) 
             self.next_turn(creature, action, debug, log) 
-        
+
+        end  = time.perf_counter()
         winner = self.get_winner() 
         self.games_played += 1 
 
-        self.set_stats(winner)
+        self.set_stats(winner, end - start)
         
         return winner, self.round  
 
