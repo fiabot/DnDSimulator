@@ -639,6 +639,11 @@ class Game():
             return TIE
         else:
             return INCOMPLETE 
+            
+    def is_terminal(self):
+        winner = self.get_winner()
+        return winner == PLAYERTEAM or winner == MONSTERTEAM 
+
         
     def next_turn(self, creature, action, debug = False, log = False):
         """

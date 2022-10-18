@@ -20,7 +20,7 @@ jin_avg = sum(jin_times) / len(jin_times)
 print("Shyne average: {}, Jin average: {}".format(shyne_avg, jin_avg))"""
 
 ## Shyne Vs Random 
-#print(tourament(ShyneCreature, RandomCreature, 10, MANUAL, round_limit= 20, debug=True))
+print(tourament(ShyneCreature, AggressiveCreature, 2, MANUAL, round_limit= 20, debug=True))
 
 ## Shyne Vs JinJerry 
 #print(tourament(ShyneCreature, JinJerryCreature, 10, MANUAL, round_limit= 20, debug=True))
@@ -33,4 +33,4 @@ print("Shyne average: {}, Jin average: {}".format(shyne_avg, jin_avg))"""
 #print(tourament(JinJerryCreature, RandomCreature, 10, MANUAL, round_limit= 20, debug=True))
 
 ## Random vs Random 
-print(tourament(RandomCreature, RandomCreature, 50, MANUAL, round_limit= 20, debug=True))
+#print(tourament(RandomCreature, RandomCreature, 50, MANUAL, round_limit= 20, debug=True))
