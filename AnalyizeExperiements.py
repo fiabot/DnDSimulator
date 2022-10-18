@@ -55,7 +55,7 @@ def condense_results(game_data):
     
     return cond_vals 
 
-def creat_box_plt(data_dict, attribute):
+def creat_box_plt(data_dict, attribute, y_label = "y axis", title = "Graph"):
  
     easy = data_dict["Easy"][attribute]
     medium = data_dict["Medium"][attribute]
@@ -63,10 +63,12 @@ def creat_box_plt(data_dict, attribute):
     deadly= data_dict["Deadly"][attribute]
     
     box_plot_data=[easy, medium, hard, deadly]
-    plt.title("Graph for Attribute: {}".format(attribute))
+    plt.title(title)
+    plt.xlabel("Difficulty Category from DMG")
+    plt.ylabel(y_label)
     plt.boxplot(box_plot_data, patch_artist=True, meanline=True, showmeans=True, labels=["easy", "medium", "hard", "deadly"])
     plt.savefig("PlayTestingGraphs/" + attribute +".png")
-    plt.clf() 
+    plt.show()
 
 def get_statistics(data):
     stats = {"Easy":{}, "Medium":{}, "Hard": {}, "Deadly":{}}
@@ -92,9 +94,16 @@ print("Length dead: {}".format(len(vals["Deadly"])))
 
 cond = condense_results(vals)
 
-
+titles = {"damage": "Damage taken by Difficulty Category", "time":"How Long Games Took by Difficulty Category", 
+                "asleep": "Number of Unconcious Players by Difficulty Category", "spells": "Spell Resources Used by Difficulty Category",
+                "success": "How Often Players Won by Difficulty Category", "health": "Health at End of Game by Difficulty Category",
+                "death": "Player Death by Difficulty Category"}
+y_labels = {"damage": "Damage taken per game as ratio of total health", "time":"Time in seconds per game", 
+                "asleep": "number of times a player went unconcioius in a game", "spells": "Ratio of spell slots used per game",
+                "success": "1 if players defeated monsters, 0 otherwise", "health": "Health at end of game as ratio of max health",
+                "death": "Total amount of player death per game"}
 for att in ["damage", "time", "asleep", "spells", "death", "success", "health"]:
-    creat_box_plt(cond, att)
+    creat_box_plt(cond, att, y_labels[att], titles[att])
 
 
 stats = get_statistics(cond)
