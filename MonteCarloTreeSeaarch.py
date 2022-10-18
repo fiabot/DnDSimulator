@@ -6,7 +6,7 @@ import math
 from GeneralAgentFunctions import * 
 
 class Node:
-    def __init__(self, parent, creature_name, game):
+    def __init__(self, parent, turn, game):
         self.parent = parent 
         self.children = []; 
         self.game = game 
@@ -15,18 +15,48 @@ class Node:
         self.is_terminal = game.is_terminal  
         self.value = 0 
         self.sumResults = 0 
-        self.visits = 0 
-        self.creature_name = creature_name 
+        self.visits = 1 
+        self.turn = turn
 
     def expand(self):
         if self.is_leaf: 
-            creature = game.next_creature()
-            actions = creature.avail_actions(game)
+            creature = self.game.next_creature()
+            actions = creature.avail_actions(self.game)
 
             for a in actions: 
-                self.children.append(forward_action(a, creature.name, game)) 
+                # if this is the root node, we want the turn
+                # to be the action commit, otherwise we 
+                # want it to be the turn of the parent 
+                if self.is_root:
+                    turn = a 
+                else:
+                    turn = self.turn 
+                new_game = forward_action(a, creature.name, self.game)
+                node = Node(self, turn, new_game)
+                self.children.append(node) 
             
             self.is_leaf = False 
+            
+    
+    def backprop(self, value): 
+        self.visits += 1
+        self.sumResults += value 
+        self.value = self.sumResults / self.visits 
+
+        if not self.is_root:
+            self.parent.backprop(value)
+    
+    def get_best_child(self):
+        highest_value = -100000
+        highest_child = None 
+        for child in self.children:
+            if child.value > highest_value:
+                highest_child = child 
+                highest_value = child.value 
+        
+        return highest_child 
+
+
 
 
 class MCTSCreature(Creature):
@@ -48,15 +78,16 @@ class MCTSCreature(Creature):
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
                     immunities = None, resistences = None, debug= True, level = 0.5,
-                    spell_manager = None, makes_death_saves = False, simulations = 20):
+                    spell_manager = None, makes_death_saves = False, simulations = 500, depth = 20, c = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
                         spell_manager=spell_manager, makes_death_saves=makes_death_saves)
         self.simlations = simulations 
         self.debug = debug 
         self.times = []  
         self.time_components = {} 
-        for i in self.depths:
-            self.time_components[i] = {"sim": 0, "copy": 0, "total": 0, "inst": 0}
+        self.c = c
+        self.depth = depth
+        
 
     def decide_action(self, game, creature):
         """
@@ -65,23 +96,7 @@ class MCTSCreature(Creature):
 
         random_action(game, creature)
     
-    def get_hp_ratio(self, creatures, team, equal = True):
-        """
-        returns a teams hp as a 
-        ratio of their max hp
-        """
-        max_hp = 0 
-        cur_hp = 0 
-        for creature in creatures: 
-            if (creature.team == team and equal) or (creature.team != team and (not equal)):
-                max_hp += creature.max_hp 
-                cur_hp += creature.hp 
-        if max_hp == 0:
-            print("ZERO ERROR")
-            for creature in creatures:
-                print("CREATURE: {} with hp {}".format(creature.name, creature.max_hp))
-        else:
-            return cur_hp / max_hp 
+
 
     
     def static_evaluator(self, game):
@@ -104,64 +119,50 @@ class MCTSCreature(Creature):
         Assumes that game is a copy 
         """
         return simulate_game(game, depth)
-    
+    def select_node(self, root, num_trials):
+        node = root 
+        while not node.is_leaf:
+            choosen = None 
+            choosen_val = - 100000000000000000000000
+            for child in node.children:
+                select = child.value + self.c * math.sqrt(math.log(num_trials) / child.visits)
+
+                if select > choosen_val:
+                    choosen = child
+                    choosen_val = select 
+            
+            node = choosen 
+        
+        return node 
+
+
     def turn(self, game):
         """
         Move forward one action and evaluate state 
         use only the top half of states to expand, 
         conduct random trials 
         """
-        options = self.avail_actions(game) 
-
-        options_evaluations = [[0, option] for option in options] 
-
-        start = time.perf_counter()  
-        for depth in self.depths:
-            for i, evaluation in enumerate(options_evaluations): 
-                simulation_start = time.perf_counter() 
-                option = evaluation[1] 
-                old_value = evaluation[0]
-
-                # create a copy of game 
-                game_copy = game.create_copy() 
-
-                copy_end = time.perf_counter() 
+        root = Node(None, None, game.create_copy())
 
 
-                # do action in game 
-                creature = game_copy.update_init() # should return copy of self 
-                game_copy.next_turn(creature, option) # complete action  
+        for trial in range(self.simlations):
+            # selection 
+            node = self.select_node(root, trial)
 
-                # forward simulate 
-                game_copy = self.simulate_game(game_copy, depth)
+            # expansion 
+            node.expand()
 
-                simulate_end = time.perf_counter() 
-                
-                # evualute future model 
-                new_value = self.static_evaluator(game_copy)
+            #simulation 
+            simulate_game(game, self.depth)
+            value = heuristic(self, game)
 
-                # new evaluation is average of old and new 
-                options_evaluations[i][0] = (old_value + 2 * new_value) / 2 
-
-                total_end = time.perf_counter() 
-
-                if self.debug:
-                    self.time_components[depth]["copy"] += copy_end - simulation_start 
-                    self.time_components[depth]["sim"] += simulate_end - copy_end 
-                    self.time_components[depth]["total"] += total_end - simulation_start 
-                    self.time_components[depth]["inst"] += 1 
-            
-            options_evaluations.sort(key = lambda x: x[0], reverse=True) # sort by eval 
-
-            cutoff = math.ceil(len(options_evaluations) / 2)
-
-            options_evaluations = options_evaluations[:cutoff]
+            #back proprob 
+            node.backprop(value)
         
-        end = time.perf_counter()
-        if self.debug:
-            self.times.append(end - start) 
-     
-        return options_evaluations[0][1]
+        return root.get_best_child().turn  
+
+
+    
     
     def average_time(self):
         """
@@ -170,16 +171,3 @@ class MCTSCreature(Creature):
         """
         return sum(self.times) / len(self.times) 
     
-    def display_times(self):
-        """
-        display in depth 
-        time anaylsis 
-        """
-        print("Average total turn time: {}".format(self.average_time()))
-        for depth in self.time_components:
-            times = self.time_components[depth]
-            print("For depth: {}".format(depth))
-            print("\tAverage Simulation Time: {}".format(times["total"] / times["inst"]))
-            print("\tAverage Copying Time   : {}".format(times["copy"] / times["inst"]))
-            print("\tAverage Future Time    : {}".format(times["sim"] / times["inst"]))
-            print("Sums: full : {}, copying : {}, future sim: {}".format(times["total"], times["copy"], times["sim"]))

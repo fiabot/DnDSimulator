@@ -51,7 +51,7 @@ def forward_action(action, creature_name, game):
     to it 
     
     """
-    copy = game.copy 
+    copy = game.create_copy() 
     creature = game.get_creature(creature_name) 
     creature = copy.update_init() 
     copy.next_turn(creature, action)

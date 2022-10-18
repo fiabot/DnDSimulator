@@ -1,6 +1,7 @@
 from DnDToolkit import * 
 from BasicAgents import *  
-from MonsterManual import * 
+from MonsterManual import *
+from MonteCarloTreeSeaarch import MCTSCreature 
 from ShyneAgent import * 
 from JinJerryAgent import * 
 from tournament import * 
@@ -20,7 +21,7 @@ jin_avg = sum(jin_times) / len(jin_times)
 print("Shyne average: {}, Jin average: {}".format(shyne_avg, jin_avg))"""
 
 ## Shyne Vs Random 
-print(tourament(ShyneCreature, AggressiveCreature, 2, MANUAL, round_limit= 20, debug=True))
+#print(tourament(ShyneCreature, RandomCreature, 2, MANUAL, round_limit= 20, debug=True))
 
 ## Shyne Vs JinJerry 
 #print(tourament(ShyneCreature, JinJerryCreature, 10, MANUAL, round_limit= 20, debug=True))
@@ -34,3 +35,5 @@ print(tourament(ShyneCreature, AggressiveCreature, 2, MANUAL, round_limit= 20, d
 
 ## Random vs Random 
 #print(tourament(RandomCreature, RandomCreature, 50, MANUAL, round_limit= 20, debug=True))
+
+print(tourament(MCTSCreature, AggressiveCreature, 10, MANUAL, round_limit= 20, debug=True))
