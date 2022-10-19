@@ -1,3 +1,4 @@
+from distutils.log import debug
 from DnDToolkit import * 
 from BasicAgents import *  
 from MonsterManual import *
@@ -5,6 +6,7 @@ from MonteCarloTreeSeaarch import MCTSCreature
 from ShyneAgent import * 
 from JinJerryAgent import * 
 from tournament import * 
+from RuleBasedAgents import * 
 
 # Timing tests 
 """jinParty, shyneParty = create_identical_parties(JinJerryCreature, ShyneCreature, MANUAL, 2)
@@ -36,4 +38,4 @@ print("Shyne average: {}, Jin average: {}".format(shyne_avg, jin_avg))"""
 ## Random vs Random 
 #print(tourament(RandomCreature, RandomCreature, 50, MANUAL, round_limit= 20, debug=True))
 
-print(tourament(MCTSCreature, AggressiveCreature, 10, MANUAL, round_limit= 20, debug=True))
+print(tourament(CowardlyCreature, AggressiveCreature, 100, MANUAL, round_limit= 40, debug=True))

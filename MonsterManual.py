@@ -90,7 +90,6 @@ def make_unqiue(creatures):
         name = creature.name 
         if name in names:   
             creature.name = name + str(names[name]) 
-            print(names)
             names[name] += 1 
         else:
             names[name] = 1

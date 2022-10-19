@@ -66,14 +66,14 @@ class HumanCreature(Creature):
             return_str += "\n\t" + str(creature.spell_manager)
 
         return return_str
-
+"""
 class AggressiveCreature(Creature):
-    """
+    
     choice an action with the 
     highest damage, otherwise 
     get as close as possible to 
     creature 
-    """
+    
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
                     immunities = None, resistences = None, level = 0.5, spell_manager= None, makes_death_saves = False):
@@ -85,6 +85,7 @@ class AggressiveCreature(Creature):
         self.order_actions = [] 
         for action in self.actions: 
             try: 
+                print("is attack")
                 self.order_actions.append((action.damage_dice.expected, action))
             except: 
                 # doesn't have damage dice 
@@ -115,7 +116,7 @@ class AggressiveCreature(Creature):
                     closest_action = action 
             
             return closest_action 
-
+"""
 
 if __name__ == "__main__":
     sword = Attack(3, "2d6", 1, name = "Sword")

@@ -341,6 +341,21 @@ class AreaSpell(Spell):
                     actions.append([move, self.set_caster(creature)])
         return actions 
 
+    def estimated_damage(self,game):
+        damage = 0 
+        caster = game.get_creature(self.caster)
+        if not caster is None: 
+            pieces = game.map.pieces_in_range(caster.position, self.dist, dist_min = 1)
+            for piece in pieces: 
+                try: 
+                    target = game.get_creature(piece.name)
+                    if not target is None:
+                        damage += self.damage_dice.expected_value 
+                except: 
+                    pass 
+        return damage 
+
+    
     def execute(self, game, debug = False):
         """
         Apply damage to all creatures 

@@ -78,7 +78,7 @@ class MCTSCreature(Creature):
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
                     immunities = None, resistences = None, debug= True, level = 0.5,
-                    spell_manager = None, makes_death_saves = False, simulations = 500, depth = 20, c = 0.5):
+                    spell_manager = None, makes_death_saves = False, simulations = 200, depth = 20, c = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
                         spell_manager=spell_manager, makes_death_saves=makes_death_saves)
         self.simlations = simulations 
