@@ -1,4 +1,6 @@
 from distutils.log import debug
+from math import degrees
+from tkinter.tix import MAIN
 from DnDToolkit import * 
 from BasicAgents import *  
 from MonsterManual import *
@@ -7,6 +9,7 @@ from ShyneAgent import *
 from JinJerryAgent import * 
 from tournament import * 
 from RuleBasedAgents import * 
+import jsonpickle
 
 # Timing tests 
 """jinParty, shyneParty = create_identical_parties(JinJerryCreature, ShyneCreature, MANUAL, 2)
@@ -36,6 +39,12 @@ print("Shyne average: {}, Jin average: {}".format(shyne_avg, jin_avg))"""
 #print(tourament(JinJerryCreature, RandomCreature, 10, MANUAL, round_limit= 20, debug=True))
 
 ## Random vs Random 
-#print(tourament(RandomCreature, RandomCreature, 50, MANUAL, round_limit= 20, debug=True))
+#print(tourament(ShyneCreature, AggressiveCreature, 20, MANUAL, round_limit= 20, debug=True))
 
-print(tourament(CowardlyCreature, AggressiveCreature, 100, MANUAL, round_limit= 40, debug=True))
+results = multi_agent_touranment([AggressiveCreature, ConversativeCreature, ProtectiveCreature, MCTSCreature, ShyneCreature, JinJerryCreature], 20, MANUAL, debug = True)
+
+print(results)
+
+pickled_results = jsonpickle.encode(results)
+file = open("tourament_results.txt", "w")
+file.write(pickled_results)

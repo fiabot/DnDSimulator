@@ -78,7 +78,7 @@ class MCTSCreature(Creature):
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
                     immunities = None, resistences = None, debug= True, level = 0.5,
-                    spell_manager = None, makes_death_saves = False, simulations = 200, depth = 20, c = 0.5):
+                    spell_manager = None, makes_death_saves = False, simulations = 700, depth = 20, c = 0.5):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
                         spell_manager=spell_manager, makes_death_saves=makes_death_saves)
         self.simlations = simulations 
@@ -142,6 +142,7 @@ class MCTSCreature(Creature):
         use only the top half of states to expand, 
         conduct random trials 
         """
+        start = time.perf_counter()
         root = Node(None, None, game.create_copy())
 
 
@@ -158,16 +159,13 @@ class MCTSCreature(Creature):
 
             #back proprob 
             node.backprop(value)
-        
+        end = time.perf_counter()
+        self.times.append(end - start)
         return root.get_best_child().turn  
-
-
-    
     
     def average_time(self):
-        """
-        return average time 
-        each turn took 
-        """
-        return sum(self.times) / len(self.times) 
+        if len(self.times) == 0:
+            return -1 
+        else:
+            return sum(self.times) / len(self.times)
     

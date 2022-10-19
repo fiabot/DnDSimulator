@@ -138,7 +138,10 @@ class JinJerryCreature(Creature):
         return options_evaluations[0][1]
     
     def average_time(self):
-        return sum(self.times) / len(self.times) 
+        if len(self.times) == 0:
+            return -1 
+        else:
+            return sum(self.times) / len(self.times)
 
 
 

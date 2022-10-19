@@ -23,7 +23,7 @@ class ShyneCreature(Creature):
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, depths = [0, 10, 20, 30, 40], debug= True, level = 0.5,
+                    immunities = None, resistences = None, depths = [0, 10, 20, 30], debug= True, level = 0.5,
                     spell_manager = None, makes_death_saves = False):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
                         spell_manager=spell_manager, makes_death_saves=makes_death_saves)
@@ -140,11 +140,10 @@ class ShyneCreature(Creature):
         return options_evaluations[0][1]
     
     def average_time(self):
-        """
-        return average time 
-        each turn took 
-        """
-        return sum(self.times) / len(self.times) 
+        if len(self.times) == 0:
+            return -1 
+        else:
+            return sum(self.times) / len(self.times)
     
     def display_times(self):
         """

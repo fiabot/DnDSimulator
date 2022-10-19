@@ -74,6 +74,8 @@ class Creature:
         else:
             self.actions = actions 
         self.null = NullAction() 
+        self.actions = [act for act in self.actions if not act is None and act.name != "No Action"]
+        
         self.actions.append(self.null) # make sure the null action is included
         self.init_dice = Dice(make_dice_string(1, 20, self.modifiers.initiative_mod()))
         
