@@ -63,9 +63,11 @@ def creat_box_plt(data_dict, attribute, y_label = "y axis", title = "Graph"):
     deadly= data_dict["Deadly"][attribute]
     
     box_plot_data=[easy, medium, hard, deadly]
-    plt.title(title)
-    plt.xlabel("Difficulty Category from DMG")
-    plt.ylabel(y_label)
+    plt.rcParams['font.size'] = '22'
+    plt.figure(figsize= (8, 10))
+    plt.title(title, fontsize= 26)
+    plt.xlabel("Difficulty Category from Manual", fontsize = 24)
+    plt.ylabel(y_label, fontsize = 24)
     plt.boxplot(box_plot_data, patch_artist=True, meanline=True, showmeans=True, labels=["easy", "medium", "hard", "deadly"])
     plt.savefig("PlayTestingGraphs/" + attribute +".png")
     plt.show()
@@ -94,14 +96,14 @@ print("Length dead: {}".format(len(vals["Deadly"])))
 
 cond = condense_results(vals)
 
-titles = {"damage": "Damage taken by Difficulty Category", "time":"How Long Games Took by Difficulty Category", 
-                "asleep": "Number of Unconcious Players by Difficulty Category", "spells": "Spell Resources Used by Difficulty Category",
-                "success": "How Often Players Won by Difficulty Category", "health": "Health at End of Game by Difficulty Category",
-                "death": "Player Death by Difficulty Category"}
-y_labels = {"damage": "Damage taken per game as ratio of total health", "time":"Time in seconds per game", 
-                "asleep": "number of times a player went unconcioius in a game", "spells": "Ratio of spell slots used per game",
-                "success": "1 if players defeated monsters, 0 otherwise", "health": "Health at end of game as ratio of max health",
-                "death": "Total amount of player death per game"}
+titles = {"damage": "Damage Taken", "time":"Clock Time Per Game", 
+                "asleep": "Amount of Unconciousness", "spells": "Spell Resources Used Per Game",
+                "success": "Success Rate", "health": "Health at End of Game",
+                "death": "Player Deaths"}
+y_labels = {"damage": "Damage taken as ratio of max health", "time":"Time in seconds per game", 
+                "asleep": "Amount of players that went unconcioius", "spells": "Ratio of spell slots used per game",
+                "success": "1 if players won, 0 otherwise", "health": "Health at end of game as ratio of max health",
+                "death": "Amount of player death per game"}
 for att in ["damage", "time", "asleep", "spells", "death", "success", "health"]:
     creat_box_plt(cond, att, y_labels[att], titles[att])
 
