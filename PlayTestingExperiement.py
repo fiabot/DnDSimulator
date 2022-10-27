@@ -1,6 +1,7 @@
 from DnDToolkit import *
 from JinJerryAgent import JinJerryCreature 
 from MonsterManual import *
+from RuleBasedAgents import AggressiveCreature, ProtectiveCreature
 from ShyneAgent import ShyneCreature 
 import jsonpickle
 
@@ -219,20 +220,20 @@ def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, 
 
 player_names = ["orc warlock", "elf wizard", "human cleric", "tiefling ranger", "halfing ranger"]
 
-players = [create_creature(ShyneCreature, MANUAL[name]) for name in player_names]
+players = [create_creature(ProtectiveCreature, MANUAL[name]) for name in player_names]
 
-for i in range(10):
+for i in range(20):
     print("Easy trial {}".format(i))
-    random_trial_set_diff("easy-" + str(i), ShyneCreature, players, 15, "Easy", 20)
+    random_trial_set_diff("easy-" + str(i), ProtectiveCreature, players, 15, "Easy", 20)
 
     print("Medium trial {}".format(i))
-    random_trial_set_diff("medium-" + str(i),ShyneCreature, players, 15, "Medium", 20)
+    random_trial_set_diff("medium-" + str(i),ProtectiveCreature, players, 15, "Medium", 20)
 
     print("Hard trial {}".format(i))
-    random_trial_set_diff("hard-" + str(i), ShyneCreature, players, 15, "Hard", 20)
+    random_trial_set_diff("hard-" + str(i),ProtectiveCreature, players, 15, "Hard", 20)
 
     print("Deadly trial {}".format(i))
-    random_trial_set_diff("deadly-" + str(i), ShyneCreature, players, 15, "Deadly", 20)
+    random_trial_set_diff("deadly-" + str(i), ProtectiveCreature, players, 15, "Deadly", 20)
 
 
 
