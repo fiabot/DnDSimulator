@@ -58,6 +58,12 @@ def forward_action(action, creature_name, game):
 
     return copy 
 
+def one_step(game):
+    creature = game.update_init() 
+    turn = random_action(game, creature)
+    game.next_turn(creature, turn)
+    is_terminal = game.is_terminal()
+    return is_terminal 
 
 
 def simulate_game(game, depth):
@@ -76,10 +82,7 @@ def simulate_game(game, depth):
         
 
         while cur_depth < depth and not is_terminal:
-            creature = game.update_init() 
-            turn = random_action(game, creature)
-            game.next_turn(creature, turn)
-            is_terminal = game.is_terminal()
+            is_terminal = one_step(game)
             
             cur_depth += 1 
         return game

@@ -2,6 +2,7 @@ from DnDToolkit import *
 from JinJerryAgent import JinJerryCreature 
 from MonsterManual import *
 from ShyneAgent import ShyneCreature 
+from RuleBasedAgents import * 
 
 # choose agent 
 print("Choose agent from: \n\t1. Agressive \n\t2. JinJerry \n\t3. ShyneAgent")

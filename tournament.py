@@ -170,6 +170,25 @@ def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max
             results[monster_class.__name__] = [monster_dict]
     return results
 
+def create_random_game():
+    grid = Grid(10, 10)
+    player_size = random.randrange(1, 5)
+    players = create_random_party(Creature, PLAYER_MANUAL, player_size)
+
+    monster_size = random.randrange(1, 5)
+    monsters = create_random_party(Creature, MONSTER_MANUAL, monster_size)
+
+    monster_pos = [] 
+    player_pos = [] 
+    for i in range(player_size):
+     
+        player_pos.append((10 - 1, 10 - i - 1)) # players at bottom right 
+    for i in range(monster_size):
+        monster_pos.append((0, i)) # monsters at top left 
+    
+    return players[0], Game(players, monsters, player_pos, monster_pos, grid) 
+    
+
 
 if __name__ == "__main__":
     results = tourament(JinJerryCreature, RandomCreature, 10, MANUAL, debug=True)

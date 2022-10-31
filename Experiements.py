@@ -10,9 +10,10 @@ from ShyneAgent import *
 from JinJerryAgent import * 
 from tournament import * 
 from RuleBasedAgents import * 
+from RLAgent import * 
 import jsonpickle
 
-print(tourament(AggressiveCreature, ProtectiveCreature2, 100, PLAYER_MANUAL, round_limit= 50))
+print(tourament(RLCreature, AggressiveCreature, 4, PLAYER_MANUAL, round_limit= 4, debug = True))
 
 #results = multi_agent_touranment([AggressiveCreature, ConversativeCreature, ProtectiveCreature, MCTSCreature, ShyneCreature, JinJerryCreature],20, MANUAL, round_limit=20, debug=True) 
 
