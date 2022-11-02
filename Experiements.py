@@ -1,11 +1,10 @@
-from distutils.log import debug
-from math import degrees
-from tkinter.tix import MAIN
+
 from DnDToolkit import * 
 from BasicAgents import *  
 from MonsterManual import *
 from MonteCarloGameSearch import MonteCarloGameSearch
-from MonteCarloTreeSeaarch import MCTSCreature 
+from MonteCarloTreeSeaarch import MCTSCreature
+from OLETS import OLETSCreature 
 from ShyneAgent import * 
 from JinJerryAgent import * 
 from tournament import * 
@@ -13,12 +12,20 @@ from RuleBasedAgents import *
 from RLAgent import * 
 import jsonpickle
 
-print(tourament(RLCreature, AggressiveCreature, 4, PLAYER_MANUAL, round_limit= 4, debug = True))
+#print(tourament(RLCreature, AggressiveCreature, 4, PLAYER_MANUAL, round_limit= 4, debug = True))
 
-#results = multi_agent_touranment([AggressiveCreature, ConversativeCreature, ProtectiveCreature, MCTSCreature, ShyneCreature, JinJerryCreature],20, MANUAL, round_limit=20, debug=True) 
+manual_results = multi_agent_touranment([AggressiveCreature,  ProtectiveCreature, ShyneCreature, MonteCarloGameSearch, OLETSCreature],10, MANUAL, round_limit=20, debug=True) 
 
-#print(results)
+print(manual_results)
 
-#pickled_results = jsonpickle.encode(results)
-#file = open("tourament_results.txt", "w")
-#file.write(pickled_results)
+pickled_results = jsonpickle.encode(manual_results)
+file = open("random_results.txt", "w")
+file.write(pickled_results)
+
+player_results = multi_agent_touranment([AggressiveCreature,  ProtectiveCreature, ShyneCreature, MonteCarloGameSearch, OLETSCreature],5, PLAYER_MANUAL, round_limit=20, debug=True)
+
+print(player_results)
+
+pickled_results = jsonpickle.encode(player_results)
+file = open("player_results.txt", "w")
+file.write(pickled_results)

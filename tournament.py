@@ -7,7 +7,7 @@ import random
 import time 
 
 
-def tourament(player_class, monster_class, game_count, manual, min_size = 2, max_size = 5, grid_size = 20, debug = False, round_limit = 20):
+def tourament(player_class, monster_class, game_count, manual, min_size = 2, max_size = 5, grid_size = 7, debug = False, round_limit = 20):
     map = Grid(grid_size, grid_size, space = 1)
     results = {PLAYERTEAM:0, MONSTERTEAM:0, TIE:0, INCOMPLETE:0}
 
@@ -42,7 +42,6 @@ def tourament(player_class, monster_class, game_count, manual, min_size = 2, max
         for i in range(size):
             monster_pos.append((0, i)) # monsters at top left 
             player_pos.append((grid_size - 1, grid_size - i - 1)) # players at bottom right 
-        
         # create game 
         game = Game(players, monsters, player_pos, monster_pos, map)
 
@@ -55,14 +54,14 @@ def tourament(player_class, monster_class, game_count, manual, min_size = 2, max
             print(f"Time: {end - start:0.4f}")
     return results 
 
-def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max_size = 5, grid_size = 10, debug = False, round_limit = 20):
+def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max_size = 5, grid_size = 7, debug = False, round_limit = 20):
     results = {} 
     map = Grid(grid_size, grid_size, space = 1) 
 
 
     combinations = itertools.combinations(agent_classes, 2)
     
-    for combo in combinations:
+    for i,combo in enumerate(combinations):
         player_class = combo[0]
         monster_class = combo[1]
 
@@ -74,7 +73,9 @@ def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max
         monster_times = [] 
 
         rounds= [] 
-
+        if debug:
+            print("Current results {}".format(results))
+            print("{} VS. {}".format(player_class.__name__, monster_class.__name__))
         for game_count in range(trial_count):
 
             if debug:
@@ -89,16 +90,16 @@ def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max
             make_unqiue(monsters + players)
 
             if debug:
-                print("\n\n\nGame {} of {}".format(game_count, trial_count))
-                print("Current results {}".format(results))
-                print("Party Size {}".format(size))
-                print("\nMonsters:")
-                for monster in monsters:
-                    print(monster)
+                print("\n\n\n\tGame {} of {}".format(game_count, trial_count))
                 
-                print("\nPlayers:")
+                print("\tParty Size {}".format(size))
+                print("\n\tMonsters:")
+                for monster in monsters:
+                    print("\t" + str(monster))
+                
+                print("\n\tPlayers:")
                 for player in players:
-                    print(player)
+                    print("\t" + str(player))
 
             # create starting positions 
             monster_pos = [] 

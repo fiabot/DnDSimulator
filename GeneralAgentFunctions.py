@@ -42,7 +42,7 @@ def heuristic(creature, game):
         grid and an order of creatures s
         """
         creatures = game.order 
-        return hp_ratio(creatures, creature.team) - hp_ratio(creatures, creature.team, equal=False)
+        return hp_ratio(creatures, creature.team) - 2* hp_ratio(creatures, creature.team, equal=False)
 
 def forward_action(action, creature_name, game):
     """

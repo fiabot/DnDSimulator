@@ -23,7 +23,7 @@ class ShyneCreature(Creature):
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, depths = [0, 10, 20, 30, 40, 40, 40], trimming_raito = 0.25,  debug= True, level = 0.5,
+                    immunities = None, resistences = None, depths = [10, 20, 30, 40, 40, 40], trimming_raito = 0.25,  debug= True, level = 0.5,
                     spell_manager = None, makes_death_saves = False):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
                         spell_manager=spell_manager, makes_death_saves=makes_death_saves)
@@ -135,8 +135,8 @@ class ShyneCreature(Creature):
             options_evaluations = options_evaluations[:cutoff]
         
         end = time.perf_counter()
-        if self.debug:
-            self.times.append(end - start) 
+        
+        self.times.append(end - start) 
      
         return options_evaluations[0][1]
     

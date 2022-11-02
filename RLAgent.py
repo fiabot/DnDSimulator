@@ -9,18 +9,11 @@ from stable_baselines3 import A2C
 
 class RLCreature(Creature):
     """
-    Variation of JinJerry agent that prunes poor preformining solutiosn 
+    Use reinforcement learning to make 
+    decisions 
 
-    To make a deciions the following algorithm is implemented:
-        1. set options to all my available next moves 
-        2. set value for all options to 0 
-        3. for depth in depths:
-                4. for option in options 
-                        5. g = create a copy of the game state 
-                        6. preform option in g
-                        7. for depth turns randomly preform actions in g
-                        8. option_value = (option_value + static evaluator for g) / 2
-        10. return action with highest value  
+    OpenAIGym was used to create enviroment 
+    Ac3 was used as reinforcement algorithm 
     
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
@@ -37,6 +30,7 @@ class RLCreature(Creature):
         self.time_components = {} 
         for i in self.depths:
             self.time_components[i] = {"sim": 0, "copy": 0, "total": 0, "inst": 0}
+        self.turn_lengths = [] 
 
     
     def turn(self, game):
@@ -45,13 +39,15 @@ class RLCreature(Creature):
         """
         start = time.perf_counter()
         options = self.avail_actions(game) 
+        self.turn_lengths.append(len(options))
         if not self.init:
             self.env = DnDEnv(game, self)
             self.model = A2C('MlpPolicy', self.env, verbose=0)
+            self.model.learn(total_timesteps=500) 
             self.init = True 
         else:
             self.env.set_starting(game)
-        self.model.learn(total_timesteps=1) 
+            self.model.learn(total_timesteps=200) 
 
         obs = self.env.reset()
         action, states = self.model.predict(obs)

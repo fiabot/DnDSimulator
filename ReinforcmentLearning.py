@@ -9,7 +9,7 @@ from tournament import *
 import math
 import sys 
 
-MAX_ACTIONS = 10 
+MAX_ACTIONS = 25
 MAX_INT  = 10 ** 3
 
 def game_hash(game: Game):
@@ -66,7 +66,7 @@ class DnDEnv(gym.Env):
         action_index = action_index % len(avail_actions)
         action = avail_actions[action_index]
         self.game = forward_action(action, creature.name, self.game) 
-        simulate_game(self.game, self.depth_limit)
+        #simulate_game(self.game, self.depth_limit)
 
         while not self.game.is_terminal() and self.game.next_creature().name != self.creature.name: 
             one_step(self.game) 
@@ -77,4 +77,4 @@ class DnDEnv(gym.Env):
         done = terminated or self.depth > self.depth_limit 
         info = {}
 
-        return observation, reward, done, info  
+        return observation, reward, terminated, info  
