@@ -13,7 +13,7 @@ class MonteCarloGameSearch(Creature):
     """
     def __init__(self, ac, hp, speed, modifiers = Modifiers(), features = None, 
                     position = (0,0), name = "Creature", team = "neutral", actions = None, 
-                    immunities = None, resistences = None, depth = 20, trials = 100,  trimming_raito = 0.25,  debug= True, level = 0.5,
+                    immunities = None, resistences = None, depth = 20, trials = 25,  trimming_raito = 0.25,  debug= True, level = 0.5,
                     spell_manager = None, makes_death_saves = False):
         super().__init__(ac, hp, speed, modifiers, features, position, name, team, actions, immunities, resistences, level=level, 
                         spell_manager=spell_manager, makes_death_saves=makes_death_saves)

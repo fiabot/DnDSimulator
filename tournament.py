@@ -54,12 +54,13 @@ def tourament(player_class, monster_class, game_count, manual, min_size = 2, max
             print(f"Time: {end - start:0.4f}")
     return results 
 
-def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max_size = 5, grid_size = 7, debug = False, round_limit = 20):
+def multi_agent_touranment(agent_classes, trial_count, manual, min_size = 2, max_size = 5, grid_size = 6, debug = False, round_limit = 20):
     results = {} 
     map = Grid(grid_size, grid_size, space = 1) 
 
 
-    combinations = itertools.combinations(agent_classes, 2)
+    combinations = list(itertools.combinations(agent_classes, 2)) 
+    combinations += [(a,a) for a in agent_classes]
     
     for i,combo in enumerate(combinations):
         player_class = combo[0]

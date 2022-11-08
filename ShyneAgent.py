@@ -5,7 +5,7 @@ from MonsterManual import *
 import math 
 from GeneralAgentFunctions import * 
 
-class ShyneCreature(Creature):
+class TrimmingCreature(Creature):
     """
     Variation of JinJerry agent that prunes poor preformining solutiosn 
 
