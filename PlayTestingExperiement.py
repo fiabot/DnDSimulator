@@ -193,11 +193,9 @@ def create_random_encounter(difficulty, num_players):
     xp_multiplier = 1
     monsters = []
     old_diff = xp_threshold
-    print("Theshold:", xp_threshold)
 
     while old_diff > 50 and len(possible_cr) >= 1:
         old_diff = abs((unadjusted_xp * xp_multiplier) - xp_threshold) 
-        print("cur xp:", unadjusted_xp * xp_multiplier)
         next_cr = random.choice(possible_cr) 
 
         new_xp = unadjusted_xp + CR_XP[next_cr]

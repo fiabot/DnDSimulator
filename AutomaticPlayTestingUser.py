@@ -29,9 +29,9 @@ while enter_more and len(players) < 5:
     if player_name.lower() == "quit":
         enter_more = False 
     else:
-        if player_name in manual:
+        if player_name.lower() in manual:
             print("Added {} to player team".format(player_name))
-            players.append(deepcopy(manual[player_name]))
+            players.append(deepcopy(manual[player_name.lower()]))
         else:
             print("Creature {} was not found, please add creature first")
 
@@ -50,9 +50,9 @@ while enter_more and len(monsters) < 5:
     if player_name.lower() == "quit":
         enter_more = False 
     else:
-        if player_name in manual:
+        if player_name.loweR() in manual:
             print("Added {} to mosnter team".format(player_name))
-            monsters.append(deepcopy(manual[player_name]))
+            monsters.append(deepcopy(manual[player_name.lower()]))
         else:
             print("Creature {} was not found, please add creature first")
 
