@@ -2,7 +2,7 @@ from DnDToolkit import *
 from JinJerryAgent import JinJerryCreature 
 from MonsterManual import *
 from RuleBasedAgents import AggressiveCreature, ProtectiveCreature
-from ShyneAgent import ShyneCreature 
+#from ShyneAgent import ShyneCreature 
 import jsonpickle
 
 """
@@ -74,7 +74,8 @@ Temp 6
     Level 0.25 * 3 
 
 """
-
+LEVEL_ONE_THES = {"Easy": 25, "Medium": 50, "Hard": 75, "Deadly": 100}
+CR_XP = {"1/8": 25, "1/4": 50, "1/2": 100, "1": 200}
 DIFF_TEMPS = {"Easy": [(3,0,0,0), (1,1,0,0), (0,0,1,0)]}
 DIFF_TEMPS["Medium"] = [(5,0,0,0), (3,1,0,0), (1,2,0,0), (0,1,1,0), (0,0,0,1)] 
 DIFF_TEMPS["Hard"] = [(3,0,1,0), (1,1,1,0), (0,4,0,0), (1,3,0,0),(0, 1, 0, 1), (3,2,0,0)]
@@ -169,6 +170,50 @@ def manual_by_diff():
             diff_man["1"].append(MONSTER_MANUAL[key])
     
     return diff_man 
+def num_mon_to_mult(num_monsters):
+    if num_monsters < 1:
+        return 1 
+    elif num_monsters == 2:
+        return 1.5 
+    elif num_monsters <= 6:
+        return 2 
+    elif num_monsters <= 10:
+        return 2.5
+    elif num_monsters <= 14:
+        return 3
+    else:
+        return 3.5 
+
+def create_random_encounter(difficulty, num_players):
+    manual = manual_by_diff()
+    xp_threshold = LEVEL_ONE_THES[difficulty] * num_players 
+
+    possible_cr = ["1/8", "1/4", "1/2", "1"]
+    unadjusted_xp = 0 
+    xp_multiplier = 1
+    monsters = []
+    old_diff = xp_threshold
+    print("Theshold:", xp_threshold)
+
+    while old_diff > 50 and len(possible_cr) >= 1:
+        old_diff = abs((unadjusted_xp * xp_multiplier) - xp_threshold) 
+        print("cur xp:", unadjusted_xp * xp_multiplier)
+        next_cr = random.choice(possible_cr) 
+
+        new_xp = unadjusted_xp + CR_XP[next_cr]
+        new_mult = num_mon_to_mult(len(monsters) + 1)
+        new_dif = (new_xp * new_mult )- xp_threshold
+
+        if abs(new_dif) < old_diff and new_dif < 50: 
+             monsters.append(random.choice(manual[next_cr])) 
+             unadjusted_xp = new_xp 
+             xp_multiplier = num_mon_to_mult(len(monsters))
+        else:
+            # reduce the max CR if adding a monster makes
+            # encounter too hard, reduce the max cr 
+            possible_cr.pop()
+    return monsters  
+
 
 
 def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, round_limit = 20):
@@ -217,23 +262,22 @@ def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, 
 
     stat_file.close() 
     turn_file.close() 
+if __name__ == "__main__":
+    player_names = ["orc warlock", "elf wizard", "human cleric", "tiefling ranger", "halfing ranger"]
 
-player_names = ["orc warlock", "elf wizard", "human cleric", "tiefling ranger", "halfing ranger"]
+    players = [create_creature(ProtectiveCreature, MANUAL[name]) for name in player_names]
 
-players = [create_creature(ProtectiveCreature, MANUAL[name]) for name in player_names]
+    for i in range(20):
+        print("Easy trial {}".format(i))
+        random_trial_set_diff("easy-" + str(i), ProtectiveCreature, players, 15, "Easy", 20)
 
-for i in range(20):
-    print("Easy trial {}".format(i))
-    random_trial_set_diff("easy-" + str(i), ProtectiveCreature, players, 15, "Easy", 20)
+        print("Medium trial {}".format(i))
+        random_trial_set_diff("medium-" + str(i),ProtectiveCreature, players, 15, "Medium", 20)
 
-    print("Medium trial {}".format(i))
-    random_trial_set_diff("medium-" + str(i),ProtectiveCreature, players, 15, "Medium", 20)
+        print("Hard trial {}".format(i))
+        random_trial_set_diff("hard-" + str(i),ProtectiveCreature, players, 15, "Hard", 20)
 
-    print("Hard trial {}".format(i))
-    random_trial_set_diff("hard-" + str(i),ProtectiveCreature, players, 15, "Hard", 20)
-
-    print("Deadly trial {}".format(i))
-    random_trial_set_diff("deadly-" + str(i), ProtectiveCreature, players, 15, "Deadly", 20)
-
+        print("Deadly trial {}".format(i))
+        random_trial_set_diff("deadly-" + str(i), ProtectiveCreature, players, 15, "Deadly", 20)
 
 
