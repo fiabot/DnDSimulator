@@ -37,6 +37,17 @@ THUNDER = "thunder"
 FORCE_DAMAGE = "force"
 PYSCHIC_DAMAGE = "psychic" 
 
+def set_positions(num_pcs, num_mons):
+    player_pos = []
+    monster_pos = [] 
+    for i in range(num_mons):
+            monster_pos.append((0, i)) # monsters at top left 
+    
+    for i in range(num_pcs): 
+        player_pos.append((7 - 1, 7 - i - 1)) 
+    
+    return player_pos, monster_pos 
+
 def free_moves(speed, creature, game):
     """
     Get all the available moves given
@@ -70,6 +81,23 @@ def is_friend(creature, other):
         return creature.team == other.team 
     except:
         False 
+
+def make_unqiue(creatures):
+    """
+    make all creatures have 
+    unique names 
+    """
+
+    names = {}
+
+    for creature in creatures: 
+        name = creature.name 
+        if name in names:   
+            creature.name = name + str(names[name]) 
+            names[name] += 1 
+        else:
+            names[name] = 1
+
 
 class Dice:
     def __init__(self, dice_string, advantage = 0) -> None:
@@ -434,9 +462,11 @@ class Game():
         set up game given a list of monsters, players 
         and a starting map  
 
-        monster and player names must be unqiue 
+        if monster and player names are unique
+        there names will be changed 
         """
-
+        make_unqiue(players)
+        make_unqiue(monsters)
         self.monsters = monsters 
         self.players = players  
         self.map = map 
@@ -445,6 +475,8 @@ class Game():
         self.create_dict() 
         self.games_played = 0
         self.stat_log = []     
+
+       
 
         self.reset() 
 

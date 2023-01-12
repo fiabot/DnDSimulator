@@ -4,6 +4,7 @@ from MonsterManual import *
 from RuleBasedAgents import AggressiveCreature, ProtectiveCreature
 #from ShyneAgent import ShyneCreature 
 import jsonpickle
+from DMGToolkit import * 
 
 """
 Randomly create 
@@ -74,49 +75,6 @@ Temp 6
     Level 0.25 * 3 
 
 """
-LEVEL_ONE_THES = {"Easy": 25, "Medium": 50, "Hard": 75, "Deadly": 100}
-CR_XP = {"1/8": 25, "1/4": 50, "1/2": 100, "1": 200}
-DIFF_TEMPS = {"Easy": [(3,0,0,0), (1,1,0,0), (0,0,1,0)]}
-DIFF_TEMPS["Medium"] = [(5,0,0,0), (3,1,0,0), (1,2,0,0), (0,1,1,0), (0,0,0,1)] 
-DIFF_TEMPS["Hard"] = [(3,0,1,0), (1,1,1,0), (0,4,0,0), (1,3,0,0),(0, 1, 0, 1), (3,2,0,0)]
-DIFF_TEMPS["Deadly"] = [(2,0,0,1), (2,0,2,0), (0,1,2,0), (0,5,0,0),(0,3,1,0)]
-
-
-def level_to_xp(level):
-    if level == 0.125:
-        return 25 
-    elif level == 0.25:
-        return 50 
-    elif level == 0.5:
-        return 100 
-    else:
-        return 200
-
-def predict_difficuly(monsters):
-    """
-    return predicted difficulty 
-    for 5 players 
-    
-    """
-
-    crs = [level_to_xp(monster.level) for monster in monsters]
-    total_xp = sum(crs)
-
-    if len(monsters) == 2:
-        total_xp *= 1.5
-    elif len(monsters) > 2 and len(monsters) < 7:
-        total_xp *= 2 
-    elif len(monsters) > 7:
-        total_xp *= 2.5 
-    
-    if total_xp < 187:
-        return "Easy"
-    elif total_xp < 312:
-        return "Medium"
-    elif total_xp < 438:
-        return "Hard"
-    else: 
-        return "Deadly"
 
 
 
@@ -127,13 +85,7 @@ def play_random_games(name, agent_class, players, trial_length, round_limit = 20
     diff = predict_difficuly(monsters)
     grid = Grid(7, 7)
 
-    player_pos = []
-    monster_pos = [] 
-    for i in range(len(monsters)):
-            monster_pos.append((0, i)) # monsters at top left 
-    
-    for i in range(len(players)): 
-        player_pos.append((7 - 1, 7 - i - 1)) 
+    player_pos, monster_pos = set_positions(len(players), len(monsters))
     
     game = Game(players, monsters, player_pos, monster_pos, grid)
 
@@ -170,19 +122,8 @@ def manual_by_diff():
             diff_man["1"].append(MONSTER_MANUAL[key])
     
     return diff_man 
-def num_mon_to_mult(num_monsters):
-    if num_monsters < 1:
-        return 1 
-    elif num_monsters == 2:
-        return 1.5 
-    elif num_monsters <= 6:
-        return 2 
-    elif num_monsters <= 10:
-        return 2.5
-    elif num_monsters <= 14:
-        return 3
-    else:
-        return 3.5 
+
+
 
 def create_random_encounter(difficulty, num_players):
     manual = manual_by_diff()
@@ -214,9 +155,14 @@ def create_random_encounter(difficulty, num_players):
 
 
 
-def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, round_limit = 20):
+def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, round_limit = 20, base_folder = "PlayTestingResults"):
+    """
+    Run a random encounter given a set of players 
+    and a desired difficulty  
+    """
     manual = manual_by_diff()
     
+    # create random encounter 
     if difficulty in DIFF_TEMPS:
         temp = random.choice(DIFF_TEMPS[difficulty])
     else:
@@ -230,6 +176,7 @@ def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, 
 
     monsters = [create_creature(agent_class,monster) for monster in monster_names]
 
+    # Create game 
     diff = predict_difficuly(monsters)
     grid = Grid(7, 7)
 
@@ -243,39 +190,43 @@ def random_trial_set_diff(name, agent_class, players, trial_length, difficulty, 
     
     game = Game(players, monsters, player_pos, monster_pos, grid)
 
+    # run games 
     for game_num in range(trial_length):
         game.play_game(round_limit= round_limit)
     
+    # save results to file 
     stats = {"difficulty": diff, "monsters": [monster.name for monster in monsters], "results": game.stat_log} 
      
     actions = {"difficulty": diff, "monsters": [monster.name for monster in monsters], "actions": game.turn_log} 
 
-    stat_file = open("PlayTestingResults/stats_game-"+ name + ".txt", "w")
+    stat_file = open(base_folder + "/stats_game-"+ name + ".txt", "w")
     stats_json = jsonpickle.encode(stats)
     stat_file.write(stats_json)
 
-    turn_file = open("PlayTestingResults/turns_game-"+ name + ".txt", "w")
+    turn_file = open(base_folder + "/turns_game-"+ name + ".txt", "w")
     turn_json = jsonpickle.encode(actions)
     turn_file.write(turn_json)
 
     stat_file.close() 
     turn_file.close() 
+
 if __name__ == "__main__":
+    # run random encounter on set party 
     player_names = ["orc warlock", "elf wizard", "human cleric", "tiefling ranger", "halfing ranger"]
 
     players = [create_creature(ProtectiveCreature, MANUAL[name]) for name in player_names]
 
     for i in range(20):
         print("Easy trial {}".format(i))
-        random_trial_set_diff("easy-" + str(i), ProtectiveCreature, players, 15, "Easy", 20)
+        random_trial_set_diff("easy-" + str(i), ProtectiveCreature, players, 15, "Easy", 20, base_folder = "TEST")
 
         print("Medium trial {}".format(i))
-        random_trial_set_diff("medium-" + str(i),ProtectiveCreature, players, 15, "Medium", 20)
+        random_trial_set_diff("medium-" + str(i),ProtectiveCreature, players, 15, "Medium", 20, base_folder = "TEST")
 
         print("Hard trial {}".format(i))
-        random_trial_set_diff("hard-" + str(i),ProtectiveCreature, players, 15, "Hard", 20)
+        random_trial_set_diff("hard-" + str(i),ProtectiveCreature, players, 15, "Hard", 20, base_folder = "TEST")
 
         print("Deadly trial {}".format(i))
-        random_trial_set_diff("deadly-" + str(i), ProtectiveCreature, players, 15, "Deadly", 20)
+        random_trial_set_diff("deadly-" + str(i), ProtectiveCreature, players, 15, "Deadly", 20,  base_folder = "TEST")
 
 

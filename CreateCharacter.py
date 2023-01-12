@@ -48,8 +48,8 @@ def create_character():
 
     print("Tell us information about your character")
 
-    name = input("name: ")
-    level = int(input("level: "))
+    name = input("name: ").lower()
+    level = float(input("level: "))
     hp = int(input("max hit points: "))
     speed = int(input("speed (in grid units): "))
     ac = int(input("Armor class: ")) 
