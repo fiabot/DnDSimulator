@@ -3,7 +3,9 @@ from DMGToolkit import *
 from RuleBasedAgents import * 
 #from MonsterManual import * 
 from ShyneAgent import TrimmingCreature
-
+import functools
+from multiprocessing import Pool 
+import time 
 
 PARTY_LIST = {} 
 
@@ -33,7 +35,7 @@ def get_rows_csv(filename):
 
 
 
-def run_experiment(agent_class, player_names, monster_names, num_trials = 20, grid_size = 7, round_limit = 20): 
+def run_experiment(agent_class, player_names, monster_names, num_trials = 10, grid_size = 7, round_limit = 20): 
     """
     run a single experiement given an agent class
     a set of player names 
@@ -74,16 +76,21 @@ def get_monsters(row):
     return monster_names 
 
 
-def run_experiment_file(rows, num_players, agent_class, num_trials = 20): 
+def run_experiment_file(rows, num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20): 
     party_sets = PARTY_LIST[num_players]
-    fields = ["Enconter Code", "Number of Players", "DMG difficulty", "DMG xp"]
+    fields = ["Encounter Code", "Number of Players", "DMG difficulty", "DMG xp"]
     encounter_results = {}
 
     for party in party_sets:
         fields += [party + " ave success", party + "ave damage"] 
 
+        if debug: 
+            print("Running party: {}.".format(party))
+
         for row in rows:
             code = row[0]
+            if debug: 
+                print("\t Running encounter: {}.".format(code))
             try: 
                 monster_names = get_monsters(row)
                 if not code in encounter_results:
@@ -95,9 +102,86 @@ def run_experiment_file(rows, num_players, agent_class, num_trials = 20):
             except Exception as e: 
                 print(e)
                 encounter_results[code] += [-1, -1]
-            
-    return fields, list(encounter_results.values()) 
+    return fields, list(encounter_results.values())
 
+def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20): 
+    party_sets = PARTY_LIST[num_players]
+
+    encounter_results = {"Encounter Code": row[0]}
+    encounter_results["Number of Players"] = num_players
+
+    monster_names = get_monsters(row)
+
+    encounter_results["DMG difficulty"] = predict_difficuly(monster_names, just_names = True)
+    encounter_results["DMG xp"] = get_adjusted_xp(monster_names, just_names = True)
+    if debug: 
+        print("Running encounter: {}.".format(row[0]))
+
+    for party in party_sets:
+  
+
+        try: 
+            
+        
+            average, log = run_experiment(agent_class, party_sets[party], monster_names, num_trials = num_trials)
+            encounter_results[party + " ave success"] = average["success"]
+            encounter_results[party + "ave damage"] = average["total damage"]
+             
+        except Exception as e: 
+            print(e)
+            encounter_results[party + " ave success"] = -1 
+            encounter_results[party + "ave damage"] = -1
+            
+    return encounter_results
+
+def make_fields(num_players):
+    fields = ["Encounter Code", "Number of Players", "DMG difficulty", "DMG xp"]
+    party_sets = PARTY_LIST[num_players] 
+    for party in party_sets:
+        fields += [party + " ave success", party + "ave damage"] 
+    
+    return fields 
+
+def results_to_row(fields, results):
+    row = []
+    for field in fields:
+        row += [results[field]]
+    
+    return row 
+
+
+
+def config_run_func(num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20):
+    return functools.partial(run_row, num_players = num_players, agent_class = agent_class, num_trials = num_trials, 
+                        debug = debug, grid_size= grid_size, round_limit = round_limit)
+
+
+def run_parallel(num_processes, func, elements):
+    """
+    run function in parrallel
+    with n processes and given element 
+    list 
+    """
+    return_list = [] 
+    with Pool(num_processes) as pool:
+        # create a set of word hashes
+        return_list = pool.map(func, elements)
+    return return_list
+
+def post_processes(fields, parallel_list):
+    """
+    extract fields and rows 
+    from parallel results 
+    """
+    
+    rows = [results_to_row(fields, li) for li in parallel_list]
+    return rows 
+
+def run_experiment_parallel(rows, num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20, num_processes = 4):
+    foo = config_run_func(num_players, agent_class, num_trials, debug, grid_size, round_limit) 
+    fields = make_fields(num_players)
+    results = run_parallel(num_processes, foo, rows)
+    return fields, post_processes(fields, results)
 
 def write_to_file(header, data, filename):
     # open the file in the write mode
@@ -115,6 +199,13 @@ def write_to_file(header, data, filename):
 if __name__ == "__main__":
     filename = "PlayTestingExperimentFiles/EncounterList3.csv"
     fields, rows = get_rows_csv(filename)
-    fields, rows = run_experiment_file(rows, 5, AggressiveCreature) 
-    write_to_file(fields, rows, "PlayTestingExperimentFiles/AggressiveTest1.csv")
+    start = time.perf_counter()
+    fields, rows = run_experiment_parallel(rows, 5, TrimmingCreature, debug = False, num_trials = 10) 
+    end = time.perf_counter()
+    print(end - start)
+    write_to_file(fields, rows, "PlayTestingExperimentFiles/TrimingTest2.csv")
+    #foo = config_run_func(5, AggressiveCreature, debug = True)
+    
+    #foo(rows)
+
 
