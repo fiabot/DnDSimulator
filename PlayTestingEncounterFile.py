@@ -200,10 +200,10 @@ if __name__ == "__main__":
     filename = "PlayTestingExperimentFiles/EncounterList3.csv"
     fields, rows = get_rows_csv(filename)
     start = time.perf_counter()
-    fields, rows = run_experiment_parallel(rows, 5, TrimmingCreature, debug = False, num_trials = 10) 
+    fields, rows = run_experiment_file(rows, 5, AggressiveCreature, debug = False, num_trials = 20) 
     end = time.perf_counter()
     print(end - start)
-    write_to_file(fields, rows, "PlayTestingExperimentFiles/TrimingTest2.csv")
+    write_to_file(fields, rows, "PlayTestingExperimentFiles/Aggressive3.csv")
     #foo = config_run_func(5, AggressiveCreature, debug = True)
     
     #foo(rows)
