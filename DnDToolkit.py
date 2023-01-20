@@ -615,7 +615,7 @@ class Game():
         self.round = 0 
         self.turn_log = [] 
         
-        self.stats = {"success": 0, "total damage" : 0, "ending health": 0, 
+        self.stats = {"success": 0, "total damage" : 0, "normalized damage": 0, "ending health": 0, 
                     "deaths": 0, "amount asleep": 0, "spells": 0, "time":0} 
         
     
@@ -745,7 +745,7 @@ class Game():
         else:
             percent_spells = spells_used / total_spells
         
-        return total_damage / max_health , current_health / max_health, deaths, uncons_amount, percent_spells
+        return total_damage / len(self.players),  total_damage / max_health , current_health / max_health, deaths, uncons_amount, percent_spells
    
     def set_stats(self, winner, time):
         """
@@ -755,9 +755,10 @@ class Game():
         if winner == PLAYERTEAM:
             self.stats["success"] += 1 
         self.stats["time"] = time 
-        damage, health, deaths, uncons_amount, spells   = self.get_damage_stats()
+        total_damage, norm_damage, health, deaths, uncons_amount, spells   = self.get_damage_stats()
         self.stats["amount asleep"] = uncons_amount 
-        self.stats["total damage"] = damage 
+        self.stats["total damage"] = total_damage 
+        self.stats["normalized damage"] = norm_damage 
         self.stats["ending health"] = health 
         self.stats["spells"] = spells 
         if winner != PLAYERTEAM:

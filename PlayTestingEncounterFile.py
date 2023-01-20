@@ -6,6 +6,7 @@ from ShyneAgent import TrimmingCreature
 import functools
 from multiprocessing import Pool 
 import time 
+import statistics 
 
 PARTY_LIST = {} 
 
@@ -104,6 +105,12 @@ def run_experiment_file(rows, num_players, agent_class, num_trials = 20, debug =
                 encounter_results[code] += [-1, -1]
     return fields, list(encounter_results.values())
 
+def get_std(log, field):
+    stat_list = [stat[field] for stat in log]
+    return statistics.stdev(stat_list)
+
+
+
 def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20): 
     party_sets = PARTY_LIST[num_players]
 
@@ -119,13 +126,15 @@ def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_
 
     for party in party_sets:
   
-
         try: 
-            
-        
             average, log = run_experiment(agent_class, party_sets[party], monster_names, num_trials = num_trials)
             encounter_results[party + " ave success"] = average["success"]
-            encounter_results[party + "ave damage"] = average["total damage"]
+            encounter_results[party + " success std"] = get_std(log, "success")
+            encounter_results[party + " total damage"] = average["total damage"]
+            encounter_results[party + " total damage std"] = get_std(log, "total damage") 
+            encounter_results[party + " normalized damage std"] = average["normalized damage"]
+            encounter_results[party + " normalized damage"] = get_std(log, "normalized damage")
+            encounter_results[party + " log"] = log 
              
         except Exception as e: 
             print(e)
@@ -138,9 +147,18 @@ def make_fields(num_players):
     fields = ["Encounter Code", "Number of Players", "DMG difficulty", "DMG xp"]
     party_sets = PARTY_LIST[num_players] 
     for party in party_sets:
-        fields += [party + " ave success", party + "ave damage"] 
+        fields += [party + " ave success", party + " success std", party + " total damage", party + " total damage std", party + " normalized damage", party + " normalized damage std"] 
     
     return fields 
+
+def get_logs(results):
+    logs = {}
+    for r in results:
+        for key in r: 
+            if "log" in key: 
+                logs[r["Encounter Code"] + " " + key] = r[key] 
+    return logs 
+
 
 def results_to_row(fields, results):
     row = []
@@ -181,7 +199,7 @@ def run_experiment_parallel(rows, num_players, agent_class, num_trials = 20, deb
     foo = config_run_func(num_players, agent_class, num_trials, debug, grid_size, round_limit) 
     fields = make_fields(num_players)
     results = run_parallel(num_processes, foo, rows)
-    return fields, post_processes(fields, results)
+    return fields, post_processes(fields, results), get_logs(results)
 
 def write_to_file(header, data, filename):
     # open the file in the write mode
@@ -200,10 +218,13 @@ if __name__ == "__main__":
     filename = "PlayTestingExperimentFiles/EncounterList3.csv"
     fields, rows = get_rows_csv(filename)
     start = time.perf_counter()
-    fields, rows = run_experiment_file(rows, 5, AggressiveCreature, debug = False, num_trials = 20) 
+    fields, rows, logs = run_experiment_parallel(rows, 5, AggressiveCreature, debug = False, num_trials = 20, num_processes= 14) 
+    log_file = open("PlayTestingExperimentFiles/Aggressive-logs", "w")
+    log_file.write(jsonpickle.encode(logs))
+    log_file.close()
     end = time.perf_counter()
     print(end - start)
-    write_to_file(fields, rows, "PlayTestingExperimentFiles/Aggressive3.csv")
+    write_to_file(fields, rows, "PlayTestingExperimentFiles/Aggressive-variation.csv")
     #foo = config_run_func(5, AggressiveCreature, debug = True)
     
     #foo(rows)
