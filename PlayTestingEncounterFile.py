@@ -109,6 +109,14 @@ def get_std(log, field):
     stat_list = [stat[field] for stat in log]
     return statistics.stdev(stat_list)
 
+def monster_crs(monster_names):
+    monster_stats = names_to_chars(monster_names) 
+    crs = []
+
+    for i in monster_stats:
+        crs.append(i["level"])
+    return crs 
+
 
 
 def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20): 
@@ -121,6 +129,8 @@ def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_
 
     encounter_results["DMG difficulty"] = predict_difficuly(monster_names, just_names = True)
     encounter_results["DMG xp"] = get_adjusted_xp(monster_names, just_names = True)
+    encounter_results["Num Monsters"] = len(monster_names)
+    encounter_results["Challenge Ratings"] = monster_crs(monster_names)
     if debug: 
         print("Running encounter: {}.".format(row[0]))
 
@@ -144,7 +154,7 @@ def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_
     return encounter_results
 
 def make_fields(num_players):
-    fields = ["Encounter Code", "Number of Players", "DMG difficulty", "DMG xp"]
+    fields = ["Encounter Code", "Number of Players", "DMG difficulty", "DMG xp", "Num Monsters", "Challenge Ratings"]
     party_sets = PARTY_LIST[num_players] 
     for party in party_sets:
         fields += [party + " ave success", party + " success std", party + " total damage", party + " total damage std", party + " normalized damage", party + " normalized damage std"] 
@@ -219,12 +229,12 @@ if __name__ == "__main__":
     fields, rows = get_rows_csv(filename)
     start = time.perf_counter()
     fields, rows, logs = run_experiment_parallel(rows, 5, AggressiveCreature, debug = False, num_trials = 20, num_processes= 14) 
-    log_file = open("PlayTestingExperimentFiles/Aggressive-logs", "w")
+    log_file = open("PlayTestingExperimentFiles/test-logs.txt", "w")
     log_file.write(jsonpickle.encode(logs))
     log_file.close()
     end = time.perf_counter()
     print(end - start)
-    write_to_file(fields, rows, "PlayTestingExperimentFiles/Aggressive-variation.csv")
+    write_to_file(fields, rows, "PlayTestingExperimentFiles/test-meta.csv")
     #foo = config_run_func(5, AggressiveCreature, debug = True)
     
     #foo(rows)
