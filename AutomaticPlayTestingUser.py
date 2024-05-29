@@ -1,7 +1,7 @@
 from DnDToolkit import *
 from JinJerryAgent import JinJerryCreature 
 from MonsterManual import *
-from ShyneAgent import ShyneCreature 
+from ShyneAgent import TrimmingCreature 
 from RuleBasedAgents import * 
 
 # choose agent 
@@ -14,7 +14,7 @@ if agent_num == 1:
 elif agent_num == 2: 
     agent = JinJerryCreature 
 else:
-    agent = ShyneCreature 
+    agent = TrimmingCreature
 
 manual = create_manual(agent, MANUAL)
 # get player list 
@@ -50,7 +50,7 @@ while enter_more and len(monsters) < 5:
     if player_name.lower() == "quit":
         enter_more = False 
     else:
-        if player_name.loweR() in manual:
+        if player_name.lower() in manual:
             print("Added {} to mosnter team".format(player_name))
             monsters.append(deepcopy(manual[player_name.lower()]))
         else:

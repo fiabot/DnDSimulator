@@ -10,11 +10,15 @@ import statistics
 
 PARTY_LIST = {} 
 
-PARTY_LIST[5] = {"Balanced 1": ["Dwarf cleric" , "Elf wizard 2",  "Halfing rogue",  "Human fighter",  "Human figher 2"], \
+"""PARTY_LIST[5] = {"Balanced 1": ["Dwarf cleric" , "Elf wizard 2",  "Halfing rogue",  "Human fighter",  "Human figher 2"], \
                 "Balanced 2": ['orc warlock', 'halfing ranger',' gnome sorcerer', 'human cleric', 'Human fighter'], \
                 "Unbalanced 1" : ['elf wizard','gnome sorcerer', 'elf wizard 2', 'orc warlock', 'elf druid'],\
                 "Unbalanced 2" : ['halfing ranger', 'halfing rogue','human fighter','human figher 2', "tiefling ranger"],\
                 "Random" : ['human figher 2', 'elf druid', 'gnome sorcerer', 'human fighter','tiefling ranger'],\
+                }""" 
+
+PARTY_LIST[5] = {"Balanced 1": ["Dwarf cleric" , "Elf wizard 2",  "Halfing rogue",  "Human fighter",  "Human figher 2"], \
+                "Unbalanced 1" : ['elf wizard','gnome sorcerer', 'elf wizard 2', 'orc warlock', 'elf druid'],\
                 }
 
 def get_rows_csv(filename):
@@ -72,7 +76,7 @@ def get_monsters(row):
     """
     get monster names from a experiement rows 
     """
-    monster_names = row[2:]
+    monster_names = row[1:]
     monster_names = [monster for monster in monster_names if len(monster) > 0] # remove empty strings 
     return monster_names 
 
@@ -121,35 +125,34 @@ def monster_crs(monster_names):
 
 def run_row(row, num_players, agent_class, num_trials = 20, debug = False, grid_size = 7, round_limit = 20): 
     party_sets = PARTY_LIST[num_players]
+    try: 
+        encounter_results = {"Encounter Code": row[0]}
+        encounter_results["Number of Players"] = num_players
 
-    encounter_results = {"Encounter Code": row[0]}
-    encounter_results["Number of Players"] = num_players
+        monster_names = get_monsters(row)
 
-    monster_names = get_monsters(row)
+        encounter_results["DMG difficulty"] = predict_difficuly(monster_names, just_names = True)
+        encounter_results["DMG xp"] = get_adjusted_xp(monster_names, just_names = True)
+        encounter_results["Num Monsters"] = len(monster_names)
+        encounter_results["Challenge Ratings"] = monster_crs(monster_names)
+        if debug: 
+            print("Running encounter: {}.".format(row[0]))
 
-    encounter_results["DMG difficulty"] = predict_difficuly(monster_names, just_names = True)
-    encounter_results["DMG xp"] = get_adjusted_xp(monster_names, just_names = True)
-    encounter_results["Num Monsters"] = len(monster_names)
-    encounter_results["Challenge Ratings"] = monster_crs(monster_names)
-    if debug: 
-        print("Running encounter: {}.".format(row[0]))
-
-    for party in party_sets:
-  
-        try: 
-            average, log = run_experiment(agent_class, party_sets[party], monster_names, num_trials = num_trials)
-            encounter_results[party + " ave success"] = average["success"]
-            encounter_results[party + " success std"] = get_std(log, "success")
-            encounter_results[party + " total damage"] = average["total damage"]
-            encounter_results[party + " total damage std"] = get_std(log, "total damage") 
-            encounter_results[party + " normalized damage std"] = average["normalized damage"]
-            encounter_results[party + " normalized damage"] = get_std(log, "normalized damage")
-            encounter_results[party + " log"] = log 
-             
-        except Exception as e: 
-            print(e)
-            encounter_results[party + " ave success"] = -1 
-            encounter_results[party + "ave damage"] = -1
+        for party in party_sets:
+    
+        
+                average, log = run_experiment(agent_class, party_sets[party], monster_names, num_trials = num_trials)
+                encounter_results[party + " ave success"] = average["success"]
+                encounter_results[party + " success std"] = get_std(log, "success")
+                encounter_results[party + " total damage"] = average["total damage"]
+                encounter_results[party + " total damage std"] = get_std(log, "total damage") 
+                encounter_results[party + " normalized damage std"] = average["normalized damage"]
+                encounter_results[party + " normalized damage"] = get_std(log, "normalized damage")
+                encounter_results[party + " log"] = log 
+    except Exception as e: 
+        print(e)
+        encounter_results = {}
+        encounter_results = {}
             
     return encounter_results
 
@@ -194,6 +197,7 @@ def run_parallel(num_processes, func, elements):
     with Pool(num_processes) as pool:
         # create a set of word hashes
         return_list = pool.map(func, elements)
+    return_list = [result for result in return_list if result] 
     return return_list
 
 def post_processes(fields, parallel_list):
@@ -225,16 +229,16 @@ def write_to_file(header, data, filename):
 
 
 if __name__ == "__main__":
-    filename = "PlayTestingExperimentFiles/EncounterList3.csv"
+    filename = "PlayTestingExperimentFiles/Encounters2.csv"
     fields, rows = get_rows_csv(filename)
     start = time.perf_counter()
-    fields, rows, logs = run_experiment_parallel(rows, 5, AggressiveCreature, debug = False, num_trials = 20, num_processes= 14) 
-    log_file = open("PlayTestingExperimentFiles/test-logs.txt", "w")
+    fields, rows, logs = run_experiment_parallel(rows, 5, TrimmingCreature, debug = False, num_trials = 40, num_processes= 14) 
+    log_file = open("PlayTestingExperimentFiles/generalEncounters-logs.txt", "w")
     log_file.write(jsonpickle.encode(logs))
     log_file.close()
     end = time.perf_counter()
     print(end - start)
-    write_to_file(fields, rows, "PlayTestingExperimentFiles/test-meta.csv")
+    write_to_file(fields, rows, "PlayTestingExperimentFiles/generalEncounters-meta.csv")
     #foo = config_run_func(5, AggressiveCreature, debug = True)
     
     #foo(rows)

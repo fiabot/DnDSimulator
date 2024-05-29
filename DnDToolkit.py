@@ -781,13 +781,14 @@ class Game():
         
         return ave_stats
 
-    def play_game(self, round_limit = 50, debug = False, log = True):
+    def play_game(self, round_limit = 50, debug = False, log = True, reset = True):
         """
         play one game 
         and return the winner 
         and how many rounds were completed 
         """
-        self.reset() 
+        if reset: 
+            self.reset() 
         start = time.perf_counter()
 
         if debug:

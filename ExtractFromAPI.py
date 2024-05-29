@@ -385,7 +385,7 @@ def json_to_char(dict):
         spell_man2 = None 
         is_impl2 = True 
 
-    # hopefully there is not spells in both features and actiona 
+    # hopefully there is not spells in both features and action
     if spell_man2 is None and spell_man1 is None:
         spell_man = None
     elif not spell_man1 is None:
