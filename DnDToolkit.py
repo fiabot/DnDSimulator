@@ -269,8 +269,9 @@ class Grid():
         sets positions to None 
         and removes any pieces 
         """
-        for piece in self.pieces: 
-            self.clear_position(piece.position)
+        for w in range(self.width):
+            for h in range(self.height):
+                self.clear_position((h,w))
         
         self.pieces = [] 
 
@@ -602,14 +603,15 @@ class Game():
             player_health += "\n {} : (hp: {}, can move : {}, can act : {}) ".format(player, player.hp, player.can_move(), player.can_act())
         print(player_health)
     
-    def reset(self):
+    def reset(self, long_rest = True):
         """
         reset game state 
         to starting state 
         """
         self.set_teams() 
         self.set_up_board()
-        self.long_rest() 
+        if(long_rest):
+            self.long_rest() 
         self.order = self.roll_initiative() 
         self.turn = 0 
         self.round = 0 
@@ -781,14 +783,14 @@ class Game():
         
         return ave_stats
 
-    def play_game(self, round_limit = 50, debug = False, log = True, reset = True):
+    def play_game(self, round_limit = 50, debug = False, log = True, long_rest = True):
         """
         play one game 
         and return the winner 
         and how many rounds were completed 
         """
-        if reset: 
-            self.reset() 
+    
+        self.reset(long_rest= long_rest) 
         start = time.perf_counter()
 
         if debug:
