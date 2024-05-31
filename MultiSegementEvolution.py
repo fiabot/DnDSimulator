@@ -278,7 +278,7 @@ if __name__ == "__main__":
     print(encounter)
     print(history.top_fitness)
 
-    folder = "EvolutionTests/StageTest2"
+    folder = "EvolutionTests/StageTest2g"
 
     encounter_json = jsonpickle.encode(encounter)
     history_json = jsonpickle.encode(history)
