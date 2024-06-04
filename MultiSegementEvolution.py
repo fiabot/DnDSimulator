@@ -121,6 +121,7 @@ class StagesChromosome:
             num += 1 
         
         return s
+    
 
     
 
