@@ -29,7 +29,7 @@ def run_experiment(agent_class, player_names, stages, num_trials = 10, round_lim
     for stage in stages: 
 
 
-        monster_names = stage["names"]
+        monster_names = stage["names"] + stage["lockedMons"]
         grid_size = stage["size"]
 
         monster_stats = names_to_chars(monster_names)
@@ -61,9 +61,10 @@ def run_experiment(agent_class, player_names, stages, num_trials = 10, round_lim
     return average_stats, game_logs 
 
 
-class StagesChromosome:
+class MI_StagesChromosome:
     # randomly generate multiple stages of encounters each with 1 to 5 monsters 
-    def __init__(self, party, monsters_to_select, ideal_difficulties, difficulty_stat = "normalized damage",  stages= None, agent = AggressiveCreature, add_rate = 0.5, grid_sizes = None):
+    def __init__(self, party, stage_settings, difficulty_stat = "normalized damage",  stages= None, agent = AggressiveCreature, add_rate = 0.5, grid_sizes = None):
+        ideal_difficulties = [float(stage["difficulty"]) for stage in stage_settings]
         if grid_sizes == None:
             self.grid_sizes = [10] * len(ideal_difficulties)
         else:
@@ -71,15 +72,21 @@ class StagesChromosome:
         self.party = party 
         self.agent = agent 
         self.ideal_difficulties = ideal_difficulties
-        self.monsters_to_select = monsters_to_select
+        self.stage_settings = stage_settings
+        #self.monsters_to_select =[stage["possMons"] for stage in stage_settings]
         if stages is None:
             self.stages = []
-            for i in range(len(ideal_difficulties)):
+            i = 0 
+            for stage in stage_settings:
                 monsters = []
-                for j in range(random.randint(1, 5)):
-                    monsters.append(random.choice(monsters_to_select))
-                stage = {"names":monsters, "size": self.grid_sizes[i]}
+                stage["minMons"] = int(stage["minMons"])
+                stage["maxMons"] = int(stage["maxMons"])
+                stage["difficulty"] = float(stage["difficulty"])
+                for j in range(random.randint(stage["minMons"], stage["maxMons"])):
+                    monsters.append(random.choice(stage["possMons"]))
+                stage = {"names":monsters, "lockedMons": stage["lockedMons"], "size": self.grid_sizes[i]}
                 self.stages.append(stage)
+                i += 1 
         else:
             self.stages = stages  
         
@@ -91,33 +98,38 @@ class StagesChromosome:
         stages = deepcopy(self.stages)
         for i in range(amount):
             index = random.randint(0, len(stages) - 1)
+            settings = self.stage_settings[index]
             monsters = stages[index]["names"]
             to_add = None 
-            if len(monsters) <= 1:
+            if len(monsters) <= settings["minMons"]:
                 to_add = True 
-            elif len(monsters) >= stages[index]["size"]:
+            elif len(monsters) >= settings["maxMons"]:
                 to_add = False 
             else: 
                 to_add = random.randrange(0, 1) < self.add_rate 
             
 
             if to_add:
-                new_monster = random.choice(self.monsters_to_select)
+                new_monster = random.choice(settings["possMons"])
                 monsters.append(new_monster)
             else:
                 monster = random.choice(monsters)
                 monsters.remove(monster)
         
-        return StagesChromosome(self.party, self.monsters_to_select, self.ideal_difficulties, stages=stages, agent = self.agent, add_rate=self.add_rate, grid_sizes=self.grid_sizes, difficulty_stat = self.difficulty_stat)
+        return MI_StagesChromosome(self.party, self.stage_settings, stages=stages, agent = self.agent, add_rate=self.add_rate, grid_sizes=self.grid_sizes, difficulty_stat = self.difficulty_stat)
 
     def __str__(self):
         num  = 1 
         s = ""
         for stage in self.stages:
             s += "Stage: {}\n".format(num)
+            s += "\tlocked mons\n"
+            for name in stage["lockedMons"]:
+                s += "\t\t{}\n".format(name)
+            s += "\tadded mons\n"
             for name in stage["names"]:
-                s += "\t{}\n".format(name)
-            s+= "\tgrid size:{}\n".format(self.grid_sizes[num -1])
+                s += "\t\t{}\n".format(name)
+            s+= "\tgrid size:{}\n".format(stage["size"])
             num += 1 
         
         return s
@@ -145,8 +157,8 @@ class StagesChromosome:
                 child2_stages.append(my_stages[i])
                 child1_stages.append(their_stages[i])
         
-        child1 = StagesChromosome(self.party, self.monsters_to_select, self.ideal_difficulties, stages=child1_stages, agent = self.agent, add_rate=self.add_rate, grid_sizes=self.grid_sizes, difficulty_stat = self.difficulty_stat)
-        child2 = StagesChromosome(self.party, self.monsters_to_select, self.ideal_difficulties, stages=child2_stages, agent = self.agent, add_rate=self.add_rate, grid_sizes=self.grid_sizes, difficulty_stat = self.difficulty_stat)
+        child1 = MI_StagesChromosome(self.party, self.stage_settings,  stages=child1_stages, agent = self.agent, add_rate=self.add_rate, grid_sizes=self.grid_sizes, difficulty_stat = self.difficulty_stat)
+        child2 = MI_StagesChromosome(self.party, self.stage_settings, stages=child2_stages, agent = self.agent, add_rate=self.add_rate, grid_sizes=self.grid_sizes, difficulty_stat = self.difficulty_stat)
 
         return child1, child2
     # run playtests and return how close 
@@ -191,12 +203,12 @@ class History:
         self.top_fitness.append(population[0][0])
 
 
-def evolution(party, monsters, ideal_difficulty, gens, popsize, eltistism, x_rate, mut_rate, debug= True):
+def mi_evolution(party, stage_settings, gens, popsize, eltistism, x_rate, mut_rate, debug= True):
 
     # intial popultion 
     population = []
     for i in range(popsize):
-        encounter = StagesChromosome(party, monsters, ideal_difficulty)
+        encounter = MI_StagesChromosome(party, stage_settings)
         population.append((encounter.fitness(), encounter))
     
     sort_population(population)
@@ -245,17 +257,34 @@ if __name__ == "__main__":
     monsters = list(MONSTER_MANUAL.keys())
     ideal_difficulty = [0.2, 0.4, 0.6]
 
+    stage_settings =[ {
+        "lockedMons": ["bandit", "dire wolf"], 
+        "possMons": monsters,
+        "minMons" : 2 , 
+        "maxMons": 3 , 
+        "difficulty": 0.3 
+
+    }, {
+        "lockedMons": ["camel"], 
+        "possMons": monsters,
+        "minMons" : 4 , 
+        "maxMons": 6 , 
+        "difficulty": 0.3 
+
+    }  ]
     """stages = [{"names": ["bandit", "bandit"], "size":10}, {"names": ["gray ooze"], "size":10}, {"names": ["noble"], "size":10}]
 
     stats, logs = run_experiment(AggressiveCreature, party, stages)
     print(len(stats))
     print(stats)"""
 
-    encounter1 = StagesChromosome(party, monsters, ideal_difficulty)
-    encounter2 = StagesChromosome(party, monsters, ideal_difficulty)
+    encounter1 = MI_StagesChromosome(party, stage_settings)
+    encounter2 = MI_StagesChromosome(party, stage_settings)
 
     print("encounter1")
     print(str(encounter1))
+
+    print(encounter1.fitness(debug=True))
     print("encounter2")
     print(str(encounter2))
     print("\n\n")
@@ -275,11 +304,11 @@ if __name__ == "__main__":
     print(encounter1.fitness(debug=True))
     print(encounter1.fitness(debug=True))
 
-    encounter, history = evolution(party, monsters, ideal_difficulty, 100, 300, 5, 1, 0.6)
-    print(encounter)
+    encounter, history = mi_evolution(party, stage_settings, 10, 10, 5, 1, 0.6)
+    print(encounter[1])
     print(history.top_fitness)
 
-    folder = "EvolutionTests/StageTest2g"
+    """folder = "EvolutionTests/StageTest2g"
 
     encounter_json = jsonpickle.encode(encounter)
     history_json = jsonpickle.encode(history)
@@ -290,4 +319,4 @@ if __name__ == "__main__":
 
     file2 = open(folder + "/encounter.json", "w")
     file2.write(encounter_json)
-    file2.close()
+    file2.close()"""

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, url_for, jsonify
 from MultiSegementEvolution import evolution 
+from MixedIntiativeEvolution import mi_evolution
 import json 
 from MonsterManual import MONSTER_MANUAL , PLAYER_MANUAL
 import requests
@@ -65,7 +66,46 @@ def evolve():
    if not party is None and not monsters is None and not ideal_difficulty is None:
       encounter, history = evolution(party, monsters, ideal_difficulty, generations, popsize,elitism , 0.5, 1)
       #print(encounter)
-      response = jsonify(encounter.stages)
+      response = jsonify({"fitness": encounter[0], "stages": encounter[1].stages})
+      return response
+   else:
+      response = jsonify(message = "invalid input")
+      return response
+   
+
+@app.route('/mi-evolve', methods=['POST'])
+@cross_origin()
+def mi_evolve():
+   request_data = request.get_json() 
+
+
+   party = None 
+   stage_settings= None 
+
+   generations = 5 
+   popsize = 30 
+   elitism = 3 
+
+   if "party" in request_data:
+      party = request_data["party"]
+   
+   if "stageSettings" in request_data:
+      stage_settings = request_data["stageSettings"]
+   
+   
+   if "generations" in request_data:
+      generations = int(request_data["generations"])
+   
+   if "popsize" in request_data:
+      popsize  = int(request_data["popsize"])
+   
+   if "elitism" in request_data:
+      elitism = int(request_data["elitism"])
+
+   if not party is None and not stage_settings is None:
+      encounter, history = mi_evolution(party, stage_settings, generations, popsize,elitism , 0.5, 1)
+      #print(encounter)
+      response = jsonify({"fitness": encounter[0], "stages": encounter[1].stages})
       return response
    else:
       response = jsonify(message = "invalid input")
