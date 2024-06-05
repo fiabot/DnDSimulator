@@ -2,17 +2,28 @@ from flask import Flask, render_template, request, url_for, jsonify
 from MultiSegementEvolution import evolution 
 from MixedIntiativeEvolution import mi_evolution
 import json 
-from MonsterManual import MONSTER_MANUAL , PLAYER_MANUAL
+from MonsterManual import MONSTER_MANUAL , PLAYER_MANUAL, MANUAL
+from FriendlyJson import nice_json 
 import requests
 from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 #cors = CORS(app)
 #app.config['CORS_HEADERS'] = 'Content-Type'
 
-@app.route('/result')
-def result():
-   dict = {'phy':50,'che':60,'maths':70}
-   return render_template('result.html', result = dict)
+@app.route('/stats')
+@cross_origin()
+def get_creature_stats():
+   name = request.args.get('name')
+   name = name.lower()
+   if not name in MANUAL:
+      response = jsonify(message = "Name not in manual")
+      return response
+   else:
+      ugly = MANUAL[name] 
+      pretty = nice_json(ugly)
+      response = jsonify(pretty)
+      return response 
+
 
 
 @app.route('/send')

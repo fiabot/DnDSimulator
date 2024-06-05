@@ -69,7 +69,7 @@ Aggressive : As a bonus action, the orc can move up to its speed toward a hostil
 
 Iron Scent : The rust monster can pinpoint, by scent, the location of ferrous metal within 30 feet of it. 
 
-Rust Metal : Any nonmagical weapon made of metal that hits the rust monster corrodes. After dealing damage, the weapon takes a permanent and cumulative -1 penalty to damage rolls. If its penalty drops to -5, the weapon is destroyed. Non magical ammunition made of metal that hits the rust monster is destroyed after dealing damage. 
+Rust Metal : Any nonmagical weapon made of metal that hits the rust monster corrodes. After dealing damage, the weapon takes a permanent and cumulative -1 penalty to damage rolls. If its penalty drops to -5, the weapon is destroyed. Nonmagical ammunition made of metal that hits the rust monster is destroyed after dealing damage. 
 
 Blood Frenzy : The swarm has advantage on melee attack rolls against any creature that doesn't have all its hit points. 
 

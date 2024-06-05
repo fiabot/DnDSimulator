@@ -320,6 +320,8 @@ def get_mods(dict):
     
     if "wisdom" in dict:
         mods[WIS_STR] = score_to_mod(dict["wisdom"])
+    if "constitution" in dict: 
+        mods[CON_STR] = score_to_mod(dict["constitution"])
     
     return Modifiers(mods[DEX_STR], mods, mods)
 
@@ -360,7 +362,8 @@ def json_to_char(dict):
     dict for this simulation 
     """
     name = dict["name"]
-    ac = dict["armor_class"]
+    acs = [armor["value"] for armor in dict["armor_class"]]
+    ac = max(acs)
     hit_points  = dict["hit_points"]
     
 
@@ -397,7 +400,7 @@ def json_to_char(dict):
     monster = {"ac":ac, "hp":hit_points, "speed": speed, "actions": actions, "name": name, 
                     "modifiers": mods, "level": challenge_rating, "resistances": resistences, 
                     "immunities": immunities, "features":feat_manager, "condition imun": condition_immunities,
-                    "spells": spell_man, "fully_impl": is_impl1 and is_impl2}
+                    "spells": spell_man, "fully_impl": is_impl1 and is_impl2, 'makes saves':False}
     return monster 
 
 def get_all_from_level(level):
@@ -416,7 +419,7 @@ def get_all_from_level(level):
         print(json_dict["name"])
         char_dict = json_to_char(json_dict)
         
-        characters[char_dict["name"]] = char_dict
+        characters[char_dict["name"].lower()] = char_dict
     return characters 
 
 def write_features():
