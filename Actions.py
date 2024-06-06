@@ -24,6 +24,9 @@ class Action:
     
     def __str__(self):
         return self.name 
+    
+    def desc(self):
+        return "Add action description"
 
 class NullAction(Action):
     """
@@ -40,6 +43,8 @@ class NullAction(Action):
         
         return actions 
 
+    def desc(self):
+        "Do nothing this turn"
 class Attack(Action):
     """
         Basic attack where a hit roll
@@ -67,6 +72,16 @@ class Attack(Action):
         if side_effects is None:
             side_effects = [] 
         self.side_effects = side_effects 
+    
+    def desc(self):
+        feet = self.dist * 10 
+        desc = "{} Weapon Attack: +{} to hit, reach {} ft., one target. Hit: {} {} damage.".format(self.attack_type, self.hit_bonus, feet, self.damage_dice.dice_string, self.damage_type)
+
+        for effect in self.side_effects:
+            print(effect)
+            desc += effect.desc()
+        
+        return desc 
     
     def execute(self, game, debug = False):
         """
@@ -177,6 +192,10 @@ class MultiAttack(Action):
         name = "Multiattack with: " + " and ".join(attack_names)
         super().__init__(name)
     
+    def desc(self):
+        attack_names = [attack.name for attack in self.attacks]
+        return "Attack with {} in one turn".format(" and ".join(attack_names))
+    
     def smallest_range_attack(self):
         """
         To determine available attacks, 
@@ -238,6 +257,17 @@ class TwoHanded(Attack):
         self.large_damage =Dice(damage_dice_string_large)
         self.close_range = dist_small
         self.wide_range = dist_large
+
+    def desc(self):
+        small_feet = self.close_range * 10 
+        large_feet = self.wide_range * 10 
+        desc =  "{} Weapon Attack: +{} to hit, Hit: {} {} damage within {} ft., {} {} damage within {} ft.".format(
+                            self.attack_type, self.hit_bonus, self.large_damage.dice_string, self.damage_type, small_feet, self.small_damage.dice_string, self.damage_type, large_feet )
+        
+        for effect in self.side_effects:
+            desc += effect.desc()
+        
+        return desc 
     def execute(self, game, debug = False):
         """
         Find distance between attacker 
@@ -307,3 +337,8 @@ class SideEffect:
             if debug:
                 print("The {} condition was added to creature {} from attack".format(self.inflicted_condition.name, target.name))
             target.add_condition(self.inflicted_condition)
+    def __str__(self):
+        if self.can_save:
+            return "The targeted creature to becomes {} on a failed DC {} {} saving throw.".format(self.inflicted_condition.name, self.save_dc, self.save_type)
+        else:
+            return "The targeted creature to become {}.".format(self.inflicted_condition.name)

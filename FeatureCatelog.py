@@ -138,34 +138,77 @@ def savage(hit, dice, attack, attacker, game):
     
     return hit 
 
-SNEAK_ATTACK = DamageFeature("sneak attack", friend_in_range, bonus_damage("2d6"))
-DARK_DEVOTION = SavingThrowFeature("dark devotion", charm_fright, 1, 0) 
-WISDOM_ADV = SkillCheckFeature("keen sight", wisd, 1 , 20)
-RELENTLESS_ENDUR = DeathFeature("relentless endurance", has_relent, use_relent)
-CHARGE = DamageFeature("charge", create_does_charge(2), charge_damage("2d6",  STR_STR, 13))
-RAMPAGE = DeathFeature("rampage", can_rampage, rampage) 
-PACK_TACTICS = AttackFeature("pack tactics", friend_in_range, 1, 0)
-RELENTLESS = DeathFeature("relentless", create_damage_less_than(7), get_one_hp)
-TRAMPLING_CHARGE = DamageFeature("charge", create_does_charge(2), charge_damage("0d6",  STR_STR, 14))
-SURE_FOOTED = SavingThrowFeature("sure-footed",  prone_saving, 1, 0)
-POUNCE = DamageFeature("pounce", create_does_charge(2), charge_damage("0d6",  STR_STR, 13))
-DEATH_BURST = DeathFeature("death burst",death_is_true, death_burst_fun)
-UNDEAD_FORTITUDE = DeathFeature("relentless",  fortitude_condition, get_one_hp)
-MARTIAL_ADVANTAGE = DamageFeature("matrial advantage", friend_non_incapac, bonus_damage("2d6"))
-TWO_HEADED = SavingThrowFeature("two-header", can_use_two_header, 1, 0)
-DUERGAR_RESIL = SavingThrowFeature("duergar resilience", can_use_drug, 1, 0)
-BRAVE = SavingThrowFeature("brave", is_fright, 1, 0)
-GNOME_CUNNING = SavingThrowFeature("gnome cunning", can_use_gnome_cun, 1, 0)
-FEY_ANCESTORY = SavingThrowFeature("fey ancestory", is_char, 1, 0)
-MAGIC_REISTANCE = SavingThrowFeature("magic resistance", is_magic, 1, 0)
-BRUTE = DamageFeature("brute", damage_is_true, added_damage_funct)
-LUCKY = ReRollFeature("lucky", re_roll_below(1))
-GREAT_WEAPON_FIGHTING = ReRollFeature("great weapon fighting", re_roll_below(2))
-SAVAGE_ATTACK = ReRollFeature("savage attack", savage)
+sneak_desc = "When an ally is in range, add an additional 2d6 of damage to your attack"
+SNEAK_ATTACK = DamageFeature("sneak attack", friend_in_range, bonus_damage("2d6"), desc= sneak_desc)
 
-feature_list = [SNEAK_ATTACK, DARK_DEVOTION , RELENTLESS_ENDUR, CHARGE, RAMPAGE, PACK_TACTICS, RELENTLESS, 
-                TRAMPLING_CHARGE, SURE_FOOTED, POUNCE, DEATH_BURST, UNDEAD_FORTITUDE, MARTIAL_ADVANTAGE , 
-                  TWO_HEADED , DUERGAR_RESIL, BRAVE, GNOME_CUNNING, MAGIC_REISTANCE, BRUTE, LUCKY, GREAT_WEAPON_FIGHTING, SAVAGE_ATTACK]
+dark_desc =" The creature has advantage on saving throws against being charmed or frightened."
+DARK_DEVOTION = SavingThrowFeature("dark devotion", charm_fright, 1, 0, desc= dark_desc) 
+
+keen_desc= "The creature has advantage on Wisdom (Perception) checks."
+WISDOM_ADV = SkillCheckFeature("keen sight", wisd, 1 , 20)
+
+relent_desc = "When the creature is reduced to 0 HP, you can drop to 1 HP instead once per long rest."
+RELENTLESS_ENDUR = DeathFeature("relentless endurance", has_relent, use_relent, desc=relent_desc)
+
+charge_desc = "If the creature moves at least 10ft before an attack, it can roll a DC 13 strength check and deal and additional 2d6 of damage."
+CHARGE = DamageFeature("charge", create_does_charge(2), charge_damage("2d6",  STR_STR, 13), desc = charge_desc)
+
+
+rampage_desc = "When the creature reduces a creature to 0 hit points with a melee attack on its turn, the creature can take a bonus action to move up to half its speed and make a bite attack."
+RAMPAGE = DeathFeature("rampage", can_rampage, rampage, desc = rampage_desc) 
+
+pack_desc = "The creature has advantage on an attack roll against a creature if at least one of the creatures's allies is within 5 feet of the creature."
+PACK_TACTICS = AttackFeature("pack tactics", friend_in_range, 1, 0, desc = pack_desc)
+
+relent_desc2 = "If the creature takes 7 damage or less that would reduce it to 0 hit points, it is reduced to 1 hit point instead."
+RELENTLESS = DeathFeature("relentless", create_damage_less_than(7), get_one_hp, desc = relent_desc2)
+
+#TRAMPLING_CHARGE = DamageFeature("charge", create_does_charge(2), charge_damage("0d6",  STR_STR, 14))
+sure_desc = "The creature has advantage on Strength and Dexterity saving throws made against effects that would knock it prone."
+SURE_FOOTED = SavingThrowFeature("sure-footed",  prone_saving, 1, 0, desc = sure_desc)
+
+pounce_desc = "If the creature moves at least 20 feet straight toward a creature and then hits it with a attack on the same turn, that target must succeed on a DC 12 Strength saving throw or be knocked prone."
+POUNCE = DamageFeature("pounce", create_does_charge(2), charge_damage("0d6",  STR_STR, 13), desc = pounce_desc)
+
+death_desc = "When the creature dies, it explodes. Each creature within 5 feet of the creature must succeed on a DC 10 Dexterity saving throw or take 4 (1d8) fire damage."
+DEATH_BURST = DeathFeature("death burst",death_is_true, death_burst_fun, desc = death_desc)
+
+undead_desc = "If damage reduces the creature to 0 hit points, it must make a Constitution saving throw with a DC of 5 + the damage taken, unless the damage is radiant or from a critical hit. On a success, the creature drops to 1 hit point instead."
+UNDEAD_FORTITUDE = DeathFeature("undead fortitude",  fortitude_condition, get_one_hp, desc = undead_desc)
+
+martial_desc = "Once per turn, the creature can deal an extra 7 (2d6) damage to a creature it hits with a weapon attack if that creature is within 5 feet of an ally of the creature that isn’t incapacitated."
+MARTIAL_ADVANTAGE = DamageFeature("martial advantage", friend_non_incapac, bonus_damage("2d6"), desc = martial_desc)
+
+headed_desc  = " The creature has advantage on Wisdom (Perception) checks and on saving throws against being blinded, charmed, deafened, frightened, stunned, or knocked unconscious."
+TWO_HEADED = SavingThrowFeature("two-headed", can_use_two_header, 1, 0, desc= headed_desc)
+
+duegar_resil = "The creature has advantage on saving throws against poison, spells, and illusions, as well as to resist being charmed or paralyzed."
+DUERGAR_RESIL = SavingThrowFeature("duergar resilience", can_use_drug, 1, 0, desc= duegar_resil)
+
+brave_desc ="The creature has advantage on saving throws against being frightened."
+BRAVE = SavingThrowFeature("brave", is_fright, 1, 0, desc=brave_desc)
+
+cunn_desc = "The creature has advantage on all Intelligence, Wisdom, and Charisma saving throws against magic."
+GNOME_CUNNING = SavingThrowFeature("gnome cunning", can_use_gnome_cun, 1, 0, desc = cunn_desc)
+
+fey_desc = "The creature has advantage on Charisma saving throws"
+FEY_ANCESTORY = SavingThrowFeature("fey ancestry", is_char, 1, 0, desc = fey_desc)
+
+magic_resist = "The creature has advantage on saving throws against magical attacks or effects"
+MAGIC_REISTANCE = SavingThrowFeature("magic resistance", is_magic, 1, 0, desc = magic_resist)
+
+
+#BRUTE = DamageFeature("brute", damage_is_true, added_damage_funct)
+lucky_desc = 'The creature can re-roll and attack roll if they rolled  a 1'
+LUCKY = ReRollFeature("lucky", re_roll_below(1), desc = lucky_desc)
+
+weapon_desc = 'The creature can re-roll and attack roll if they rolled 2 or below'
+GREAT_WEAPON_FIGHTING = ReRollFeature("great weapon fighting", re_roll_below(2), desc = weapon_desc)
+savag_desc = "When the creature scores a critical hit with a melee weapon attack, they can roll one of the weapon's damage dice one additional time and add it to the extra damage of the critical hit"
+SAVAGE_ATTACK = ReRollFeature("savage attacks", savage, desc = savag_desc)
+
+feature_list = [SNEAK_ATTACK, DARK_DEVOTION , RELENTLESS_ENDUR, CHARGE, RAMPAGE, PACK_TACTICS, RELENTLESS,  SURE_FOOTED, POUNCE, DEATH_BURST, UNDEAD_FORTITUDE, MARTIAL_ADVANTAGE , 
+                  TWO_HEADED , DUERGAR_RESIL, BRAVE, GNOME_CUNNING, MAGIC_REISTANCE, LUCKY, GREAT_WEAPON_FIGHTING, SAVAGE_ATTACK, FEY_ANCESTORY ]
 
 ALL_FEATURES = {} 
 
